@@ -3,7 +3,7 @@ import { basename } from "path";
 
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
-import { includes, keys, noop, uniq } from "lodash";
+import { includes, isEmpty, keys, noop, uniq } from "lodash";
 import * as hash from "object-hash";
 import * as uuid from "uuid";
 
@@ -149,69 +149,71 @@ export class Uploader {
 
   /**
    * Uploads files through FSS.
-   * @param job Job to retry
+   * @param jobId ID of job to retry
    * @param copyProgressCb callback to report copy progress to
    */
   public async retryUpload(
     jobId: string,
     copyProgressCb: CopyProgressCallBack = noop
-  ): Promise<Promise<UploadResponse>[]> {
+  ): Promise<UploadResponse[]> {
+    // Request job from JSS & validate if it is retryable
     const job: JSSJob<UploadServiceFields> = await this.jss.getJob(jobId);
     await this.validateUploadJobForRetry(job);
 
     // Start new upload jobs that will replace the current one
     const newJobServiceFields = {
       groupId: getUUID(),
-      originalJobId: job.jobId,
+      originalJobId: jobId,
     };
 
     // Create a separate upload for each file in this job
     // One job for multiple files is deprecated, this is here
     // for backwards-compatibility
-    return (job.serviceFields?.files || []).map(async (file) => {
-      // Get the upload directory
-      const newUploadResponse = await this.fss.startUpload(
-        file.file.originalPath,
-        file,
-        newJobServiceFields
-      );
+    const results = await Promise.all(
+      (job.serviceFields?.files || []).map(async (file) => {
+        try {
+          // Get the upload directory
+          const newUploadResponse = await this.fss.startUpload(
+            file.file.originalPath,
+            file,
+            newJobServiceFields
+          );
 
-      // Wait for upload job from FSS to exist in JSS to prevent
-      // a race condition when trying to create child jobs. Ideally this
-      // would not be necessary if the app interacted with JSS asynchronously
-      // more detail in FUA-218 - Sean M 02/11/21
-      let attempts = 11;
-      let jobExists = await this.jss.existsById(newUploadResponse.jobId);
-      // Continously try to see if the job exists up to 11 times over ~1 minute
-      while (!jobExists) {
-        if (attempts <= 0) {
-          throw new Error("unable to verify upload job started, try again");
+          // Ensure new job exists before trying to continue
+          await this.jss.waitForJobToExist(newUploadResponse.jobId);
+
+          // Update the current job with information about the replacement
+          const oldJobPatch = {
+            serviceFields: {
+              error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
+              replacementJobIds: uniq([
+                ...(job?.serviceFields?.replacementJobIds || []),
+                newUploadResponse.jobId,
+              ]),
+            },
+          };
+          await this.jss.updateJob(jobId, oldJobPatch, false);
+
+          // Perform upload with new job and current job's metadata, forgoing the current job
+          return await this.uploadFiles(
+            newUploadResponse,
+            { [file.file.originalPath]: file },
+            basename(file.file.originalPath),
+            copyProgressCb
+          );
+        } catch (error) {
+          return { error };
         }
-        attempts--;
-        // Wait 5 seconds before trying again to give JSS room to breathe
-        await new Promise((r) => setTimeout(r, 5 * 1_000));
-        jobExists = await this.jss.existsById(newUploadResponse.jobId);
+      })
+    );
+
+    // This ensures each upload promise is able to complete before
+    // evaluating any failures (similar to Promise.allSettled)
+    return results.map((result) => {
+      if (result.error) {
+        throw new Error(result.error);
       }
-
-      // Update the current job with information about the replacement
-      const oldJobPatch = {
-        serviceFields: {
-          error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
-          replacementJobIds: uniq([
-            ...(job?.serviceFields?.replacementJobIds || []),
-            newUploadResponse.jobId,
-          ]),
-        },
-      };
-      await this.jss.updateJob(job.jobId, oldJobPatch, false);
-
-      // Perform upload with new job and current job's metadata, forgoing the current job
-      return this.uploadFiles(
-        newUploadResponse,
-        { [file.file.originalPath]: file },
-        basename(file.file.originalPath),
-        copyProgressCb
-      );
+      return result;
     });
   }
 
@@ -235,9 +237,9 @@ export class Uploader {
       );
     }
 
-    if (!job.serviceFields || !job.serviceFields.files) {
+    if (!job.serviceFields || isEmpty(job.serviceFields.files)) {
       throw new UnrecoverableJobError(
-        "Upload job is missing important information"
+        "Missing crucial upload data (serviceFields.files)"
       );
     }
 

@@ -3,9 +3,9 @@ import { expect } from "chai";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
 import {
   getMockStateWithHistory,
-  mockFailedUploadJob,
   mockSelection,
   mockState,
+  mockSuccessfulUploadJob,
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../../state/test/mocks";
@@ -14,13 +14,13 @@ import { getCanSubmitUpload, getUploadInProgress } from "../selectors";
 
 describe("AddCustomData selectors", () => {
   describe("getCanSubmitUpload", () => {
-    it("returns true if selected job and job failed", () => {
+    it("returns true if selected job and job successful", () => {
       const result = getCanSubmitUpload({
         ...nonEmptyStateForInitiatingUpload,
         selection: getMockStateWithHistory({
           ...mockSelection,
           hasNoPlateToUpload: true,
-          job: mockFailedUploadJob,
+          job: mockSuccessfulUploadJob,
         }),
       });
       expect(result).to.be.true;
@@ -35,36 +35,6 @@ describe("AddCustomData selectors", () => {
         metadata: {
           ...nonEmptyStateForInitiatingUpload.metadata,
           originalUpload: {},
-        },
-      });
-      expect(result).to.be.true;
-    });
-    it("returns false if there are requests in progress related to uploading that job", () => {
-      const result = getCanSubmitUpload({
-        ...nonEmptyStateForInitiatingUpload,
-        feedback: {
-          ...nonEmptyStateForInitiatingUpload.feedback,
-          requestsInProgress: [`${AsyncRequest.INITIATE_UPLOAD}-file1`],
-        },
-      });
-      expect(result).to.be.false;
-    });
-    it("returns false if there are requests in progress related to updating file metadata for that job", () => {
-      const result = getCanSubmitUpload({
-        ...nonEmptyStateForInitiatingUpload,
-        feedback: {
-          ...nonEmptyStateForInitiatingUpload.feedback,
-          requestsInProgress: [`${AsyncRequest.UPDATE_FILE_METADATA}-file1`],
-        },
-      });
-      expect(result).to.be.false;
-    });
-    it("returns true if requestsInProgress does not contain requests related to uploading the current job or updating file metadata", () => {
-      const result = getCanSubmitUpload({
-        ...nonEmptyStateForInitiatingUpload,
-        feedback: {
-          ...nonEmptyStateForInitiatingUpload.feedback,
-          requestsInProgress: [`${AsyncRequest.INITIATE_UPLOAD}-other`],
         },
       });
       expect(result).to.be.true;

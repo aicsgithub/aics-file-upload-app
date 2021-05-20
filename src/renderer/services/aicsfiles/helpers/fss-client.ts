@@ -4,6 +4,7 @@ import * as path from "path";
 import axios, { AxiosRequestConfig } from "axios";
 import * as humps from "humps";
 import { values, castArray } from "lodash";
+import * as hash from "object-hash";
 
 import { LocalStorage } from "../../../types";
 import HttpCacheClient from "../../http-cache-client";
@@ -50,7 +51,7 @@ export class FSSClient extends HttpCacheClient {
         md5: {},
         files: [metadata],
         type: UPLOAD_TYPE,
-        lastModified: { [filePath]: fileStats.mtime.toJSON() },
+        lastModified: { [hash.MD5(filePath)]: fileStats.mtime.toJSON() },
       },
     };
     const response = await this.post<AicsSuccessResponse<StartUploadResponse>>(

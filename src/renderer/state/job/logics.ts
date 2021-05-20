@@ -76,7 +76,7 @@ export const handleAbandonedJobsLogic = createLogic({
 
           try {
             await fms.retryUpload(
-              updatedJob,
+              updatedJob.jobId,
               handleUploadProgress(fileNames, (progress) =>
                 dispatch(updateUploadProgressInfo(updatedJob.jobId, progress))
               )

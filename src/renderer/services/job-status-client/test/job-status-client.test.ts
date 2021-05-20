@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createStubInstance, createSandbox, stub } from "sinon";
+import { createStubInstance, createSandbox, stub, useFakeTimers } from "sinon";
 
 import JobStatusClient from "../";
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
@@ -157,6 +157,33 @@ describe("JobStatusClient", () => {
 
       const jobExists = await jobStatusClient.existsById("some_job");
       expect(jobExists).to.be.false;
+    });
+  });
+
+  describe("waitForJobToExist", () => {
+    it("rejects if job never exists", async () => {
+      const clock = useFakeTimers();
+      const jobId = "abc123";
+
+      // (sanity-check) test no-error case
+      sandbox.replace(
+        httpClient,
+        "get",
+        stub().resolves(makeAxiosResponse(mockJobResponse))
+      );
+      let promise = jobStatusClient.waitForJobToExist(jobId);
+      await clock.tickAsync(60_000);
+      await promise;
+      sandbox.restore();
+
+      // Arrange
+      sandbox.replace(httpClient, "get", stub().rejects(badGatewayResponse));
+
+      // Act / Assert
+      promise = jobStatusClient.waitForJobToExist(jobId);
+      await clock.tickAsync(60_000);
+      expect(promise).to.be.rejectedWith(badGatewayResponse);
+      clock.restore();
     });
   });
 

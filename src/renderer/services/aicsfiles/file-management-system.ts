@@ -1,6 +1,6 @@
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
-import { isEmpty, noop } from "lodash";
+import { noop } from "lodash";
 
 import { LocalStorage } from "../../types";
 import { LabkeyClient } from "../index";
@@ -14,7 +14,6 @@ import {
   UNRECOVERABLE_JOB_ERROR,
 } from "./constants";
 import { InvalidMetadataError } from "./errors";
-import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
 import { CustomMetadataQuerier } from "./helpers/custom-metadata-querier";
 import { FSSClient } from "./helpers/fss-client";
 import { CopyProgressCallBack, Uploader } from "./helpers/uploader";
@@ -161,7 +160,7 @@ export class FileManagementSystem {
   public async validateMetadataAndGetUploadDirectory(
     filePath: string,
     metadata: UploadMetadata,
-    serviceFields: Partial<UploadServiceFields>
+    serviceFields: Partial<UploadServiceFields> = {}
   ): Promise<StartUploadResponse> {
     Logger.get(AICSFILES_LOGGER).info("Received uploadFiles request", metadata);
     if (!(await this.fs.exists(filePath))) {
@@ -182,7 +181,16 @@ export class FileManagementSystem {
       );
     }
 
-    return this.fss.startUpload(filePath, metadata, serviceFields);
+    const response = await this.fss.startUpload(
+      filePath,
+      metadata,
+      serviceFields
+    );
+
+    // Ensure upload job exists before ensuring upload has started
+    await this.jobStatusClient.waitForJobToExist(response.jobId);
+
+    return response;
   }
 
   /***
@@ -193,7 +201,6 @@ export class FileManagementSystem {
    * http://confluence.corp.alleninstitute.org/display/SF/Metadata+Structure+for+Files+in+FMS
    * @param jobName Used to identify messages sent by aicsfiles.
    * @param copyProgressCb Optional callback that takes total bytes copied as param and does something with it
-   * @param copyProgressCbThrottleMs minimum amount of ms between calls to copyProgressCb
    */
   public async uploadFiles(
     startUploadResponse: StartUploadResponse,
@@ -218,40 +225,31 @@ export class FileManagementSystem {
     }
   }
 
+  /**
+   * Retries the given Job as a new upload job marking the given one as replaced
+   * @param jobId ID of job to retry
+   * @param copyProgressCb Callback to send copy progress updates to
+   */
   public async retryUpload(
-    uploadJob: JSSJob,
+    jobId: string,
     copyProgressCb: CopyProgressCallBack = noop
-  ): Promise<Promise<UploadResponse>[]> {
+  ): Promise<UploadResponse[]> {
     this.logger.time("upload");
-    if (!uploadJob.serviceFields || isEmpty(uploadJob.serviceFields.files)) {
-      const message = "Missing crucial upload data (serviceFields.files)";
-      await this.failUpload(
-        uploadJob.jobId,
-        message,
-        JSSJobStatus.UNRECOVERABLE
-      );
-      throw new UnrecoverableJobError(message);
-    }
-    this.logger.info(`Retrying upload for jobId=${uploadJob.jobId}.`);
+    this.logger.info(`Retrying upload for jobId=${jobId}.`);
 
     try {
-      const response = await this.uploader.retryUpload(
-        uploadJob.jobId,
-        copyProgressCb
-      );
+      const response = await this.uploader.retryUpload(jobId, copyProgressCb);
       this.logger.timeEnd("upload");
       return response;
     } catch (e) {
       this.logger.timeEnd("upload");
-      if (e.name === UNRECOVERABLE_JOB_ERROR) {
-        await this.failUpload(
-          uploadJob.jobId,
-          e.message,
-          JSSJobStatus.UNRECOVERABLE
-        );
-      } else {
-        await this.failUpload(uploadJob.jobId, e.message);
-      }
+      await this.failUpload(
+        jobId,
+        e.message,
+        e.name === UNRECOVERABLE_JOB_ERROR
+          ? JSSJobStatus.UNRECOVERABLE
+          : JSSJobStatus.FAILED
+      );
       throw e;
     }
   }
