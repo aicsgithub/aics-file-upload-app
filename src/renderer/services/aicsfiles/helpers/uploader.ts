@@ -162,7 +162,7 @@ export class Uploader {
 
     // Start new upload jobs that will replace the current one
     const newJobServiceFields = {
-      groupId: getUUID(),
+      groupId: job.serviceFields?.groupId || getUUID(),
       originalJobId: jobId,
     };
 
@@ -182,25 +182,33 @@ export class Uploader {
           // Ensure new job exists before trying to continue
           await this.jss.waitForJobToExist(newUploadResponse.jobId);
 
-          // Update the current job with information about the replacement
-          const oldJobPatch = {
-            serviceFields: {
-              error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
-              replacementJobIds: uniq([
-                ...(job?.serviceFields?.replacementJobIds || []),
-                newUploadResponse.jobId,
-              ]),
-            },
-          };
-          await this.jss.updateJob(jobId, oldJobPatch, false);
+          try {
+            // Update the current job with information about the replacement
+            const oldJobPatch = {
+              serviceFields: {
+                error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
+                replacementJobIds: uniq([
+                  ...(job?.serviceFields?.replacementJobIds || []),
+                  newUploadResponse.jobId,
+                ]),
+              },
+            };
+            await this.jss.updateJob(jobId, oldJobPatch, false);
 
-          // Perform upload with new job and current job's metadata, forgoing the current job
-          return await this.uploadFiles(
-            newUploadResponse,
-            { [file.file.originalPath]: file },
-            basename(file.file.originalPath),
-            copyProgressCb
-          );
+            // Perform upload with new job and current job's metadata, forgoing the current job
+            return await this.uploadFiles(
+              newUploadResponse,
+              { [file.file.originalPath]: file },
+              basename(file.file.originalPath),
+              copyProgressCb
+            );
+          } catch (error) {
+            await this.jss.updateJob(newUploadResponse.jobId, {
+              status: JSSJobStatus.FAILED,
+              serviceFields: { error: error.message },
+            });
+            throw error;
+          }
         } catch (error) {
           return { error };
         }

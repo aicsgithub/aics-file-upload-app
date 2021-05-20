@@ -119,6 +119,9 @@ export const getJobsForTable = createSelector(
             files: groupIdToJobs[serviceFields.groupId].flatMap(
               (j) => j?.serviceFields?.files || []
             ),
+            result: groupIdToJobs[serviceFields.groupId].flatMap(
+              (j) => j?.serviceFields?.result || []
+            ),
           };
         }
         return {
