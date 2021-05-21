@@ -30,9 +30,9 @@ interface Props {
 }
 
 /**
- * This modal is for creating new annotations. A user can use
+ * This modal is for creating and editing annotations. A user can use
  * this form to create novel annotations of various types that
- * can then be used in their template.
+ * can then be used in their template or edit existing annotations.
  */
 function CreateAnnotationModal(props: Props) {
   const dispatch = useDispatch();
