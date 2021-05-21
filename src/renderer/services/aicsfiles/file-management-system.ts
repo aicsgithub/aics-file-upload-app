@@ -16,8 +16,9 @@ import {
 import { InvalidMetadataError } from "./errors";
 import { CustomMetadataQuerier } from "./helpers/custom-metadata-querier";
 import { FSSClient } from "./helpers/fss-client";
-import { CopyProgressCallBack, Uploader } from "./helpers/uploader";
+import { Uploader } from "./helpers/uploader";
 import {
+  CopyProgressCallBack,
   FileMetadata,
   FileSystemUtil,
   FileToFileMetadata,

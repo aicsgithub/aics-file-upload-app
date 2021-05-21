@@ -113,7 +113,7 @@ export const getJobsForTable = createSelector(
         const originalModified = new Date(job.modified);
         const representativeModified = new Date(representativeJob.modified);
         let serviceFields = representativeJob.serviceFields;
-        if (serviceFields && serviceFields.groupId) {
+        if (serviceFields?.groupId) {
           serviceFields = {
             ...serviceFields,
             files: groupIdToJobs[serviceFields.groupId].flatMap(

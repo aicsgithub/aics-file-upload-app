@@ -7,8 +7,8 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { TIME_DISPLAY_CONFIG } from "../../components/JobOverviewDisplay";
 import StatusCircle from "../../components/StatusCircle";
+import { TIME_DISPLAY_CONFIG } from "../../constants";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,

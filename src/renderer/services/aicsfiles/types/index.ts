@@ -296,3 +296,9 @@ export interface FileSystemUtil {
   exists: (path: PathLike) => Promise<boolean>;
   stat: (path: PathLike, options?: StatOptions) => Promise<Stats | BigIntStats>;
 }
+
+export type CopyProgressCallBack = (
+  originalFilePath: string,
+  bytesCopied: number,
+  totalBytes: number
+) => void;

@@ -2,6 +2,7 @@ import { Alert } from "antd";
 import classNames from "classnames";
 import * as React from "react";
 
+import { TIME_DISPLAY_CONFIG } from "../../constants";
 import {
   FAILED_STATUSES,
   JSSJob,
@@ -14,15 +15,6 @@ interface Props {
   className?: string;
   job: JSSJob;
 }
-
-export const TIME_DISPLAY_CONFIG = Object.freeze({
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "short",
-  weekday: "short",
-  year: "numeric",
-});
 
 const determineError = (job: JSSJob): string => {
   const error = job?.serviceFields?.error || "Upload Failed";

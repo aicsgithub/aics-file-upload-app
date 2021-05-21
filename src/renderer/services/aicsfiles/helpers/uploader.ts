@@ -23,6 +23,7 @@ import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import { AddMetadataStep } from "../steps/add-metadata-step";
 import { CopyFilesStep } from "../steps/copy-files-step";
 import {
+  CopyProgressCallBack,
   FileSystemUtil,
   FSSResponseFile,
   StartUploadResponse,
@@ -47,12 +48,6 @@ export const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
   return uuid.v1().replace(/-/g, "");
 };
-
-export type CopyProgressCallBack = (
-  originalFilePath: string,
-  bytesCopied: number,
-  totalBytes: number
-) => void;
 
 /**
  * This class is responsible for uploading files through FSS.
