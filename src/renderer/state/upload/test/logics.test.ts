@@ -218,6 +218,16 @@ describe("Upload logics", () => {
       ).to.be.true;
       expect(actions.list.find((a) => a.type === INITIATE_UPLOAD_SUCCEEDED)).to
         .not.be.undefined;
+      // Assert that each upload used the same groupId
+      const groupIds = new Set(
+        fms.validateMetadataAndGetUploadDirectory
+          .getCalls()
+          .map((call) => call.args[2]?.groupId)
+      );
+      expect(groupIds).to.be.lengthOf(1);
+      expect(groupIds).to.not.be.lengthOf(
+        fms.validateMetadataAndGetUploadDirectory.callCount
+      );
     });
 
     it("sets error alert given validation error", async () => {

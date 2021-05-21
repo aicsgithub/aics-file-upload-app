@@ -18,6 +18,7 @@ import {
   getIsSafeToExit,
   getJobIdToUploadJobMap,
   getJobsForTable,
+  getUploadGroupToUploads,
 } from "../selectors";
 
 describe("Job selectors", () => {
@@ -196,6 +197,45 @@ describe("Job selectors", () => {
         },
       });
       expect(isSafeToExit).to.be.true;
+    });
+  });
+
+  describe("getUploadGroupToUploads", () => {
+    it("groups uploads by serviceFields.groupId", () => {
+      const groupId1 = "first-group-id";
+      const groupId2 = "second-group-id";
+      const job1 = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          groupId: groupId1,
+        },
+      };
+      const job2 = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockSuccessfulUploadJob.serviceFields,
+          groupId: groupId2,
+        },
+      };
+      const job3 = {
+        ...mockWorkingUploadJob,
+        serviceFields: {
+          ...mockWorkingUploadJob,
+          groupId: groupId1,
+        },
+      };
+      const actual = getUploadGroupToUploads({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [job1, job2, job3],
+        },
+      });
+      expect(actual).to.deep.equal({
+        [groupId1]: [job1, job3],
+        [groupId2]: [job2],
+      });
     });
   });
 
