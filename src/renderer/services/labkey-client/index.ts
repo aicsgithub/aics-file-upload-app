@@ -101,7 +101,7 @@ export default class LabkeyClient extends HttpCacheClient {
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "CustomAnnotationJunction",
-      [`query.AnnotationId~eq=${annotationId}`]
+      [`query.AnnotationId~eq=${annotationId}`, `query.maxRows=1`]
     );
     const { rows } = await this.get(query);
     return rows.length !== 0;

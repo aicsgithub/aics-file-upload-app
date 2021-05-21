@@ -1,10 +1,11 @@
-import { Alert, Input, Modal, Select } from "antd";
+import { Alert, Input, Modal, Select, Spin } from "antd";
 import { trim } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormControl from "../../../components/FormControl";
 import { ColumnType } from "../../../services/labkey-client/types";
+import { getRequestsInProgress } from "../../../state/feedback/selectors";
 import { requestAnnotationUsage } from "../../../state/metadata/actions";
 import {
   getAnnotationIdToHasBeenUsed,
@@ -16,7 +17,7 @@ import {
   createAnnotation,
   editAnnotation,
 } from "../../../state/template/actions";
-import { AnnotationDraft } from "../../../state/types";
+import { AnnotationDraft, AsyncRequest } from "../../../state/types";
 
 const { TextArea } = Input;
 
@@ -39,6 +40,7 @@ function CreateAnnotationModal(props: Props) {
   const annotations = useSelector(getAnnotations);
   const annotationTypes = useSelector(getAnnotationTypes);
   const annotationIdToHasBeenUsed = useSelector(getAnnotationIdToHasBeenUsed);
+  const activeRequests = useSelector(getRequestsInProgress);
 
   const [name, setName] = React.useState(props.annotation?.name || "");
   const [description, setDescription] = React.useState(
@@ -55,20 +57,27 @@ function CreateAnnotationModal(props: Props) {
     props.annotation?.annotationOptions || []
   );
 
+  const isLoading = activeRequests.some(
+    (r) => r === AsyncRequest.REQUEST_ANNOTATION_USAGE
+  );
   const isDropdown = annotationType === ColumnType.DROPDOWN;
   const isLookup = !isDropdown && annotationType === ColumnType.LOOKUP;
   const isUniqueName = !annotations.find(
     (a) => a.name.toLowerCase() === name.toLowerCase()
   );
   const isUnusedExistingAnnotation =
-    props.annotation &&
-    (annotationIdToHasBeenUsed[props.annotation.annotationId] || false);
+    !props.annotation ||
+    (Object.prototype.hasOwnProperty.call(
+      annotationIdToHasBeenUsed,
+      props.annotation.annotationId
+    ) &&
+      !annotationIdToHasBeenUsed[props.annotation.annotationId]);
 
   React.useEffect(() => {
     if (props.annotation) {
-      requestAnnotationUsage(props.annotation.annotationId);
+      dispatch(requestAnnotationUsage(props.annotation.annotationId));
     }
-  }, [isUnusedExistingAnnotation, props.annotation]);
+  }, [dispatch, props.annotation]);
 
   function onSave() {
     const lookup = lookups.find((l) => l.tableName === lookupTable);
@@ -83,7 +92,7 @@ function CreateAnnotationModal(props: Props) {
     ) {
       if (props.annotation) {
         dispatch(
-          editAnnotation({
+          editAnnotation(props.annotation.annotationId, {
             name,
             annotationTypeId: type.annotationTypeId,
             description,
@@ -117,17 +126,8 @@ function CreateAnnotationModal(props: Props) {
     title = `Edit Annotation: ${props.annotation.name}`;
   }
 
-  return (
-    <Modal
-      destroyOnClose // Unmount child components
-      width="90%"
-      title={title}
-      visible={props.visible}
-      onOk={onSave}
-      onCancel={props.onClose}
-      okText="Save"
-      maskClosable={false}
-    >
+  const content = (
+    <>
       {!isUnusedExistingAnnotation && (
         <Alert
           showIcon
@@ -194,25 +194,59 @@ function CreateAnnotationModal(props: Props) {
           ))}
         </Select>
       </FormControl>
-      {isDropdown && (
-        <FormControl
-          className={styles.formControl}
-          label="Dropdown Options"
-          error={
-            showErrors && !dropdownOptions.length
-              ? "Dropdown Options are required"
-              : undefined
-          }
-        >
-          <Select
-            mode="tags"
-            className={styles.select}
-            value={dropdownOptions}
-            placeholder="Enter dropdown options"
-            onChange={(v: string[]) => setDropdownOptions(v)}
-          />
-        </FormControl>
-      )}
+      {isDropdown &&
+        (isUnusedExistingAnnotation ? (
+          <FormControl
+            className={styles.formControl}
+            label="Dropdown Options"
+            error={
+              showErrors && !dropdownOptions.length
+                ? "Dropdown Options are required"
+                : undefined
+            }
+          >
+            <Select
+              mode="tags"
+              className={styles.select}
+              value={dropdownOptions}
+              placeholder="Enter dropdown options"
+              onChange={(v: string[]) => setDropdownOptions(v)}
+            />
+          </FormControl>
+        ) : (
+          <>
+            <FormControl
+              className={styles.formControl}
+              label="Existing Dropdown Options"
+            >
+              <Select
+                disabled
+                mode="tags"
+                className={styles.select}
+                value={props.annotation?.annotationOptions || []}
+                onChange={(v: string[]) => setDropdownOptions(v)}
+              />
+            </FormControl>
+            <FormControl
+              className={styles.formControl}
+              label="New Dropdown Options"
+            >
+              <Select
+                mode="tags"
+                className={styles.select}
+                value={dropdownOptions?.filter(
+                  (ao) => !props.annotation?.annotationOptions?.includes(ao)
+                )}
+                placeholder="Enter new dropdown options"
+                onChange={(v: string[]) =>
+                  setDropdownOptions(
+                    v.concat(props.annotation?.annotationOptions || [])
+                  )
+                }
+              />
+            </FormControl>
+          </>
+        ))}
       {isLookup && (
         <FormControl
           className={styles.formControl}
@@ -238,6 +272,28 @@ function CreateAnnotationModal(props: Props) {
               ))}
           </Select>
         </FormControl>
+      )}
+    </>
+  );
+
+  return (
+    <Modal
+      destroyOnClose // Unmount child components
+      width="90%"
+      title={title}
+      visible={props.visible}
+      onOk={onSave}
+      onCancel={props.onClose}
+      okText="Save"
+      maskClosable={false}
+    >
+      {isLoading ? (
+        <div className={styles.spinContainer}>
+          <div>Loading annotation...</div>
+          <Spin />
+        </div>
+      ) : (
+        content
       )}
     </Modal>
   );

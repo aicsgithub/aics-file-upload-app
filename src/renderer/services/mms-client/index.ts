@@ -10,7 +10,7 @@ import { Annotation } from "../labkey-client/types";
 import { AicsSuccessResponse, HttpClient } from "../types";
 
 import {
-  CreateAnnotationRequest,
+  AnnotationMetadataRequest,
   GetPlateResponse,
   SaveTemplateRequest,
   Template,
@@ -108,10 +108,22 @@ export default class MMSClient extends HttpCacheClient {
   }
 
   public async createAnnotation(
-    annotationRequest: CreateAnnotationRequest
+    annotationRequest: AnnotationMetadataRequest
   ): Promise<Annotation> {
     const url = `${mmsURL}/1.0/annotation/`;
     const response = await this.post<AicsSuccessResponse<Annotation>>(
+      url,
+      annotationRequest
+    );
+    return response.data[0];
+  }
+
+  public async editAnnotation(
+    annotationId: number,
+    annotationRequest: AnnotationMetadataRequest
+  ): Promise<Annotation> {
+    const url = `${mmsURL}/1.0/annotation/${annotationId}`;
+    const response = await this.put<AicsSuccessResponse<Annotation>>(
       url,
       annotationRequest
     );

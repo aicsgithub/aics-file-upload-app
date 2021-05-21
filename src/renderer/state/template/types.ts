@@ -1,6 +1,6 @@
 import { Annotation, Audited } from "../../services/labkey-client/types";
 import {
-  CreateAnnotationRequest,
+  AnnotationMetadataRequest,
   Template,
   TemplateAnnotation,
 } from "../../services/mms-client/types";
@@ -35,7 +35,15 @@ export interface ClearTemplateHistoryAction {
 }
 
 export interface CreateAnnotationAction {
-  payload: CreateAnnotationRequest;
+  payload: AnnotationMetadataRequest;
+  type: string;
+}
+
+export interface EditAnnotationAction {
+  payload: {
+    annotationId: number;
+    metadata: AnnotationMetadataRequest;
+  };
   type: string;
 }
 
