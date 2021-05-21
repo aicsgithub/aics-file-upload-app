@@ -5,7 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import FormControl from "../../../components/FormControl";
 import { ColumnType } from "../../../services/labkey-client/types";
+import { requestAnnotationUsage } from "../../../state/metadata/actions";
 import {
+  getAnnotationIdToHasBeenUsed,
   getAnnotations,
   getAnnotationTypes,
   getLookups,
@@ -36,9 +38,12 @@ function CreateAnnotationModal(props: Props) {
   const lookups = useSelector(getLookups);
   const annotations = useSelector(getAnnotations);
   const annotationTypes = useSelector(getAnnotationTypes);
+  const annotationIdToHasBeenUsed = useSelector(getAnnotationIdToHasBeenUsed);
 
   const [name, setName] = React.useState(props.annotation?.name || "");
-  const [description, setDescription] = React.useState("");
+  const [description, setDescription] = React.useState(
+    props.annotation?.description || ""
+  );
   const [showErrors, setShowErrors] = React.useState(false);
   const [lookupTable, setLookupTable] = React.useState<string | undefined>(
     props.annotation?.lookupTable
@@ -55,7 +60,15 @@ function CreateAnnotationModal(props: Props) {
   const isUniqueName = !annotations.find(
     (a) => a.name.toLowerCase() === name.toLowerCase()
   );
-  const existsAndIsUnused = false;
+  const isUnusedExistingAnnotation =
+    props.annotation &&
+    (annotationIdToHasBeenUsed[props.annotation.annotationId] || false);
+
+  React.useEffect(() => {
+    if (props.annotation) {
+      requestAnnotationUsage(props.annotation.annotationId);
+    }
+  }, [isUnusedExistingAnnotation, props.annotation]);
 
   function onSave() {
     const lookup = lookups.find((l) => l.tableName === lookupTable);
@@ -99,28 +112,34 @@ function CreateAnnotationModal(props: Props) {
     }
   }
 
+  let title = "Create Annotation";
+  if (props.annotation) {
+    title = `Edit Annotation: ${props.annotation.name}`;
+  }
+
   return (
     <Modal
       destroyOnClose // Unmount child components
       width="90%"
-      title="New Annotation"
+      title={title}
       visible={props.visible}
       onOk={onSave}
       onCancel={props.onClose}
       okText="Save"
       maskClosable={false}
     >
-      {existsAndIsUnused && (
+      {!isUnusedExistingAnnotation && (
         <Alert
           showIcon
           type="info"
           message="Limited Editing"
-          description="Some fields are not available for editing since this annotation has been used."
+          description="Some, if not all, fields are not available for editing since this annotation has been used."
         />
       )}
       <p className={styles.subTitle}>
-        Create a new annotation below. After making adjustments, click
-        &quotSave&quot to successfully create the annotation.
+        {props.annotation
+          ? 'Edit the annotation below. After making adjustments, click "Save" to successfully edit the annotation.'
+          : 'Create a new annotation below. After making adjustments, click "Save" to successfully create the annotation.'}
       </p>
       <FormControl
         className={styles.formControl}
@@ -133,6 +152,7 @@ function CreateAnnotationModal(props: Props) {
       >
         <Input
           value={name}
+          disabled={!isUnusedExistingAnnotation}
           placeholder="Enter new annotation name here"
           onChange={(e) => setName(e.target.value)}
         />
@@ -148,6 +168,7 @@ function CreateAnnotationModal(props: Props) {
       >
         <TextArea
           value={description}
+          disabled={!isUnusedExistingAnnotation}
           placeholder="Enter new annotation description here"
           onChange={(e) => setDescription(e.target.value)}
         />
@@ -163,6 +184,7 @@ function CreateAnnotationModal(props: Props) {
       >
         <Select
           className={styles.select}
+          disabled={!isUnusedExistingAnnotation}
           onSelect={(v: string) => setAnnotationType(v)}
           placeholder="Select annotation data type"
           value={annotationType}
@@ -203,6 +225,7 @@ function CreateAnnotationModal(props: Props) {
         >
           <Select
             className={styles.select}
+            disabled={!isUnusedExistingAnnotation}
             onSelect={(v: string) => setLookupTable(v)}
             placeholder="Select Lookup"
             showSearch={true}

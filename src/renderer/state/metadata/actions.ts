@@ -8,7 +8,9 @@ import {
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
+  RECEIVE_ANNOTATION_USAGE,
   RECEIVE_METADATA,
+  REQUEST_ANNOTATION_USAGE,
   REQUEST_METADATA,
   RESET_HISTORY,
   UPDATE_PAGE_HISTORY,
@@ -21,11 +23,35 @@ import {
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
+  ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
+  RequestAnnotationUsage,
   RequestMetadataAction,
   ResetHistoryAction,
   UpdatePageHistoryMapAction,
 } from "./types";
+
+export function requestAnnotationUsage(
+  annotationId: number
+): RequestAnnotationUsage {
+  return {
+    payload: annotationId,
+    type: REQUEST_ANNOTATION_USAGE,
+  };
+}
+
+export function receiveAnnotationUsage(
+  annotationId: number,
+  hasAnnotationValues: boolean
+): ReceiveAnnotationUsageAction {
+  return {
+    payload: {
+      annotationId,
+      hasAnnotationValues,
+    },
+    type: RECEIVE_ANNOTATION_USAGE,
+  };
+}
 
 export function clearOptionsForLookup(
   lookupAnnotationName: keyof MetadataStateBranch

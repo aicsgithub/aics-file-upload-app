@@ -14,6 +14,8 @@ import { BarcodeSelectorOption, State } from "../types";
 
 // BASIC SELECTORS
 export const getMetadata = (state: State) => state.metadata;
+export const getAnnotationIdToHasBeenUsed = (state: State) =>
+  state.metadata.annotationIdToHasBeenUsed;
 export const getAllAnnotations = (state: State) => state.metadata.annotations;
 export const getAnnotationLookups = (state: State) =>
   state.metadata.annotationLookups;

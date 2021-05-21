@@ -154,6 +154,7 @@ export enum AsyncRequest {
   UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
   CREATE_BARCODE = "CREATE_BARCODE",
   UPDATE_AND_RETRY_UPLOAD = "UPDATE_AND_RETRY_UPLOAD",
+  REQUEST_ANNOTATION_USAGE = "REQUEST_ANNOTATION_USAGE",
 }
 
 export enum JobFilter {
@@ -231,6 +232,7 @@ export interface UploadMetadata extends UploadRowId {
 
 export interface MetadataStateBranch {
   annotations: Annotation[];
+  annotationIdToHasBeenUsed: { [annotationId: number]: boolean };
   annotationLookups: AnnotationLookup[];
   annotationOptions: AnnotationOption[];
   annotationTypes: AnnotationType[];

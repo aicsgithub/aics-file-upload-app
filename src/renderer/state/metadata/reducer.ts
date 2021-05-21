@@ -21,6 +21,7 @@ import { makeReducer } from "../util";
 import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
+  RECEIVE_ANNOTATION_USAGE,
   RECEIVE_METADATA,
   RESET_HISTORY,
   UPDATE_PAGE_HISTORY,
@@ -28,12 +29,14 @@ import {
 import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
+  ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
   ResetHistoryAction,
   UpdatePageHistoryMapAction,
 } from "./types";
 
 export const initialState: MetadataStateBranch = {
+  annotationIdToHasBeenUsed: {},
   annotationLookups: [],
   annotationOptions: [],
   annotationTypes: [],
@@ -70,6 +73,20 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
     ) => ({
       ...state,
       ...metadata,
+    }),
+  },
+  [RECEIVE_ANNOTATION_USAGE]: {
+    accepts: (action: AnyAction): action is ReceiveAnnotationUsageAction =>
+      action.type === RECEIVE_ANNOTATION_USAGE,
+    perform: (
+      state: MetadataStateBranch,
+      { payload }: ReceiveAnnotationUsageAction
+    ) => ({
+      ...state,
+      annotationIdToHasBeenUsed: {
+        ...state.annotationIdToHasBeenUsed,
+        [payload.annotationId]: payload.hasAnnotationValues,
+      },
     }),
   },
   [RESET_HISTORY]: {
