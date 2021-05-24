@@ -22,7 +22,6 @@ import {
 } from "../../constants";
 import { getUUID } from "../../services/aicsfiles/helpers/uploader";
 import {
-  StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
   UploadServiceFields,
 } from "../../services/aicsfiles/types";
@@ -60,7 +59,7 @@ import {
 } from "../route/logics";
 import { updateMassEditRow } from "../selection/actions";
 import { getMassEditRow, getSelectedJob } from "../selection/selectors";
-import { getLoggedInUser, getTemplateId } from "../setting/selectors";
+import { getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
@@ -202,6 +201,7 @@ const addUploadFilesLogic = createLogic({
 const initiateUploadLogic = createLogic({
   process: async (
     {
+      action,
       fms,
       getState,
       logger,
@@ -210,58 +210,65 @@ const initiateUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const groupId = getUUID();
-    // validate and get jobId
-    await Promise.all(
-      Object.entries(getUploadPayload(getState())).map(
-        async ([filePath, metadata]) => {
-          const jobName = basename(filePath);
-          let startUploadResponse: StartUploadResponse;
-          try {
-            startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
+    let initiateUploadResults;
+    try {
+      initiateUploadResults = await Promise.all(
+        Object.entries(getUploadPayload(getState())).map(
+          async ([filePath, metadata]) => {
+            const startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
               filePath,
               metadata,
               { groupId }
             );
-          } catch (e) {
-            dispatch(
-              initiateUploadFailed(
-                jobName,
-                e.message || "Upload failed to start, " + e
-              )
-            );
-            done();
-            return;
+            return { filePath, metadata, startUploadResponse };
           }
+        )
+      );
+    } catch (e) {
+      // If we are unable to validate metadata or get the directory to copy
+      // to then we need to alert the user ASAP otherwise this data
+      // will be lost
+      dispatch(
+        initiateUploadFailed(
+          action.payload,
+          e.message || "Upload failed to start, " + e
+        )
+      );
+      done();
+      return;
+    }
 
-          dispatch(
-            initiateUploadSucceeded(
-              jobName,
-              startUploadResponse.jobId,
-              getLoggedInUser(getState())
+    dispatch(initiateUploadSucceeded(action.payload));
+    // Reset redo/undo logic
+    dispatch(batchActions([...resetHistoryActions]));
+
+    await Promise.all(
+      initiateUploadResults.map(async (result) => {
+        const jobName = basename(result.filePath);
+        try {
+          await fms.uploadFiles(
+            result.startUploadResponse,
+            { [result.filePath]: result.metadata },
+            jobName,
+            handleUploadProgress(
+              [result.filePath],
+              (progress: UploadProgressInfo) =>
+                dispatch(
+                  updateUploadProgressInfo(
+                    result.startUploadResponse.jobId,
+                    progress
+                  )
+                )
             )
           );
-          dispatch(batchActions([...resetHistoryActions]));
-          try {
-            await fms.uploadFiles(
-              startUploadResponse,
-              { [filePath]: metadata },
-              jobName,
-              handleUploadProgress([filePath], (progress: UploadProgressInfo) =>
-                dispatch(
-                  updateUploadProgressInfo(startUploadResponse.jobId, progress)
-                )
-              )
-            );
-            done();
-          } catch (e) {
-            const error = `Upload ${jobName} failed: ${e.message}`;
-            logger.error(`Upload failed`, e);
-            dispatch(uploadFailed(error, jobName));
-            done();
-          }
+        } catch (e) {
+          const error = `Upload ${jobName} failed: ${e.message}`;
+          logger.error(`Upload failed`, e);
+          dispatch(uploadFailed(error, jobName));
         }
-      )
+      })
     );
+    done();
   },
   transform: (
     {
@@ -272,7 +279,7 @@ const initiateUploadLogic = createLogic({
   ) => {
     next({
       ...action,
-      payload: getUploadFileNames(getState()),
+      payload: getUploadFileNames(getState()).join(", "),
     });
   },
   type: INITIATE_UPLOAD,

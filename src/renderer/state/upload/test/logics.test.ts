@@ -89,6 +89,8 @@ import {
   INITIATE_UPLOAD_SUCCEEDED,
   REPLACE_UPLOAD,
   SAVE_UPLOAD_DRAFT_SUCCESS,
+  UPLOAD_FAILED,
+  UPLOAD_SUCCEEDED,
 } from "../constants";
 import uploadLogics, { cancelUploadLogic } from "../logics";
 import { getUpload, getUploadAsTableRows } from "../selectors";
@@ -189,6 +191,7 @@ describe("Upload logics", () => {
       uploadDirectory: "/test",
     };
     const jobName = "file1";
+    const files = "file1, file2, file3";
 
     it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions, and starts a web worker", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
@@ -241,8 +244,25 @@ describe("Upload logics", () => {
       store.dispatch(initiateUpload());
       await logicMiddleware.whenComplete();
 
-      expect(actions.includesMatch(initiateUploadFailed(jobName, "foo"))).to.be
+      expect(actions.includesMatch(initiateUploadFailed(files, "foo"))).to.be
         .true;
+    });
+
+    it("does not continue upload given upload directory request failure", async () => {
+      fms.validateMetadataAndGetUploadDirectory.rejects(new Error("foo"));
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload,
+        undefined,
+        uploadLogics
+      );
+
+      store.dispatch(initiateUpload());
+      await logicMiddleware.whenComplete();
+
+      expect(actions.includesMatch({ type: INITIATE_UPLOAD_SUCCEEDED })).to.be
+        .false;
+      expect(actions.includesMatch({ type: UPLOAD_FAILED })).to.be.false;
+      expect(actions.includesMatch({ type: UPLOAD_SUCCEEDED })).to.be.false;
     });
 
     it("initiates upload given OK response from validateMetadataAndGetUploadDirectory", async () => {

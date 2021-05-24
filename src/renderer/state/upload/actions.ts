@@ -2,7 +2,6 @@ import {
   PREFERRED_TEMPLATE_ID,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../../shared/constants";
-import { JSSJobStatus } from "../../services/job-status-client/types";
 import {
   State,
   UploadMetadata,
@@ -117,26 +116,17 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
 export function initiateUpload(): InitiateUploadAction {
   return {
     autoSave: true,
-    payload: [],
+    payload: "Initiating upload",
     writeToStore: true,
     type: INITIATE_UPLOAD,
   };
 }
 
 export function initiateUploadSucceeded(
-  jobName: string,
-  jobId: string,
-  currentUser: string
+  jobName: string
 ): InitiateUploadSucceededAction {
   return {
-    payload: {
-      created: new Date(),
-      jobId,
-      jobName,
-      modified: new Date(),
-      status: JSSJobStatus.WORKING,
-      user: currentUser,
-    },
+    payload: jobName,
     type: INITIATE_UPLOAD_SUCCEEDED,
   };
 }
