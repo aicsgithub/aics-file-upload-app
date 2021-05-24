@@ -39,7 +39,7 @@ import {
 import { getTemplateDraft } from "../../state/template/selectors";
 import { AnnotationDraft, AsyncRequest } from "../../state/types";
 
-import CreateAnnotationModal from "./AnnotationEditorModal";
+import AnnotationEditorModal from "./AnnotationEditorModal";
 
 const styles = require("./styles.pcss");
 
@@ -369,7 +369,7 @@ function TemplateEditorModal(props: Props) {
           </>
         )}
       </Modal>
-      <CreateAnnotationModal
+      <AnnotationEditorModal
         visible={showAnnotationEditor || !!annotationToEdit}
         annotation={annotationToEdit}
         onClose={onCloseAnnotationModal}

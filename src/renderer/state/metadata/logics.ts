@@ -142,7 +142,8 @@ const requestAnnotationUsageLogic = createLogic({
     try {
       const hasAnnotationValues = await getWithRetry(request, dispatch);
       dispatch(receiveAnnotationUsage(action.payload, hasAnnotationValues));
-    } catch (error) {
+    } catch (e) {
+      const error = `Failed to determine if annotation has been used: ${e.message}`;
       dispatch(requestFailed(error, AsyncRequest.REQUEST_ANNOTATION_USAGE));
     }
     done();

@@ -35,6 +35,7 @@ import { ApplyTemplateAction } from "../upload/types";
 
 import {
   addExistingAnnotation,
+  removeAnnotations,
   saveTemplateSucceeded,
   setAppliedTemplate,
   startTemplateDraft,
@@ -111,13 +112,14 @@ const editAnnotation = createLogic({
       action,
       mmsClient,
       labkeyClient,
+      getState,
     }: ReduxLogicProcessDependenciesWithAction<EditAnnotationAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     try {
       // Create the new annotation via MMS
-      await mmsClient.editAnnotation(
+      const annotation = await mmsClient.editAnnotation(
         action.payload.annotationId,
         action.payload.metadata
       );
@@ -140,6 +142,15 @@ const editAnnotation = createLogic({
           AsyncRequest.EDIT_ANNOTATION
         )
       );
+
+      // Replace old annotation version with new one
+      const oldAnnotationIndex = getTemplateDraft(getState()).annotations.find(
+        (a) => a.annotationId === action.payload.annotationId
+      )?.index;
+      if (oldAnnotationIndex !== undefined) {
+        dispatch(removeAnnotations([oldAnnotationIndex]));
+      }
+      dispatch(addExistingAnnotation(annotation));
     } catch (e) {
       dispatch(
         requestFailed(
