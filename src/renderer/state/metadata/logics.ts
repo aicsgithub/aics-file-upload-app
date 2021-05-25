@@ -138,9 +138,10 @@ const requestAnnotationUsageLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const request = () => labkeyClient.checkForAnnotationValues(action.payload);
     try {
-      const hasAnnotationValues = await getWithRetry(request, dispatch);
+      const hasAnnotationValues = await labkeyClient.checkForAnnotationValues(
+        action.payload
+      );
       dispatch(receiveAnnotationUsage(action.payload, hasAnnotationValues));
     } catch (e) {
       const error = `Failed to determine if annotation has been used: ${e.message}`;

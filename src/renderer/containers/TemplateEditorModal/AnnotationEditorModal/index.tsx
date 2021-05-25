@@ -39,7 +39,9 @@ function CreateAnnotationModal(props: Props) {
   const lookups = useSelector(getLookups);
   const annotations = useSelector(getAnnotations);
   const annotationTypes = useSelector(getAnnotationTypes);
-  const annotationIdToHasBeenUsed = useSelector(getAnnotationIdToHasBeenUsed);
+  const annotationIdToHasBeenUsedMap = useSelector(
+    getAnnotationIdToHasBeenUsed
+  );
   const activeRequests = useSelector(getRequestsInProgress);
 
   const [name, setName] = React.useState(props.annotation?.name || "");
@@ -57,8 +59,8 @@ function CreateAnnotationModal(props: Props) {
     props.annotation?.annotationOptions || []
   );
 
-  const isLoading = activeRequests.some(
-    (r) => r === AsyncRequest.REQUEST_ANNOTATION_USAGE
+  const isLoading = activeRequests.includes(
+    AsyncRequest.REQUEST_ANNOTATION_USAGE
   );
   const isDropdown = annotationType === ColumnType.DROPDOWN;
   const isLookup = !isDropdown && annotationType === ColumnType.LOOKUP;
@@ -67,11 +69,7 @@ function CreateAnnotationModal(props: Props) {
   );
   const isUnusedExistingAnnotation =
     !props.annotation ||
-    (Object.prototype.hasOwnProperty.call(
-      annotationIdToHasBeenUsed,
-      props.annotation.annotationId
-    ) &&
-      !annotationIdToHasBeenUsed[props.annotation.annotationId]);
+    annotationIdToHasBeenUsedMap[props.annotation.annotationId] === false;
 
   React.useEffect(() => {
     if (props.annotation) {
