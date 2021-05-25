@@ -691,12 +691,10 @@ export const getUploadPayload = createSelector(
 
 export const getUploadFileNames = createSelector(
   [getUpload],
-  (upload: UploadStateBranch): string =>
+  (upload: UploadStateBranch): string[] =>
     uniq(
       Object.values(upload).map(({ file }: UploadMetadata) => basename(file))
-    )
-      .sort()
-      .join(", ")
+    ).sort()
 );
 
 export const getCanSaveUploadDraft = createSelector(

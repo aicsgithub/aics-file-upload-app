@@ -105,14 +105,12 @@ export interface RemoveUploadsAction extends AutoSaveAction {
 }
 
 export interface InitiateUploadAction extends AutoSaveAction {
-  payload: {
-    jobName?: string;
-  };
+  payload: string;
   type: string;
 }
 
 export interface InitiateUploadSucceededAction {
-  payload: JSSJob;
+  payload: string;
   type: string;
 }
 

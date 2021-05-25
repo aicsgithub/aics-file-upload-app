@@ -1,16 +1,22 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import axios, { AxiosRequestConfig } from "axios";
 import * as humps from "humps";
 import { values, castArray } from "lodash";
+import * as hash from "object-hash";
 
 import { LocalStorage } from "../../../types";
 import HttpCacheClient from "../../http-cache-client";
+import { JSSJob } from "../../job-status-client/types";
 import { AicsSuccessResponse, HttpClient } from "../../types";
 import {
   SourceFiles,
   StartUploadResponse,
+  UploadMetadata,
   UploadMetadataRequest,
   UploadMetadataResponse,
-  Uploads,
+  UploadServiceFields,
 } from "../types";
 
 const UPLOAD_TYPE = "upload";
@@ -32,17 +38,20 @@ export class FSSClient extends HttpCacheClient {
   }
 
   public async startUpload(
-    uploads: Uploads,
-    uploadJobName: string,
-    lastModified: { [originalPath: string]: Date }
+    filePath: string,
+    metadata: UploadMetadata,
+    serviceFields: Partial<UploadServiceFields>
   ): Promise<StartUploadResponse> {
-    const requestBody = {
-      jobName: uploadJobName,
+    const fileName = path.basename(filePath);
+    const fileStats = await fs.promises.stat(filePath);
+    const requestBody: Partial<JSSJob<Partial<UploadServiceFields>>> = {
+      jobName: fileName,
       serviceFields: {
-        files: values(uploads),
-        lastModified,
+        ...serviceFields,
         md5: {},
+        files: [metadata],
         type: UPLOAD_TYPE,
+        lastModified: { [hash.MD5(filePath)]: fileStats.mtime.toJSON() },
       },
     };
     const response = await this.post<AicsSuccessResponse<StartUploadResponse>>(

@@ -360,14 +360,7 @@ describe("feedback reducer", () => {
   });
   describe("initiateUpload", () => {
     it("adds INITIATE_UPLOAD-jobName to requestsInProgress and sets info alert", () => {
-      const action = initiateUpload();
-      const result = reducer(initialState, {
-        ...action,
-        payload: {
-          ...action.payload,
-          jobName: "foo", // this gets populated in the logics
-        },
-      });
+      const result = reducer(initialState, initiateUpload());
       expect(result.requestsInProgress.includes("INITIATE_UPLOAD-foo"));
       expect(result.alert).to.deep.equal({
         message: "Starting upload",
@@ -377,10 +370,7 @@ describe("feedback reducer", () => {
   });
   describe("initiateUploadSucceeded", () => {
     it("removes INITIATE_UPLOAD-jobName from requestsInProgress and clears uploadError", () => {
-      const result = reducer(
-        initialState,
-        initiateUploadSucceeded("jobName", "jobId", "foo")
-      );
+      const result = reducer(initialState, initiateUploadSucceeded("jobName"));
       expect(result.requestsInProgress).to.not.include(
         "INITIATE_UPLOAD-jobName"
       );

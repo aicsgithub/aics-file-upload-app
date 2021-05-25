@@ -1,13 +1,11 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { StepName } from "../../../services/aicsfiles/types";
 import {
   JSSJob,
   JSSJobStatus,
 } from "../../../services/job-status-client/types";
 import {
-  getMockStateWithHistory,
   mockFailedUploadJob,
   mockState,
   mockSuccessfulUploadJob,
@@ -16,11 +14,11 @@ import {
 } from "../../test/mocks";
 import { JobFilter, State } from "../../types";
 import {
-  getCurrentJobName,
   getFilteredJobs,
   getIsSafeToExit,
   getJobIdToUploadJobMap,
   getJobsForTable,
+  getUploadGroupToUploads,
 } from "../selectors";
 
 describe("Job selectors", () => {
@@ -202,53 +200,45 @@ describe("Job selectors", () => {
     });
   });
 
-  describe("getCurrentJobName", () => {
-    it("returns undefined if upload is empty", () => {
-      const name = getCurrentJobName({
-        ...mockState,
-        upload: getMockStateWithHistory({}),
-      });
-      expect(name).to.be.undefined;
-    });
-    it("returns name of current upload filepath if already saved", () => {
-      const name = getCurrentJobName({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          currentUploadFilePath: "/foo/bar/lisas-first-upload.json",
+  describe("getUploadGroupToUploads", () => {
+    it("groups uploads by serviceFields.groupId", () => {
+      const groupId1 = "first-group-id";
+      const groupId2 = "second-group-id";
+      const job1 = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          groupId: groupId1,
         },
-        upload: getMockStateWithHistory({
-          foo: {
-            barcode: "1234",
-            file: "/path",
-            [WELL_ANNOTATION_NAME]: [1, 2],
-          },
-        }),
-      });
-      expect(name).to.equal(`lisas-first-upload`);
-    });
-    it("returns names of files and created date if not saved", () => {
-      const name = getCurrentJobName({
+      };
+      const job2 = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockSuccessfulUploadJob.serviceFields,
+          groupId: groupId2,
+        },
+      };
+      const job3 = {
+        ...mockWorkingUploadJob,
+        serviceFields: {
+          ...mockWorkingUploadJob,
+          groupId: groupId1,
+        },
+      };
+      const actual = getUploadGroupToUploads({
         ...mockState,
-        upload: getMockStateWithHistory({
-          bar: {
-            barcode: "1234",
-            file: "bar",
-            [WELL_ANNOTATION_NAME]: [1, 2],
-          },
-          foo: {
-            barcode: "1234",
-            file: "foo",
-            [WELL_ANNOTATION_NAME]: [1, 2],
-          },
-        }),
+        job: {
+          ...mockState.job,
+          uploadJobs: [job1, job2, job3],
+        },
       });
-      expect(name).to.not.be.undefined;
-      if (name) {
-        expect(name.includes("bar, foo")).to.be.true;
-      }
+      expect(actual).to.deep.equal({
+        [groupId1]: [job1, job3],
+        [groupId2]: [job2],
+      });
     });
   });
+
   describe("getFilteredJobs", () => {
     let state: State;
     let mockRetryingUploadJob: JSSJob,

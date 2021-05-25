@@ -3,11 +3,12 @@ import { basename } from "path";
 
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
-import { includes, keys, noop, uniq } from "lodash";
+import { includes, isEmpty, keys, noop, uniq } from "lodash";
 import * as hash from "object-hash";
 import * as uuid from "uuid";
 
 import { USER_SETTINGS_KEY } from "../../../../shared/constants";
+import { COPY_PROGRESS_THROTTLE_MS } from "../../../state/constants";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import {
@@ -22,9 +23,9 @@ import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import { AddMetadataStep } from "../steps/add-metadata-step";
 import { CopyFilesStep } from "../steps/copy-files-step";
 import {
+  CopyProgressCallBack,
   FileSystemUtil,
   FSSResponseFile,
-  FullPathHashToLastModifiedDate,
   StartUploadResponse,
   Step,
   UploadChildJobServiceFields,
@@ -43,7 +44,7 @@ export const COPY_TYPE = "copy";
 export const COPY_CHILD_TYPE = "copy_child";
 export const ADD_METADATA_TYPE = "add_metadata";
 
-const getUUID = (): string => {
+export const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
   return uuid.v1().replace(/-/g, "");
 };
@@ -124,12 +125,7 @@ export class Uploader {
     startUploadResponse: StartUploadResponse,
     uploads: Uploads,
     uploadJobName: string,
-    copyProgressCb: (
-      originalFilePath: string,
-      bytesCopied: number,
-      totalBytes: number
-    ) => void = noop,
-    copyProgressCbThrottleMs?: number
+    copyProgressCb: CopyProgressCallBack = noop
   ): Promise<UploadResponse> {
     const { ctx, jobs: childJobs } = await this.getUploadChildJobs({
       startUploadResponse,
@@ -140,7 +136,7 @@ export class Uploader {
       childJobs,
       this.getCopyWorker,
       copyProgressCb,
-      copyProgressCbThrottleMs
+      COPY_PROGRESS_THROTTLE_MS
     );
 
     return this.executeSteps(ctx, steps);
@@ -148,132 +144,84 @@ export class Uploader {
 
   /**
    * Uploads files through FSS.
-   * @param uploads a map of local file paths and metadata
-   * @param uploadJob Job to retry
-   * @param copyProgressCb callback on copy progress
-   * @param copyProgressCbThrottleMs minimum amount of ms between calls to copyProgressCb
+   * @param jobId ID of job to retry
+   * @param copyProgressCb callback to report copy progress to
    */
   public async retryUpload(
-    uploads: Uploads,
-    uploadJob: JSSJob,
-    copyProgressCb: (
-      originalFilePath: string,
-      bytesCopied: number,
-      totalBytes: number
-    ) => void = noop,
-    copyProgressCbThrottleMs?: number
-  ): Promise<UploadResponse> {
-    await this.validateUploadJob(uploadJob, uploads);
+    jobId: string,
+    copyProgressCb: CopyProgressCallBack = noop
+  ): Promise<UploadResponse[]> {
+    // Request job from JSS & validate if it is retryable
+    const job: JSSJob<UploadServiceFields> = await this.jss.getJob(jobId);
+    await this.validateUploadJobForRetry(job);
 
-    if (uploadJob.status === JSSJobStatus.SUCCEEDED) {
-      // if upload job already succeeded, we'll just return what is stored as output on the job
-      return uploadJob.serviceFields?.output ?? {};
-    }
-
-    const originalUploadResponse: StartUploadResponse = {
-      jobId: uploadJob.jobId,
-      uploadDirectory: uploadJob.serviceFields.uploadDirectory,
+    // Start new upload jobs that will replace the current one
+    const newJobServiceFields = {
+      groupId: job.serviceFields?.groupId || getUUID(),
+      originalJobId: jobId,
     };
-    const uploadJobName = uploadJob.jobName || "default upload name";
 
-    const { ctx, jobs: childJobs } = await this.getUploadChildJobs({
-      startUploadResponse: originalUploadResponse,
-      uploads,
-      uploadJobName,
-      uploadJob,
-    });
+    // Create a separate upload for each file in this job
+    // One job for multiple files is deprecated, this is here
+    // for backwards-compatibility
+    const results = await Promise.all(
+      (job.serviceFields?.files || []).map(async (file) => {
+        try {
+          // Get the upload directory
+          const newUploadResponse = await this.fss.startUpload(
+            file.file.originalPath,
+            file,
+            newJobServiceFields
+          );
 
-    const steps: Step[] = this.getSteps(
-      childJobs,
-      this.getCopyWorker,
-      copyProgressCb,
-      copyProgressCbThrottleMs
+          // Ensure new job exists before trying to continue
+          await this.jss.waitForJobToExist(newUploadResponse.jobId);
+
+          try {
+            // Update the current job with information about the replacement
+            const oldJobPatch = {
+              serviceFields: {
+                error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
+                replacementJobIds: uniq([
+                  ...(job?.serviceFields?.replacementJobIds || []),
+                  newUploadResponse.jobId,
+                ]),
+              },
+            };
+            await this.jss.updateJob(jobId, oldJobPatch, false);
+
+            // Perform upload with new job and current job's metadata, forgoing the current job
+            return await this.uploadFiles(
+              newUploadResponse,
+              { [file.file.originalPath]: file },
+              basename(file.file.originalPath),
+              copyProgressCb
+            );
+          } catch (error) {
+            await this.jss.updateJob(newUploadResponse.jobId, {
+              status: JSSJobStatus.FAILED,
+              serviceFields: { error: error.message },
+            });
+            throw error;
+          }
+        } catch (error) {
+          return { error };
+        }
+      })
     );
 
-    const uploadDirectory = ctx.startUploadResponse.uploadDirectory.replace(
-      this.defaultMountPoint,
-      this.mountPoint
-    );
-    let canAccessUploadDirectory = true;
-    try {
-      await this.fs.access(uploadDirectory);
-    } catch (e) {
-      this.logger.info(`Cannot access upload directory ${uploadDirectory}`, e);
-      canAccessUploadDirectory = false;
-    }
-    if (!canAccessUploadDirectory) {
-      this.logger.info(
-        "Current upload failed too late in the process to retry, replacing with new job"
-      );
-
-      // Start new upload job that will replace the current one
-      const newUploadResponse = await this.fss.startUpload(
-        uploads,
-        uploadJobName,
-        await this.getLastModified(Object.keys(uploads))
-      );
-      // Update the current job with information about the replacement
-      await Promise.all([
-        this.jss.updateJob(
-          uploadJob.jobId,
-          {
-            serviceFields: {
-              error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
-              replacementJobIds: uniq([
-                ...(uploadJob?.serviceFields?.replacementJobIds || []),
-                newUploadResponse.jobId,
-              ]),
-            },
-          },
-          false
-        ),
-        this.jss.updateJob(
-          newUploadResponse.jobId,
-          {
-            serviceFields: {
-              originalJobId: uploadJob.jobId,
-            },
-            status: JSSJobStatus.RETRYING,
-          },
-          false
-        ),
-      ]);
-      // Perform upload with new job and current job's metadata, forgoing the current job
-      return this.uploadFiles(newUploadResponse, uploads, uploadJobName);
-    }
-    await this.jss.updateJob(uploadJob.jobId, {
-      status: JSSJobStatus.RETRYING,
-      serviceFields: {
-        error: null, // clear out previous error
-      },
-    });
-    return this.executeSteps(ctx, steps);
-  }
-
-  public async getLastModified(
-    fullpaths: string[]
-  ): Promise<FullPathHashToLastModifiedDate> {
-    const lastModified: FullPathHashToLastModifiedDate = {};
-    for (const fullpath of fullpaths) {
-      try {
-        const stats = await this.fs.stat(fullpath);
-        // Using a hash for the key because the file path and file name may contain dots which makes the JSS endpoint
-        // for updating a job read the request body as a patch update to property nested within another property.
-        // For example, if my request body contains the key test.txt: "foo" within service fields, by design, JSS will
-        // try to update the property "txt" within "test": { test: { txt: "foo" } }
-        lastModified[hash.MD5(fullpath)] = stats.mtime;
-      } catch (e) {
-        this.logger.warn(
-          `Could not get modified date for file ${fullpath}. Will need to recalculate MD5 if the job gets retried.`
-        );
+    // This ensures each upload promise is able to complete before
+    // evaluating any failures (similar to Promise.allSettled)
+    return results.map((result) => {
+      if (result.error) {
+        throw new Error(result.error);
       }
-    }
-    return lastModified;
+      return result;
+    });
   }
 
-  private async validateUploadJob(
-    job: JSSJob<UploadServiceFields>,
-    uploads: Uploads
+  private async validateUploadJobForRetry(
+    job: JSSJob<UploadServiceFields>
   ): Promise<void> {
     if (
       includes(
@@ -282,6 +230,7 @@ export class Uploader {
           JSSJobStatus.WORKING,
           JSSJobStatus.RETRYING,
           JSSJobStatus.BLOCKED,
+          JSSJobStatus.SUCCEEDED,
         ],
         job.status
       )
@@ -291,9 +240,9 @@ export class Uploader {
       );
     }
 
-    if (!job.serviceFields?.uploadDirectory) {
+    if (!job.serviceFields || isEmpty(job.serviceFields.files)) {
       throw new UnrecoverableJobError(
-        "Upload job is missing serviceFields.uploadDirectory"
+        "Missing crucial upload data (serviceFields.files)"
       );
     }
 
@@ -305,20 +254,22 @@ export class Uploader {
 
     // Prevent duplicate files from getting uploaded ASAP
     // We can do this if MD5 has already been calculated for a file and the file has not been modified since then
-    for (const originalPath of Object.keys(uploads)) {
-      const currLastModified = lastModified[hash.MD5(originalPath)];
-      const currMD5 = md5[hash.MD5(originalPath)];
+    for (const file of job.serviceFields.files) {
+      const currLastModified = lastModified[hash.MD5(file.file.originalPath)];
+      const currMD5 = md5[hash.MD5(file.file.originalPath)];
       if (currLastModified && currMD5) {
-        const stats = await this.fs.stat(originalPath);
+        const stats = await this.fs.stat(file.file.originalPath);
         if (stats.mtime.getTime() === new Date(currLastModified).getTime()) {
           if (
             await this.lk.getFileExistsByMD5AndName(
               currMD5,
-              basename(originalPath)
+              basename(file.file.originalPath)
             )
           ) {
             throw new Error(
-              `${basename(originalPath)} has already been uploaded to FMS.`
+              `${basename(
+                file.file.originalPath
+              )} has already been uploaded to FMS.`
             );
           }
         }

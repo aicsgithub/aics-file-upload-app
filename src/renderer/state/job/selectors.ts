@@ -1,6 +1,4 @@
-import { basename } from "path";
-
-import { isEmpty, orderBy } from "lodash";
+import { orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
@@ -11,16 +9,13 @@ import {
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
 import { convertToArray } from "../../util";
-import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
   JobFilter,
   JobStateBranch,
   State,
   UploadProgressInfo,
-  UploadStateBranch,
   UploadSummaryTableRow,
 } from "../types";
-import { getUpload, getUploadFileNames } from "../upload/selectors";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
@@ -64,23 +59,40 @@ export const getFilteredJobs = createSelector(
   }
 );
 
+export const getUploadGroupToUploads = createSelector(
+  [getFilteredJobs],
+  (jobs): { [groupId: string]: JSSJob<UploadServiceFields>[] } =>
+    jobs.reduce(
+      (groupIdToJobs, job) => ({
+        ...groupIdToJobs,
+        [job.serviceFields?.groupId || ""]: [
+          ...(groupIdToJobs[job.serviceFields?.groupId || ""] || []),
+          job,
+        ],
+      }),
+      {} as { [groupId: string]: JSSJob[] }
+    )
+);
+
 export const getJobsForTable = createSelector(
-  [getFilteredJobs, getCopyProgress, getJobIdToUploadJobMapGlobal],
+  [
+    getFilteredJobs,
+    getCopyProgress,
+    getJobIdToUploadJobMapGlobal,
+    getUploadGroupToUploads,
+  ],
   (
     uploadJobs: JSSJob<UploadServiceFields>[],
     copyProgress: { [jobId: string]: UploadProgressInfo },
-    jobIdToUploadJobMap: Map<string, JSSJob<UploadServiceFields>>
+    jobIdToUploadJobMap: Map<string, JSSJob<UploadServiceFields>>,
+    groupIdToJobs: { [groupId: string]: JSSJob<UploadServiceFields>[] }
   ): UploadSummaryTableRow[] => {
-    uploadJobs = orderBy(uploadJobs, ["modified"], ["desc"]);
-    const jobIdsToFilterOut: string[] = [];
-    for (const uploadJob of uploadJobs) {
-      if (uploadJob?.serviceFields?.replacementJobIds) {
-        jobIdsToFilterOut.push(...uploadJob?.serviceFields?.replacementJobIds);
-      }
-    }
+    const jobIdsToFilterOut = new Set(
+      uploadJobs.flatMap((job) => job?.serviceFields?.replacementJobIds || [])
+    );
 
     return orderBy(uploadJobs, ["modified"], ["desc"])
-      .filter(({ jobId }) => !jobIdsToFilterOut.includes(jobId))
+      .filter(({ jobId }) => !jobIdsToFilterOut.has(jobId))
       .map((job) => {
         const replacementJobIds = convertToArray(
           job?.serviceFields?.replacementJobIds
@@ -100,8 +112,21 @@ export const getJobsForTable = createSelector(
 
         const originalModified = new Date(job.modified);
         const representativeModified = new Date(representativeJob.modified);
+        let serviceFields = representativeJob.serviceFields;
+        if (serviceFields?.groupId) {
+          serviceFields = {
+            ...serviceFields,
+            files: groupIdToJobs[serviceFields.groupId].flatMap(
+              (j) => j?.serviceFields?.files || []
+            ),
+            result: groupIdToJobs[serviceFields.groupId].flatMap(
+              (j) => j?.serviceFields?.result || []
+            ),
+          };
+        }
         return {
           ...representativeJob,
+          serviceFields,
           created: new Date(job.created),
           key: representativeJob.jobId,
           modified:
@@ -131,24 +156,5 @@ export const getIsSafeToExit = createSelector(
           StepName.Waiting.toString(),
         ].includes(job.currentStage || "")
     );
-  }
-);
-
-export const getCurrentJobName = createSelector(
-  [getUpload, getUploadFileNames, getCurrentUploadFilePath],
-  (
-    upload: UploadStateBranch,
-    fileNames: string,
-    currentUploadFilePath?: string
-  ): string | undefined => {
-    if (isEmpty(upload)) {
-      return undefined;
-    }
-
-    if (currentUploadFilePath) {
-      return basename(currentUploadFilePath, ".json");
-    }
-
-    return fileNames;
   }
 );

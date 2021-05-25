@@ -16,3 +16,12 @@ export const MAIN_FONT_WIDTH = 8.45; // px
 export const MINUTE_AS_MS = 60 * 1000;
 export const HOUR_AS_MS = 60 * MINUTE_AS_MS;
 export const DAY_AS_MS = 24 * HOUR_AS_MS;
+
+export const TIME_DISPLAY_CONFIG = Object.freeze({
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  month: "short",
+  weekday: "short",
+  year: "numeric",
+});

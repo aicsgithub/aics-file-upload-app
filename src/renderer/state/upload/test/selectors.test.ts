@@ -667,7 +667,7 @@ describe("Upload selectors", () => {
   });
 
   describe("getUploadFileNames", () => {
-    it("returns empty string if no current upload", () => {
+    it("returns empty array if no current upload", () => {
       const jobName = getUploadFileNames({
         ...mockState,
         metadata: {
@@ -678,7 +678,7 @@ describe("Upload selectors", () => {
         template: mockTemplateStateBranchWithAppliedTemplate,
         upload: getMockStateWithHistory({}),
       });
-      expect(jobName).to.equal("");
+      expect(jobName).to.be.empty;
     });
 
     it("returns file name when singular file in upload", () => {
@@ -696,7 +696,7 @@ describe("Upload selectors", () => {
           ],
         }),
       });
-      expect(jobName).to.equal("file3");
+      expect(jobName).to.deep.equal(["file3"]);
     });
 
     it("returns file names in correct order", () => {
@@ -710,7 +710,7 @@ describe("Upload selectors", () => {
         template: mockTemplateStateBranchWithAppliedTemplate,
         upload: getMockStateWithHistory(mockWellUpload),
       });
-      expect(jobName).to.equal("file1, file2, file3");
+      expect(jobName).to.deep.equal(["file1", "file2", "file3"]);
     });
   });
 

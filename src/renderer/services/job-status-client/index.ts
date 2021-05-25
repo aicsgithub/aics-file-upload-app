@@ -83,6 +83,28 @@ export default class JobStatusClient extends HttpCacheClient {
     return response.data[0];
   }
 
+  /**
+   * Wait for upload job from FSS to exist in JSS to prevent
+   * a race condition when trying to create child jobs. Ideally this
+   * would not be necessary if the app interacted with JSS asynchronously
+   * more detail in FUA-218 - Sean M 02/11/21
+   * @param jobId
+   */
+  public async waitForJobToExist(jobId: string): Promise<void> {
+    let attempts = 11;
+    let jobExists = await this.existsById(jobId);
+    // Continously try to see if the job exists up to 11 times over ~1 minute
+    while (!jobExists) {
+      if (attempts <= 0) {
+        throw new Error("unable to verify upload job started, try again");
+      }
+      attempts--;
+      // Wait 5 seconds before trying again to give JSS room to breathe
+      await new Promise((r) => setTimeout(r, 5 * 1_000));
+      jobExists = await this.existsById(jobId);
+    }
+  }
+
   /***
    * Returns true if job exists in JSS
    * @param jobId corresponding id for job

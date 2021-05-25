@@ -340,21 +340,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       uploadError: undefined,
     }),
   },
-  [INITIATE_UPLOAD_FAILED]: {
-    accepts: (action: AnyAction): action is InitiateUploadFailedAction =>
-      action.type === INITIATE_UPLOAD_FAILED,
-    perform: (
-      state: FeedbackStateBranch,
-      { payload: { error, jobName } }: InitiateUploadFailedAction
-    ) => ({
-      ...state,
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
-      ),
-      uploadError: error,
-    }),
-  },
   [UPLOAD_FAILED]: {
     accepts: (action: AnyAction): action is UploadFailedAction =>
       action.type === UPLOAD_FAILED,
@@ -452,16 +437,13 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
   [INITIATE_UPLOAD]: {
     accepts: (action: AnyAction): action is InitiateUploadAction =>
       action.type === INITIATE_UPLOAD,
-    perform: (
-      state: FeedbackStateBranch,
-      { payload: { jobName } }: InitiateUploadAction
-    ) => ({
+    perform: (state: FeedbackStateBranch, action: InitiateUploadAction) => ({
       ...state,
       alert: getInfoAlert("Starting upload"),
-      requestsInProgress: addRequestToInProgress(
-        state,
-        `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
-      ),
+      requestsInProgress: uniq([
+        ...state.requestsInProgress,
+        `${AsyncRequest.INITIATE_UPLOAD}-${action.payload}`,
+      ]),
     }),
   },
   [INITIATE_UPLOAD_SUCCEEDED]: {
@@ -469,12 +451,12 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { jobName } }: InitiateUploadSucceededAction
+      { payload }: InitiateUploadSucceededAction
     ) => ({
       ...state,
       requestsInProgress: removeRequestFromInProgress(
         state,
-        `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
+        `${AsyncRequest.INITIATE_UPLOAD}-${payload}`
       ),
       uploadError: undefined,
     }),

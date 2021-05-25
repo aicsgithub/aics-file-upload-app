@@ -8,6 +8,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import StatusCircle from "../../components/StatusCircle";
+import { TIME_DISPLAY_CONFIG } from "../../constants";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,
@@ -45,15 +46,6 @@ const styles = require("./styles.pcss");
 
 const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
 
-const TIME_DISPLAY_CONFIG = Object.freeze({
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "short",
-  weekday: "short",
-  year: "numeric",
-});
-
 interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
   className?: string;
@@ -82,7 +74,7 @@ class UploadSummary extends React.Component<Props, {}> {
         dataIndex: "jobName",
         ellipsis: true,
         key: "fileName",
-        title: "File Names",
+        title: "File Name",
         width: "100%",
         render: (filename: string, row: UploadSummaryTableRow) => (
           <>
@@ -96,7 +88,7 @@ class UploadSummary extends React.Component<Props, {}> {
         key: "modified",
         render: (modified: Date) =>
           modified.toLocaleTimeString([], TIME_DISPLAY_CONFIG),
-        title: "Last Modified",
+        title: "Last Updated",
         width: "300px",
       },
       {
@@ -172,7 +164,7 @@ class UploadSummary extends React.Component<Props, {}> {
                   icon="plus"
                   onClick={this.props.startNewUpload}
                 >
-                  Create New Upload
+                  Upload New Files
                 </Button>
               </Col>
             </Row>

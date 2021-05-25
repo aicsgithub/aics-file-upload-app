@@ -130,6 +130,9 @@ export interface UploadServiceFields extends BaseServiceFields {
   // a mapping for all files of this job to their MD5 at the time of the last upload.
   md5: { [originalPath: string]: string };
 
+  // ID of the upload group this job is a part of
+  groupId?: string;
+
   // a mapping for all files of this job to when they were last modified. Used in addition to md5 mapping for
   // determining when to recalculate the MD5.
   // If the file has not been modified, then we can use the MD5 in combination with the file name to determine more
@@ -162,6 +165,9 @@ export interface UploadServiceFields extends BaseServiceFields {
   // Tracks how many bytes have been processed by FSS during its copy and MD5
   // calculation step. This field is populated by FSS.
   fssBytesProcessed?: number;
+
+  // Populated after upload completes
+  output?: SourceFiles;
 }
 
 // Represents the job of copying a batch of files
@@ -291,6 +297,8 @@ export interface FileSystemUtil {
   stat: (path: PathLike, options?: StatOptions) => Promise<Stats | BigIntStats>;
 }
 
-export interface FullPathHashToLastModifiedDate {
-  [fullPathHash: string]: Date;
-}
+export type CopyProgressCallBack = (
+  originalFilePath: string,
+  bytesCopied: number,
+  totalBytes: number
+) => void;

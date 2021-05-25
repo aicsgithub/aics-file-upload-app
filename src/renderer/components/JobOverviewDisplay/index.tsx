@@ -1,12 +1,15 @@
-import { Alert, Descriptions } from "antd";
+import { Alert } from "antd";
+import classNames from "classnames";
 import * as React from "react";
 
+import { TIME_DISPLAY_CONFIG } from "../../constants";
 import {
   FAILED_STATUSES,
   JSSJob,
 } from "../../services/job-status-client/types";
+import LabeledInput from "../LabeledInput";
 
-const Item = Descriptions.Item;
+const styles = require("./styles.pcss");
 
 interface Props {
   className?: string;
@@ -22,11 +25,8 @@ const determineError = (job: JSSJob): string => {
   return error;
 };
 
-const JobOverviewDisplay: React.FunctionComponent<Props> = ({
-  className,
-  job,
-}: Props) => {
-  const { created, jobId, user } = job;
+export default function JobOverviewDisplay({ className, job }: Props) {
+  const { created, jobId } = job;
   return (
     <>
       {(job.serviceFields?.error || FAILED_STATUSES.includes(job.status)) && (
@@ -48,18 +48,13 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
           style={{ marginBottom: "0.5em" }}
         />
       )}
-      <Descriptions
-        className={className}
-        size="small"
-        column={{ xs: 1 }}
-        layout="vertical"
-      >
-        <Item label="Job Id">{jobId}</Item>
-        <Item label="Created">{created.toLocaleString()}</Item>
-        <Item label="Created By">{user}</Item>
-      </Descriptions>
+      <div className={classNames(styles.descriptionContainer, className)}>
+        <LabeledInput label="Job ID">{jobId}</LabeledInput>
+        <LabeledInput label="Uploaded">
+          {created.toLocaleTimeString([], TIME_DISPLAY_CONFIG)}
+        </LabeledInput>
+      </div>
+      <hr />
     </>
   );
-};
-
-export default JobOverviewDisplay;
+}
