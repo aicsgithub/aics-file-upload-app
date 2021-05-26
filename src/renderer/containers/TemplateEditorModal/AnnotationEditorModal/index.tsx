@@ -166,7 +166,6 @@ function CreateAnnotationModal(props: Props) {
       >
         <TextArea
           value={description}
-          disabled={!isUnusedExistingAnnotation}
           placeholder="Enter new annotation description here"
           onChange={(e) => setDescription(e.target.value)}
         />
