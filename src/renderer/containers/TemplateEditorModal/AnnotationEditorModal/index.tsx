@@ -1,6 +1,6 @@
 import { Alert, Input, Modal, Select, Spin } from "antd";
 import { trim } from "lodash";
-import React from "react";
+import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormControl from "../../../components/FormControl";
@@ -34,7 +34,7 @@ interface Props {
  * this form to create novel annotations of various types that
  * can then be used in their template or edit existing annotations.
  */
-function CreateAnnotationModal(props: Props) {
+function AnnotationEditorModal(props: Props) {
   const dispatch = useDispatch();
   const lookups = useSelector(getLookups);
   const annotations = useSelector(getAnnotations);
@@ -63,9 +63,11 @@ function CreateAnnotationModal(props: Props) {
     AsyncRequest.REQUEST_ANNOTATION_USAGE
   );
   const isDropdown = annotationType === ColumnType.DROPDOWN;
-  const isLookup = !isDropdown && annotationType === ColumnType.LOOKUP;
+  const isLookup = annotationType === ColumnType.LOOKUP;
   const isUniqueName = !annotations.find(
-    (a) => a.name.toLowerCase() === name.toLowerCase()
+    (a) =>
+      a.name.toLowerCase() === name.toLowerCase() &&
+      a.annotationId !== props.annotation?.annotationId
   );
   const isUnusedExistingAnnotation =
     !props.annotation ||
@@ -88,30 +90,19 @@ function CreateAnnotationModal(props: Props) {
       (!isLookup || lookup) &&
       isUniqueName
     ) {
+      const annotation = {
+        name,
+        annotationTypeId: type.annotationTypeId,
+        description,
+        annotationOptions: isDropdown ? dropdownOptions : undefined,
+        lookupSchema: isLookup ? lookup?.schemaName : undefined,
+        lookupTable: isLookup ? lookup?.tableName : undefined,
+        lookupColumn: isLookup ? lookup?.columnName : undefined,
+      };
       if (props.annotation) {
-        dispatch(
-          editAnnotation(props.annotation.annotationId, {
-            name,
-            annotationTypeId: type.annotationTypeId,
-            description,
-            annotationOptions: dropdownOptions,
-            lookupSchema: lookup?.schemaName,
-            lookupTable: lookup?.tableName,
-            lookupColumn: lookup?.columnName,
-          })
-        );
+        dispatch(editAnnotation(props.annotation.annotationId, annotation));
       } else {
-        dispatch(
-          createAnnotation({
-            name,
-            annotationTypeId: type.annotationTypeId,
-            description,
-            annotationOptions: dropdownOptions,
-            lookupSchema: lookup?.schemaName,
-            lookupTable: lookup?.tableName,
-            lookupColumn: lookup?.columnName,
-          })
-        );
+        dispatch(createAnnotation(annotation));
       }
       props.onClose();
     } else if (!showErrors) {
@@ -300,5 +291,5 @@ function CreateAnnotationModal(props: Props) {
 // than update the existing one to avoid deriving state hooks based on
 // visibility
 export default function CreateAnnotationModalWrapper(props: Props) {
-  return <CreateAnnotationModal key={`${props.visible}`} {...props} />;
+  return <AnnotationEditorModal key={`${props.visible}`} {...props} />;
 }
