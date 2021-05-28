@@ -30,6 +30,19 @@ export interface RequestMetadataAction {
   type: string;
 }
 
+export interface RequestAnnotationUsage {
+  payload: number;
+  type: string;
+}
+
+export interface ReceiveAnnotationUsageAction {
+  payload: {
+    annotationId: number;
+    hasAnnotationValues: boolean;
+  };
+  type: string;
+}
+
 export interface UpdatePageHistoryMapAction {
   payload: {
     selection: {

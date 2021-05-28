@@ -35,6 +35,7 @@ import { ApplyTemplateAction } from "../upload/types";
 
 import {
   addExistingAnnotation,
+  removeAnnotations,
   saveTemplateSucceeded,
   setAppliedTemplate,
   startTemplateDraft,
@@ -45,6 +46,7 @@ import {
   ADD_ANNOTATION,
   ADD_EXISTING_TEMPLATE,
   CREATE_ANNOTATION,
+  EDIT_ANNOTATION,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
 } from "./constants";
@@ -53,7 +55,7 @@ import {
   getSaveTemplateRequest,
   getTemplateDraft,
 } from "./selectors";
-import { CreateAnnotationAction } from "./types";
+import { CreateAnnotationAction, EditAnnotationAction } from "./types";
 
 const createAnnotation = createLogic({
   process: async (
@@ -102,6 +104,64 @@ const createAnnotation = createLogic({
     done();
   },
   type: CREATE_ANNOTATION,
+});
+
+const editAnnotation = createLogic({
+  process: async (
+    {
+      action,
+      mmsClient,
+      labkeyClient,
+      getState,
+    }: ReduxLogicProcessDependenciesWithAction<EditAnnotationAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    try {
+      // Create the new annotation via MMS
+      const annotation = await mmsClient.editAnnotation(
+        action.payload.annotationId,
+        action.payload.metadata
+      );
+
+      // Refresh our store of annotation information
+      const request = () =>
+        Promise.all([
+          labkeyClient.getAnnotations(),
+          labkeyClient.getAnnotationOptions(),
+          labkeyClient.getAnnotationLookups(),
+        ]);
+      const [
+        annotations,
+        annotationOptions,
+        annotationLookups,
+      ] = await getWithRetry(request, dispatch);
+      dispatch(
+        receiveMetadata(
+          { annotationOptions, annotations, annotationLookups },
+          AsyncRequest.EDIT_ANNOTATION
+        )
+      );
+
+      // Replace old annotation version with new one
+      const oldAnnotationIndex = getTemplateDraft(getState()).annotations.find(
+        (a) => a.annotationId === action.payload.annotationId
+      )?.index;
+      if (oldAnnotationIndex !== undefined) {
+        dispatch(removeAnnotations([oldAnnotationIndex]));
+      }
+      dispatch(addExistingAnnotation(annotation));
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          `Could not edit annotation: ${e.message}`,
+          AsyncRequest.EDIT_ANNOTATION
+        )
+      );
+    }
+    done();
+  },
+  type: EDIT_ANNOTATION,
 });
 
 const openTemplateEditorLogic = createLogic({
@@ -386,6 +446,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
 
 export default [
   createAnnotation,
+  editAnnotation,
   addExistingAnnotationLogic,
   removeAnnotationsLogic,
   saveTemplateLogic,

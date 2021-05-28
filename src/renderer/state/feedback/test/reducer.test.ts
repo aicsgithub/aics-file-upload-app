@@ -2,6 +2,10 @@ import { expect } from "chai";
 
 import { receiveJobs } from "../../job/actions";
 import {
+  receiveAnnotationUsage,
+  requestAnnotationUsage,
+} from "../../metadata/actions";
+import {
   resetUpload,
   openEditFileMetadataTab,
   openEditFileMetadataTabSucceeded,
@@ -565,6 +569,38 @@ describe("feedback reducer", () => {
       expect(
         result.requestsInProgress.includes(
           AsyncRequest.GET_FILE_METADATA_FOR_JOB
+        )
+      ).to.be.false;
+    });
+  });
+  describe("requestAnnotationUsage", () => {
+    it("adds REQUEST_ANNOTATION_USAGE to requests", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.REQUEST_ANNOTATION_USAGE],
+        },
+        requestAnnotationUsage(1)
+      );
+      expect(
+        result.requestsInProgress.includes(
+          AsyncRequest.REQUEST_ANNOTATION_USAGE
+        )
+      ).to.be.true;
+    });
+  });
+  describe("receiveAnnotationUsage", () => {
+    it("removes REQUEST_ANNOTATION_USAGE from requests", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.REQUEST_ANNOTATION_USAGE],
+        },
+        receiveAnnotationUsage(1, false)
+      );
+      expect(
+        result.requestsInProgress.includes(
+          AsyncRequest.REQUEST_ANNOTATION_USAGE
         )
       ).to.be.false;
     });

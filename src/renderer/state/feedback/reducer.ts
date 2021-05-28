@@ -10,7 +10,9 @@ import {
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
+  RECEIVE_ANNOTATION_USAGE,
   RECEIVE_METADATA,
+  REQUEST_ANNOTATION_USAGE,
   REQUEST_METADATA,
 } from "../metadata/constants";
 import {
@@ -18,7 +20,9 @@ import {
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
+  ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
+  RequestAnnotationUsage,
   RequestMetadataAction,
 } from "../metadata/types";
 import {
@@ -36,6 +40,7 @@ import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
 import { clearTemplateDraft } from "../template/actions";
 import {
   CREATE_ANNOTATION,
+  EDIT_ANNOTATION,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
@@ -44,6 +49,7 @@ import {
 } from "../template/constants";
 import {
   CreateAnnotationAction,
+  EditAnnotationAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
@@ -656,6 +662,28 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: removeRequestFromInProgress(state, requestType),
     }),
   },
+  [REQUEST_ANNOTATION_USAGE]: {
+    accepts: (action: AnyAction): action is RequestAnnotationUsage =>
+      action.type === REQUEST_ANNOTATION_USAGE,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.REQUEST_ANNOTATION_USAGE
+      ),
+    }),
+  },
+  [RECEIVE_ANNOTATION_USAGE]: {
+    accepts: (action: AnyAction): action is ReceiveAnnotationUsageAction =>
+      action.type === RECEIVE_ANNOTATION_USAGE,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.REQUEST_ANNOTATION_USAGE
+      ),
+    }),
+  },
   [REQUEST_FAILED]: {
     accepts: (action: AnyAction): action is RequestFailedAction =>
       action.type === REQUEST_FAILED,
@@ -687,6 +715,17 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: addRequestToInProgress(
         state,
         AsyncRequest.CREATE_ANNOTATION
+      ),
+    }),
+  },
+  [EDIT_ANNOTATION]: {
+    accepts: (action: AnyAction): action is EditAnnotationAction =>
+      action.type === EDIT_ANNOTATION,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.EDIT_ANNOTATION
       ),
     }),
   },

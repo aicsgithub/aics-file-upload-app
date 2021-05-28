@@ -23,6 +23,14 @@ export const GET_TEMPLATES = makeConstant(BRANCH_NAME, "get-templates");
 export const RECEIVE_METADATA = makeConstant(BRANCH_NAME, "receive");
 export const REQUEST_METADATA = makeConstant(BRANCH_NAME, "request");
 export const RESET_HISTORY = makeConstant(BRANCH_NAME, "reset-history");
+export const REQUEST_ANNOTATION_USAGE = makeConstant(
+  BRANCH_NAME,
+  "request-annotation-usage"
+);
+export const RECEIVE_ANNOTATION_USAGE = makeConstant(
+  BRANCH_NAME,
+  "receive-annotation-usage"
+);
 export const CLEAR_FILE_METADATA_FOR_JOB = makeConstant(
   BRANCH_NAME,
   "clear-file-metadata-for-job"

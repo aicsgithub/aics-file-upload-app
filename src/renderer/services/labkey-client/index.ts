@@ -93,6 +93,21 @@ export default class LabkeyClient extends HttpCacheClient {
   };
 
   /**
+   * Returns true if the annotation has been used in an upload before
+   */
+  public async checkForAnnotationValues(
+    annotationId: number
+  ): Promise<boolean> {
+    const query = LabkeyClient.getSelectRowsURL(
+      LK_FILEMETADATA_SCHEMA,
+      "CustomAnnotationJunction",
+      [`query.AnnotationId~eq=${annotationId}`, `query.maxRows=1`]
+    );
+    const { rows } = await this.get(query);
+    return rows.length !== 0;
+  }
+
+  /**
    * Gets all annotation types
    */
   public async getAnnotationTypes(): Promise<AnnotationType[]> {

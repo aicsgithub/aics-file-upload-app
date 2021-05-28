@@ -1,7 +1,7 @@
 import { PREFERRED_TEMPLATE_ID } from "../../../shared/constants";
 import { Annotation } from "../../services/labkey-client/types";
 import {
-  CreateAnnotationRequest,
+  AnnotationMetadataRequest,
   Template,
 } from "../../services/mms-client/types";
 import { TemplateDraft, UploadStateBranch } from "../types";
@@ -11,6 +11,7 @@ import {
   ADD_EXISTING_TEMPLATE,
   CLEAR_TEMPLATE_DRAFT,
   CREATE_ANNOTATION,
+  EDIT_ANNOTATION,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
@@ -24,6 +25,7 @@ import {
   AddExistingTemplateAction,
   ClearTemplateDraftAction,
   CreateAnnotationAction,
+  EditAnnotationAction,
   RemoveAnnotationsAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
@@ -58,11 +60,21 @@ export function clearTemplateDraft(): ClearTemplateDraftAction {
 }
 
 export function createAnnotation(
-  annotationRequest: CreateAnnotationRequest
+  annotationRequest: AnnotationMetadataRequest
 ): CreateAnnotationAction {
   return {
     payload: annotationRequest,
     type: CREATE_ANNOTATION,
+  };
+}
+
+export function editAnnotation(
+  annotationId: number,
+  metadata: AnnotationMetadataRequest
+): EditAnnotationAction {
+  return {
+    payload: { annotationId, metadata },
+    type: EDIT_ANNOTATION,
   };
 }
 

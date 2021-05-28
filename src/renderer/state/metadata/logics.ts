@@ -21,16 +21,21 @@ import {
   ReduxLogicTransformDependencies,
 } from "../types";
 
-import { receiveMetadata } from "./actions";
+import { receiveAnnotationUsage, receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
+  REQUEST_ANNOTATION_USAGE,
   REQUEST_METADATA,
 } from "./constants";
 import { getAnnotationLookups, getAnnotations, getLookups } from "./selectors";
-import { CreateBarcodeAction, GetOptionsForLookupAction } from "./types";
+import {
+  CreateBarcodeAction,
+  GetOptionsForLookupAction,
+  RequestAnnotationUsage,
+} from "./types";
 
 const createBarcodeLogic = createLogic({
   process: async (
@@ -122,6 +127,29 @@ const requestMetadataLogic = createLogic({
     done();
   },
   type: REQUEST_METADATA,
+});
+
+const requestAnnotationUsageLogic = createLogic({
+  process: async (
+    {
+      action,
+      labkeyClient,
+    }: ReduxLogicProcessDependenciesWithAction<RequestAnnotationUsage>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    try {
+      const hasAnnotationValues = await labkeyClient.checkForAnnotationValues(
+        action.payload
+      );
+      dispatch(receiveAnnotationUsage(action.payload, hasAnnotationValues));
+    } catch (e) {
+      const error = `Failed to determine if annotation has been used: ${e.message}`;
+      dispatch(requestFailed(error, AsyncRequest.REQUEST_ANNOTATION_USAGE));
+    }
+    done();
+  },
+  type: REQUEST_ANNOTATION_USAGE,
 });
 
 const getBarcodeSearchResultsLogic = createLogic({
@@ -288,6 +316,7 @@ const requestTemplatesLogicLogic = createLogic({
 export default [
   createBarcodeLogic,
   getBarcodeSearchResultsLogic,
+  requestAnnotationUsageLogic,
   requestMetadataLogic,
   requestOptionsForLookupLogic,
   requestTemplatesLogicLogic,

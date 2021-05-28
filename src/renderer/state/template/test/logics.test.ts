@@ -32,6 +32,7 @@ import {
   mockLookups,
   mockMMSTemplate,
   mockState,
+  mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AsyncRequest, State } from "../../types";
@@ -39,6 +40,7 @@ import {
   addExistingAnnotation,
   addExistingTemplate,
   createAnnotation,
+  editAnnotation,
   removeAnnotations,
   saveTemplate,
   saveTemplateSucceeded,
@@ -138,6 +140,93 @@ describe("Template Logics", () => {
           requestFailed(
             `Could not create annotation: ${error}`,
             AsyncRequest.CREATE_ANNOTATION
+          )
+        )
+      ).to.be.true;
+    });
+  });
+
+  describe("editAnnotationLogic", () => {
+    it("edits given annotation & replaces annotation on template", async () => {
+      // Arrange
+      mmsClient.editAnnotation.resolves(mockFavoriteColorAnnotation);
+      labkeyClient.getAnnotations.resolves(mockAnnotations);
+      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
+      labkeyClient.getAnnotationLookups.resolves(mockAnnotationLookups);
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          draft: {
+            ...mockTemplateDraft,
+            annotations: [
+              {
+                ...mockFavoriteColorAnnotation,
+                annotationTypeName: ColumnType.BOOLEAN,
+                required: false,
+                index: 0,
+              },
+            ],
+          },
+          original: mockMMSTemplate,
+        },
+      });
+
+      // Act
+      store.dispatch(
+        editAnnotation(
+          mockFavoriteColorAnnotation.annotationId,
+          mockFavoriteColorAnnotation
+        )
+      );
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          receiveMetadata(
+            {
+              annotationOptions: mockAnnotationOptions,
+              annotations: mockAnnotations,
+              annotationLookups: mockAnnotationLookups,
+            },
+            AsyncRequest.EDIT_ANNOTATION
+          )
+        )
+      ).to.be.true;
+      expect(
+        actions.includesMatch(
+          updateTemplateDraft({
+            annotations: [
+              {
+                ...mockFavoriteColorAnnotation,
+                annotationTypeName: ColumnType.TEXT,
+                required: false,
+                index: 0,
+              },
+            ],
+          })
+        )
+      ).to.be.true;
+    });
+
+    it("dispatches requestFailed given failed response", async () => {
+      // Arrange
+      const error = "Failed edit";
+      mmsClient.editAnnotation.rejects(new Error(error));
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+      });
+
+      // Act
+      store.dispatch(editAnnotation(4, mockFavoriteColorAnnotation));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            `Could not edit annotation: ${error}`,
+            AsyncRequest.EDIT_ANNOTATION
           )
         )
       ).to.be.true;

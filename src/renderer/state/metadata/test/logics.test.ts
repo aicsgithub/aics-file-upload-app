@@ -40,7 +40,9 @@ import {
 import { AsyncRequest } from "../../types";
 import {
   createBarcode,
+  receiveAnnotationUsage,
   receiveMetadata,
+  requestAnnotationUsage,
   requestBarcodeSearchResults,
   requestMetadata,
   requestTemplates,
@@ -157,6 +159,27 @@ describe("Metadata logics", () => {
         requestMetadata(),
         "Failed to retrieve metadata: foo",
         AsyncRequest.GET_METADATA
+      );
+    });
+  });
+
+  describe("requestAnnotationUsageLogic", () => {
+    it("sets annotation as has been used", async () => {
+      const annotationId = 17;
+      labkeyClient.checkForAnnotationValues.resolves(true);
+      await runRequestSucceededTest(
+        requestAnnotationUsage(annotationId),
+        receiveAnnotationUsage(annotationId, true)
+      );
+    });
+
+    it("fails request on error", async () => {
+      const error = "foo";
+      labkeyClient.checkForAnnotationValues.rejects(new Error(error));
+      await runRequestFailedTest(
+        requestAnnotationUsage(6),
+        `Failed to determine if annotation has been used: ${error}`,
+        AsyncRequest.REQUEST_ANNOTATION_USAGE
       );
     });
   });

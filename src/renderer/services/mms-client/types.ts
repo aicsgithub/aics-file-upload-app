@@ -117,7 +117,7 @@ export interface TemplateAnnotation extends Audited {
   canHaveManyValues?: boolean;
 }
 
-export interface CreateAnnotationRequest {
+export interface AnnotationMetadataRequest {
   name: string;
   description: string;
   annotationTypeId: number;
