@@ -183,7 +183,9 @@ export default function App() {
   useEffect(() => {
     if (alert) {
       const { message: alertText, manualClear, type } = alert;
-      const alertBody = <div>{alertText}</div>;
+      const alertBody = (
+        <div dangerouslySetInnerHTML={{ __html: alertText || "" }} />
+      );
       const duration = manualClear ? 0 : ALERT_DURATION;
 
       switch (type) {

@@ -20,11 +20,11 @@ const checkForUpdateLogic = createLogic({
     try {
       const updateInfo = await applicationInfoService.checkForUpdate();
       if (updateInfo) {
-        dispatch(
-          setInfoAlert(
-            `Update available! Update from ${updateInfo.currentVersion} to ${updateInfo.newestVersion} by downloading the newest version from our Confluence page`
-          )
-        );
+        const confluecePage =
+          "http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application";
+        const message = `A new version of the application is available!<br/>
+          Visit the <a href="${confluecePage}" target="_blank" title="File Upload App Confluence page">File Upload App Confluence page</a> to download.`;
+        dispatch(setInfoAlert(message));
       }
     } catch (error) {
       dispatch(setErrorAlert(`Unable to check for updates: ${error.message}`));

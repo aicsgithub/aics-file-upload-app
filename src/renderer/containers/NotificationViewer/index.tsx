@@ -42,7 +42,11 @@ export default function NotificationViewer({
           <div className={styles.iconContainer}>
             <AlertIcon type={event.type} />
           </div>
-          <div className={styles.message}>{event.message}</div>
+          <div
+            className={styles.message}
+            dangerouslySetInnerHTML={{ __html: event.message }}
+            style={{ userSelect: "text" }}
+          />
           <div className={styles.timestamp}>{formatDate(event.date)}</div>
         </div>
       ));
