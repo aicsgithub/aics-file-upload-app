@@ -7,9 +7,32 @@ import {
   ReduxLogicProcessDependencies,
 } from "../types";
 
-import { clearDeferredAction } from "./actions";
-import { CLOSE_MODAL } from "./constants";
+import { clearDeferredAction, setErrorAlert, setInfoAlert } from "./actions";
+import { CHECK_FOR_UPDATE, CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
+
+const checkForUpdateLogic = createLogic({
+  process: async (
+    { applicationInfoService }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    try {
+      const updateInfo = await applicationInfoService.checkForUpdate();
+      if (updateInfo) {
+        dispatch(
+          setInfoAlert(
+            `Update available! Update from ${updateInfo.currentVersion} to ${updateInfo.newestVersion} by downloading the newest version from our Confluence page`
+          )
+        );
+      }
+    } catch (error) {
+      dispatch(setErrorAlert(`Unable to check for updates: ${error.message}`));
+    }
+    done();
+  },
+  type: CHECK_FOR_UPDATE,
+});
 
 const closeModalLogic = createLogic({
   process: (
@@ -31,4 +54,4 @@ const closeModalLogic = createLogic({
   type: CLOSE_MODAL,
 });
 
-export default [closeModalLogic];
+export default [checkForUpdateLogic, closeModalLogic];

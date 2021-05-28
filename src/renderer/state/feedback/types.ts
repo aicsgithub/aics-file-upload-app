@@ -8,6 +8,10 @@ import {
   TutorialStep,
 } from "../types";
 
+export interface CheckForUpdateAction {
+  type: string;
+}
+
 export interface StartLoadingAction {
   type: string;
 }

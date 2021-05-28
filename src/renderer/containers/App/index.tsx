@@ -17,6 +17,7 @@ import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import {
   addRequestToInProgress,
+  checkForUpdate,
   clearAlert,
   removeRequestFromInProgress,
   setErrorAlert,
@@ -74,6 +75,7 @@ export default function App() {
 
   // Request initial data
   useEffect(() => {
+    dispatch(checkForUpdate());
     dispatch(requestMetadata());
     dispatch(gatherSettings());
   }, [dispatch]);

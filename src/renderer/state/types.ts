@@ -15,6 +15,7 @@ import { WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import { UploadServiceFields } from "../services/aicsfiles/types";
+import ApplicationInfoService from "../services/application-info";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {
@@ -75,6 +76,7 @@ export interface Dialog {
 }
 
 export interface ReduxLogicExtraDependencies {
+  applicationInfoService: ApplicationInfoService;
   ctx?: any;
   dialog: Dialog;
   fms: FileManagementSystem;

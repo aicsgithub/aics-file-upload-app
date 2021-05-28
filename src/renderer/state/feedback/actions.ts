@@ -11,6 +11,7 @@ import {
 import {
   ADD_EVENT,
   ADD_REQUEST_IN_PROGRESS,
+  CHECK_FOR_UPDATE,
   CLEAR_ALERT,
   CLEAR_DEFERRED_ACTION,
   CLEAR_UPLOAD_ERROR,
@@ -29,6 +30,7 @@ import {
 import {
   AddEventAction,
   AddRequestInProgressAction,
+  CheckForUpdateAction,
   ClearAlertAction,
   ClearDeferredAction,
   ClearUploadErrorAction,
@@ -95,6 +97,12 @@ export function setInfoAlert(message: string): SetAlertAction {
       type: AlertType.INFO,
     },
     type: SET_ALERT,
+  };
+}
+
+export function checkForUpdate(): CheckForUpdateAction {
+  return {
+    type: CHECK_FOR_UPDATE,
   };
 }
 
