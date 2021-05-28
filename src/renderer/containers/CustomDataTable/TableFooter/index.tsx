@@ -9,11 +9,9 @@ import { getSelectedJob } from "../../../state/selection/selectors";
 
 const styles = require("./styles.pcss");
 
-// On Windows, file browsers cannot look for directories and files at the same time
-// directories are the default in that case
 const openDialogOptions: OpenDialogOptions = {
-  properties: ["openFile", "openDirectory", "multiSelections"],
-  title: "Browse for folders, or drag and drop files/folders onto app",
+  properties: ["openFile", "multiSelections"],
+  title: "Browse for files, or drag and drop files/folders onto app",
 };
 
 /*
