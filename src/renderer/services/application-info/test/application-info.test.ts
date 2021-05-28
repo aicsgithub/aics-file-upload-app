@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createStubInstance, restore, SinonStubbedInstance } from "sinon";
+import { createStubInstance, stub, restore, SinonStubbedInstance } from "sinon";
 
 import ApplicationInfoService from "../";
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
@@ -16,6 +16,8 @@ describe("ApplicationInfoService", () => {
     process.env = { ...OLD_ENV }; // Make a copy
     httpClient = createStubInstance(HttpCacheClient);
     storage = createStubInstance(EnvironmentAwareStorage);
+    // Stub `get` specifically, since it is a class property and not on the prototype
+    storage.get = stub();
 
     applicationInfoService = new ApplicationInfoService(
       (httpClient as any) as HttpCacheClient,
