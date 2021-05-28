@@ -1,7 +1,7 @@
 import * as path from "path";
 import { format as formatUrl } from "url";
 
-import { app, BrowserWindow, Event, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, Event, ipcMain } from "electron";
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
@@ -100,7 +100,30 @@ app.on("activate", () => {
 // create main BrowserWindow when electron is ready
 app.on("ready", () => {
   mainWindow = createMainWindow();
-  autoUpdater.checkForUpdatesAndNotify();
+  async function checkForUpdate() {
+    try {
+      const updateResult = await autoUpdater.checkForUpdatesAndNotify();
+      if (updateResult) {
+        const cancelId = 0;
+        const messageBoxResult = await dialog.showMessageBox({
+          buttons: ["Cancel Update", "Ok"],
+          cancelId,
+          message: `Downloading newest File Upload Application version ${updateResult.updateInfo.version}`,
+          title: "Auto-Updating File Upload Application",
+          type: "info",
+        });
+        if (messageBoxResult.response === cancelId) {
+          updateResult.cancellationToken?.cancel();
+        }
+      }
+    } catch (error) {
+      dialog.showErrorBox(
+        "Failed Auto-Update",
+        error.message || "Failed to check for potential updates"
+      );
+    }
+  }
+  checkForUpdate();
 });
 
 ipcMain.on(
