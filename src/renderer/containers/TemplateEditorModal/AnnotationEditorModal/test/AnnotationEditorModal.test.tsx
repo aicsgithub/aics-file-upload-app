@@ -54,7 +54,7 @@ describe("<AnnotationEditorModal />", () => {
     expect(wrapper.text()).to.contain("Loading");
   });
 
-  it("disables inputs when annotation is unused", async () => {
+  it("disables inputs when annotation is used", async () => {
     // Arrange
     const annotation = {
       ...mockFavoriteColorAnnotation,

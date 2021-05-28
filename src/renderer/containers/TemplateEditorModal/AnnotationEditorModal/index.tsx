@@ -288,8 +288,13 @@ function AnnotationEditorModal(props: Props) {
 }
 
 // Create a new instance of the modal whenever visiblity is toggled rather
-// than update the existing one to avoid deriving state hooks based on
-// visibility
+// than deriving the inner state based on prop changes (derived state). The
+// reason we would have to derive state is because, for example, when a
+// user edits a couple inputs and then closes the modal the state will still
+// have those edited state values which we would reset on close or on save,
+// but that still doesn't reset them to pull their initial state values from
+// the annotation prop as currently happens on new instance creation of the
+// component
 export default function CreateAnnotationModalWrapper(props: Props) {
   return <AnnotationEditorModal key={`${props.visible}`} {...props} />;
 }
