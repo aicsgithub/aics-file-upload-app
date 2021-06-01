@@ -1,5 +1,9 @@
 # Version Notes
 
+## 2.3.0 (05/31/21)
+- Feature: Simplified file bundling behavior for more control over retrying failures
+- Feature: Ability to edit existing annotations if they have not yet been used in an upload
+
 ## 2.2.0 (04/30/21)
 - Feature: New template editor
 - Feature: Simplified date editor
