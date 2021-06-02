@@ -1,5 +1,10 @@
 import { expect } from "chai";
-import { SinonStubbedInstance, createStubInstance, createSandbox } from "sinon";
+import {
+  SinonStubbedInstance,
+  createStubInstance,
+  createSandbox,
+  restore,
+} from "sinon";
 
 import ApplicationInfoService from "../../../services/application-info";
 import LabkeyClient from "../../../services/labkey-client";
@@ -40,15 +45,25 @@ describe("Feedback logics", () => {
   });
 
   describe("checkForUpdateLogic", () => {
-    it("display info alert when update found", async () => {
+    const currentVersion = "1.5.2";
+    const OLD_ENV = process.env;
+
+    beforeEach(() => {
+      process.env = { ...OLD_ENV }; // Make a copy
+      process.env.APPLICATION_VERSION = currentVersion;
+    });
+
+    afterEach(() => {
+      process.env = OLD_ENV; // Restore old environment
+      restore();
+    });
+
+    it("display info alert when newer version found", async () => {
       // Arrange
       const { logicMiddleware, store, actions } = createMockReduxStore({
         ...mockState,
       });
-      applicationInfoService.checkForUpdate.resolves({
-        currentVersion: "1.0.0",
-        newestVersion: "2.0.0",
-      });
+      applicationInfoService.getNewestApplicationVersion.resolves("2.0.0");
 
       // Act
       store.dispatch(checkForUpdate());
@@ -70,7 +85,9 @@ describe("Feedback logics", () => {
       const { logicMiddleware, store, actions } = createMockReduxStore({
         ...mockState,
       });
-      applicationInfoService.checkForUpdate.resolves(undefined);
+      applicationInfoService.getNewestApplicationVersion.resolves(
+        currentVersion
+      );
 
       // Act
       store.dispatch(checkForUpdate());
@@ -100,7 +117,9 @@ describe("Feedback logics", () => {
       const { logicMiddleware, store, actions } = createMockReduxStore({
         ...mockState,
       });
-      applicationInfoService.checkForUpdate.rejects(new Error("test"));
+      applicationInfoService.getNewestApplicationVersion.rejects(
+        new Error("test")
+      );
 
       // Act
       store.dispatch(checkForUpdate());

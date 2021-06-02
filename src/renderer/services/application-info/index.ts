@@ -4,11 +4,6 @@ import { gt } from "semver";
 
 import HttpCacheClient from "../http-cache-client";
 
-interface UpdateInfo {
-  currentVersion: string;
-  newestVersion: string;
-}
-
 /**
  * Interface for querying information regarding the application itself and its runtime.
  */
@@ -30,9 +25,7 @@ export default class ApplicationInfoService extends HttpCacheClient {
     return os.userInfo().username;
   }
 
-  public async checkForUpdate(): Promise<UpdateInfo | undefined> {
-    const currentVersion = ApplicationInfoService.getApplicationVersion();
-
+  public async getNewestApplicationVersion(): Promise<string> {
     let versions;
     try {
       versions = await this.get<{ name: string }[]>(
@@ -41,15 +34,16 @@ export default class ApplicationInfoService extends HttpCacheClient {
     } catch (error) {
       throw new Error(`Failed to fetch release from GitHub: ${error.message}`);
     }
+    if (!versions.length || !versions[0].name) {
+      throw new Error(
+        "Unexpected return format from GitHub while trying to determine newest app version"
+      );
+    }
 
-    const newestVersion = versions.reduce(
+    return versions.reduce(
       (newestSoFar, current) =>
         gt(newestSoFar, current.name) ? newestSoFar : current.name,
-      currentVersion
+      versions[0].name
     );
-    if (gt(newestVersion, currentVersion)) {
-      return { currentVersion, newestVersion };
-    }
-    return undefined;
   }
 }

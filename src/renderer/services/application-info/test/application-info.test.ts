@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createStubInstance, stub, restore, SinonStubbedInstance } from "sinon";
+import { createStubInstance, stub, SinonStubbedInstance } from "sinon";
 
 import ApplicationInfoService from "../";
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
@@ -10,10 +10,8 @@ describe("ApplicationInfoService", () => {
   let applicationInfoService: ApplicationInfoService;
   let httpClient: SinonStubbedInstance<HttpCacheClient>;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
-  const OLD_ENV = process.env;
 
   beforeEach(() => {
-    process.env = { ...OLD_ENV }; // Make a copy
     httpClient = createStubInstance(HttpCacheClient);
     storage = createStubInstance(EnvironmentAwareStorage);
     // Stub `get` specifically, since it is a class property and not on the prototype
@@ -26,19 +24,12 @@ describe("ApplicationInfoService", () => {
     );
   });
 
-  afterEach(() => {
-    process.env = OLD_ENV; // Restore old environment
-    restore();
-  });
-
-  describe("checkForUpdate", () => {
-    it("returns newest and current version upon finding a new version", async () => {
+  describe("getNewestApplicationVersion", () => {
+    it("returns newest version found", async () => {
       const newestVersion = "2.3.1";
-      const currentVersion = "1.6.2";
-      process.env.APPLICATION_VERSION = currentVersion;
       httpClient.get.resolves({
         data: [
-          currentVersion,
+          "1.6.2",
           newestVersion,
           "2.0.0",
           "0.9.9",
@@ -46,41 +37,30 @@ describe("ApplicationInfoService", () => {
         ].map((name) => ({ name })),
       });
 
-      const result = await applicationInfoService.checkForUpdate();
-      expect(result).to.exist;
-      expect(result?.currentVersion).to.be.equal(currentVersion);
-      expect(result?.newestVersion).to.be.equal(newestVersion);
+      const result = await applicationInfoService.getNewestApplicationVersion();
+      expect(result).to.equal(newestVersion);
     });
 
-    it("returns undefined if current version is equal to newest version", async () => {
-      const currentVersion = "2.3.1";
-      process.env.APPLICATION_VERSION = currentVersion;
+    it("throws error if no versions found", () => {
       httpClient.get.resolves({
-        data: [currentVersion, "2.0.0", "0.9.9", "1.8.0"].map((name) => ({
-          name,
+        data: [],
+      });
+
+      expect(
+        applicationInfoService.getNewestApplicationVersion()
+      ).to.eventually.throw();
+    });
+
+    it("throws error if name not specified in response data", () => {
+      httpClient.get.resolves({
+        data: ["2.3.2", "2.0.0", "0.9.9", "1.8.0"].map((badKeyName) => ({
+          badKeyName,
         })),
       });
 
-      const result = await applicationInfoService.checkForUpdate();
-      expect(result).to.be.undefined;
-    });
-
-    it("returns undefined if current version is greater than newest version", async () => {
-      const newestVersion = "2.3.1";
-      const currentVersion = "2.3.2";
-      process.env.APPLICATION_VERSION = currentVersion;
-      httpClient.get.resolves({
-        data: [
-          currentVersion,
-          newestVersion,
-          "2.0.0",
-          "0.9.9",
-          "1.8.0",
-        ].map((name) => ({ name })),
-      });
-
-      const result = await applicationInfoService.checkForUpdate();
-      expect(result).to.be.undefined;
+      expect(
+        applicationInfoService.getNewestApplicationVersion()
+      ).to.eventually.throw();
     });
   });
 });

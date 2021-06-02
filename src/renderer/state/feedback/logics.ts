@@ -1,5 +1,7 @@
 import { createLogic } from "redux-logic";
+import { gt } from "semver";
 
+import ApplicationInfoService from "../../services/application-info";
 import { clearTemplateDraft } from "../template/actions";
 import {
   ReduxLogicDoneCb,
@@ -18,12 +20,13 @@ const checkForUpdateLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     try {
-      const updateInfo = await applicationInfoService.checkForUpdate();
-      if (updateInfo) {
-        const confluecePage =
+      const currentVersion = ApplicationInfoService.getApplicationVersion();
+      const newestVersion = await applicationInfoService.getNewestApplicationVersion();
+      if (gt(newestVersion, currentVersion)) {
+        const confluencePage =
           "http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application";
         const message = `A new version of the application is available!<br/>
-          Visit the <a href="${confluecePage}" target="_blank" title="File Upload App Confluence page">File Upload App Confluence page</a> to download.`;
+          Visit the <a href="${confluencePage}" target="_blank" title="File Upload App Confluence page">File Upload App Confluence page</a> to download.`;
         dispatch(setInfoAlert(message));
       }
     } catch (error) {
