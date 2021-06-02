@@ -3,21 +3,21 @@ import * as path from "path";
 
 import axios, { AxiosRequestConfig } from "axios";
 import * as humps from "humps";
-import { values, castArray } from "lodash";
+import { castArray } from "lodash";
 import * as hash from "object-hash";
 
-import { LocalStorage } from "../../../types";
-import HttpCacheClient from "../../http-cache-client";
-import { JSSJob } from "../../job-status-client/types";
-import { AicsSuccessResponse, HttpClient } from "../../types";
+import { LocalStorage } from "./../types";
 import {
-  SourceFiles,
   StartUploadResponse,
   UploadMetadata,
   UploadMetadataRequest,
   UploadMetadataResponse,
   UploadServiceFields,
-} from "../types";
+} from "./aicsfiles/types";
+import { FSSRequestFile } from "./aicsfiles/types";
+import HttpCacheClient from "./http-cache-client";
+import { JSSJob } from "./job-status-client/types";
+import { AicsSuccessResponse, HttpClient } from "./types";
 
 const UPLOAD_TYPE = "upload";
 
@@ -65,10 +65,10 @@ export class FSSClient extends HttpCacheClient {
 
   public async uploadComplete(
     jobId: string,
-    sourceFiles: SourceFiles
+    files: FSSRequestFile[]
   ): Promise<UploadMetadataResponse> {
     const request: UploadMetadataRequest = {
-      files: values(sourceFiles),
+      files,
       jobId,
     };
     const response = await this.post<
