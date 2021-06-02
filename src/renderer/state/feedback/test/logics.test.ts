@@ -63,7 +63,7 @@ describe("Feedback logics", () => {
       const { logicMiddleware, store, actions } = createMockReduxStore({
         ...mockState,
       });
-      applicationInfoService.getNewestApplicationVersion.resolves("2.0.0");
+      applicationInfoService.getNewestApplicationVersion.resolves("v2.0.0");
 
       // Act
       store.dispatch(checkForUpdate());
@@ -88,6 +88,36 @@ describe("Feedback logics", () => {
       applicationInfoService.getNewestApplicationVersion.resolves(
         currentVersion
       );
+
+      // Act
+      store.dispatch(checkForUpdate());
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch({
+          payload: {
+            type: AlertType.INFO,
+          },
+          type: SET_ALERT,
+        })
+      ).to.be.false;
+      expect(
+        actions.includesMatch({
+          payload: {
+            type: AlertType.ERROR,
+          },
+          type: SET_ALERT,
+        })
+      ).to.be.false;
+    });
+
+    it("display no alerts when newest released version is older than current", async () => {
+      // Arrange
+      const { logicMiddleware, store, actions } = createMockReduxStore({
+        ...mockState,
+      });
+      applicationInfoService.getNewestApplicationVersion.resolves("v1.4.7");
 
       // Act
       store.dispatch(checkForUpdate());

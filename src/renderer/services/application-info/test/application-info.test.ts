@@ -26,14 +26,14 @@ describe("ApplicationInfoService", () => {
 
   describe("getNewestApplicationVersion", () => {
     it("returns newest version found", async () => {
-      const newestVersion = "2.3.1";
+      const newestVersion = "v2.3.1";
       httpClient.get.resolves({
         data: [
-          "1.6.2",
+          "v1.6.2",
           newestVersion,
-          "2.0.0",
-          "0.9.9",
-          "1.8.0",
+          "v2.0.0",
+          "v0.9.9",
+          "v1.8.0",
         ].map((name) => ({ name })),
       });
 
@@ -53,7 +53,7 @@ describe("ApplicationInfoService", () => {
 
     it("throws error if name not specified in response data", () => {
       httpClient.get.resolves({
-        data: ["2.3.2", "2.0.0", "0.9.9", "1.8.0"].map((badKeyName) => ({
+        data: ["v2.3.2", "v2.0.0", "v0.9.9", "v1.8.0"].map((badKeyName) => ({
           badKeyName,
         })),
       });
