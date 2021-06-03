@@ -22,6 +22,7 @@ import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import { defaultFs } from "../services/aicsfiles/constants";
 import { FSSClient } from "../services/aicsfiles/helpers/fss-client";
+import ApplicationInfoService from "../services/application-info";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -83,6 +84,11 @@ const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
 const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
 const mmsClient = new MMSClient(httpClient, storage, useCache);
 const labkeyClient = new LabkeyClient(httpClient, storage, useCache);
+const applicationInfoService = new ApplicationInfoService(
+  httpClient,
+  storage,
+  false
+);
 export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
@@ -103,6 +109,7 @@ export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
   jssClient,
   labkeyClient,
   logger: Logger,
+  applicationInfoService,
   mmsClient,
   readFile,
   remote,

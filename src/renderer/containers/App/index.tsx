@@ -17,6 +17,7 @@ import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import {
   addRequestToInProgress,
+  checkForUpdate,
   clearAlert,
   removeRequestFromInProgress,
   setErrorAlert,
@@ -74,6 +75,7 @@ export default function App() {
 
   // Request initial data
   useEffect(() => {
+    dispatch(checkForUpdate());
     dispatch(requestMetadata());
     dispatch(gatherSettings());
   }, [dispatch]);
@@ -181,7 +183,9 @@ export default function App() {
   useEffect(() => {
     if (alert) {
       const { message: alertText, manualClear, type } = alert;
-      const alertBody = <div>{alertText}</div>;
+      const alertBody = (
+        <div dangerouslySetInnerHTML={{ __html: alertText || "" }} />
+      );
       const duration = manualClear ? 0 : ALERT_DURATION;
 
       switch (type) {

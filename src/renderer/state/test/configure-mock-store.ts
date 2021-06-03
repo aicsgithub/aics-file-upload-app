@@ -27,6 +27,7 @@ import {
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
 import { FileManagementSystem } from "../../services/aicsfiles";
+import ApplicationInfoService from "../../services/application-info";
 import EnvironmentAwareStorage from "../EnvironmentAwareStorage";
 import { State } from "../types";
 
@@ -43,6 +44,7 @@ export interface LocalStorageStub {
 }
 
 export interface ReduxLogicDependencies {
+  applicationInfoService: SinonStubbedInstance<ApplicationInfoService>;
   dialog: {
     showMessageBox: SinonStub;
     showOpenDialog: SinonStub;
@@ -73,6 +75,7 @@ export interface ReduxLogicDependencies {
 }
 
 const storage = createStubInstance(EnvironmentAwareStorage);
+const applicationInfoService = createStubInstance(ApplicationInfoService);
 const jssClient = createStubInstance(JobStatusClient);
 const labkeyClient = createStubInstance(LabkeyClient);
 const mmsClient = createStubInstance(MMSClient);
@@ -124,6 +127,7 @@ export const remote = {
 };
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
+  applicationInfoService,
   dialog,
   fms,
   getApplicationMenu,
