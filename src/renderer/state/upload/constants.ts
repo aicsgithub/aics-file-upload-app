@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import * as moment from "moment";
 
 import { LONG_DATETIME_FORMAT } from "../../constants";
-import { UploadMetadata, UploadRowId } from "../types";
+import { UploadRow, UploadRowId } from "../types";
 import { makeConstant } from "../util";
 
 const BRANCH_NAME = "upload";
@@ -105,13 +105,12 @@ export const isSubImageRow = ({
   positionIndex,
   scene,
   subImageName,
-}: UploadMetadata) =>
-  !isNil(positionIndex) || !isNil(scene) || !isNil(subImageName);
-export const isSubImageOnlyRow = (metadata: UploadMetadata) =>
+}: UploadRow) => !isNil(positionIndex) || !isNil(scene) || !isNil(subImageName);
+export const isSubImageOnlyRow = (metadata: UploadRow) =>
   isSubImageRow(metadata) && isNil(metadata.channelId);
-export const isChannelOnlyRow = (metadata: UploadMetadata) =>
+export const isChannelOnlyRow = (metadata: UploadRow) =>
   !isNil(metadata.channelId) && !isSubImageRow(metadata);
-export const isFileRow = (metadata: UploadMetadata) =>
+export const isFileRow = (metadata: UploadRow) =>
   !isChannelOnlyRow(metadata) && !isSubImageRow(metadata);
 
 export const DRAFT_KEY = "draft";

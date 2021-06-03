@@ -21,7 +21,11 @@ import {
 } from "../../services/aicsfiles/types";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
-import { ColumnType, Lookup, ScalarType } from "../../services/labkey-client/types";
+import {
+  ColumnType,
+  Lookup,
+  ScalarType,
+} from "../../services/labkey-client/types";
 import MMSClient from "../../services/mms-client";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { Duration } from "../../types";
@@ -248,17 +252,20 @@ function getUploadMetadataFromJobFiles(
   const lookups = getLookups(state);
   const annotationLookups = getAnnotationLookups(state);
   const annotationIdToAnnotationMap = groupBy(annotations, "annotationId");
-  const annotationIdToLookupMap = annotationLookups.reduce((mapSoFar, curr) => ({
-    [curr.annotationId]: lookups.find(l => l.lookupId === curr.lookupId),
-    ...mapSoFar,
-  }), {} as { [annotationId: number]: Lookup | undefined })
+  const annotationIdToLookupMap = annotationLookups.reduce(
+    (mapSoFar, curr) => ({
+      [curr.annotationId]: lookups.find((l) => l.lookupId === curr.lookupId),
+      ...mapSoFar,
+    }),
+    {} as { [annotationId: number]: Lookup | undefined }
+  );
 
   let templateId: number | undefined = undefined;
   const uploadMetadata = files.reduce((uploadSoFar, file) => {
     templateId = file.templateId || templateId;
     return file.customMetadata.annotations.reduce(
       (keyToMetadataSoFar: UploadStateBranch, annotation: Annotation) => {
-        const key = getUploadRowKey({ ...file, ...annotation });
+        const key = getUploadRowKey({ file: file.file.originalPath, ...annotation });
         const annotationDefinition =
           annotationIdToAnnotationMap[annotation.annotationId]?.[0];
         if (!annotationDefinition) {
@@ -277,7 +284,10 @@ function getUploadMetadataFromJobFiles(
             values = values.map((v) => new Date(`${v}`));
             break;
           case ColumnType.LOOKUP:
-            const type = annotationIdToLookupMap[annotation.annotationId]?.['scalarTypeId/Name']
+            const type =
+              annotationIdToLookupMap[annotation.annotationId]?.[
+                "scalarTypeId/Name"
+              ];
             if (type === ScalarType.INT) {
               values = values.map((v) => parseInt(v, 10));
             }

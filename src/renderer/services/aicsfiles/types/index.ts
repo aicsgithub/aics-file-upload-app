@@ -1,5 +1,6 @@
 import { BigIntStats, PathLike, StatOptions, Stats } from "fs";
 
+import { UploadMetadata } from "../../../state/types";
 import { JSSJob } from "../../job-status-client/types";
 
 export interface Uploads {
@@ -44,20 +45,6 @@ export interface CustomFileAnnotationRequest extends ImageModelBase {
 export interface CustomFileMetadataRequest {
   annotations: CustomFileAnnotationRequest[];
   templateId?: number;
-}
-
-export interface UploadMetadata {
-  customMetadata: CustomFileMetadataRequest;
-  fileType?: string;
-  file: File;
-  [id: string]: any;
-}
-
-export interface File {
-  originalPath: string;
-  fileName?: string;
-  fileType: string;
-  [id: string]: any;
 }
 
 // FSS Response Types

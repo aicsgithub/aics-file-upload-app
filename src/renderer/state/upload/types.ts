@@ -9,6 +9,7 @@ import {
   AutoSaveAction,
   State,
   UploadMetadata,
+  UploadRow,
   UploadRowId,
   WriteToStoreAction,
 } from "../types";
@@ -17,7 +18,7 @@ export interface DisplayUploadStateBranch {
   [fullPath: string]: UploadMetadataWithDisplayFields;
 }
 
-export interface UploadMetadataWithDisplayFields extends UploadMetadata {
+export interface UploadMetadataWithDisplayFields extends UploadRow {
   wellLabels: string[];
 }
 

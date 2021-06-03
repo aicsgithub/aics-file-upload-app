@@ -38,7 +38,6 @@ import {
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   UploadFile,
-  UploadMetadata,
   UploadStateBranch,
 } from "../state/types";
 
@@ -325,7 +324,7 @@ export const getApplyTemplateInfo = async (
     booleanAnnotationTypeId
   );
   const uploads: UploadStateBranch = {};
-  forEach(upload, (metadata: UploadMetadata, key: string) => {
+  forEach(upload, (metadata, key) => {
     annotationsToExclude.forEach(
       (annotation: string) => delete metadata[annotation]
     );

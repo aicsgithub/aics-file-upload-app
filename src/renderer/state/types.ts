@@ -14,7 +14,10 @@ import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
-import { UploadServiceFields } from "../services/aicsfiles/types";
+import {
+  CustomFileMetadataRequest,
+  UploadServiceFields,
+} from "../services/aicsfiles/types";
 import ApplicationInfoService from "../services/application-info";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
@@ -210,8 +213,9 @@ export interface JobStateBranch {
   jobFilter: JobFilter;
 }
 
+// TODO: Is this really fullPath or is it uploadKey?
 export interface UploadStateBranch {
-  [fullPath: string]: UploadMetadata;
+  [fullPath: string]: UploadRow;
 }
 
 // Think of this group as a composite key. No two rows should have the same combination of these values.
@@ -224,13 +228,27 @@ export interface UploadRowId {
 }
 
 // Metadata associated with a file
-export interface UploadMetadata extends UploadRowId {
+export interface UploadRow extends UploadRowId {
   barcode?: string;
   notes?: string[]; // only one note expected but we treat this like other custom annotations
   templateId?: number;
   subFiles?: UploadStateBranch;
   [WELL_ANNOTATION_NAME]?: number[];
   [genericKey: string]: any;
+}
+
+interface FileMetadataBlock {
+  originalPath: string;
+  fileName?: string;
+  fileType: string;
+  [id: string]: any;
+}
+
+export interface UploadMetadata {
+  customMetadata: CustomFileMetadataRequest;
+  fileType?: string;
+  file: FileMetadataBlock;
+  [id: string]: any;
 }
 
 export interface MetadataStateBranch {

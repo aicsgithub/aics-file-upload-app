@@ -136,18 +136,14 @@ export default class LabkeyClient extends HttpCacheClient {
       "Created",
       "ModifiedBy",
       "Modified",
-    ]
+    ];
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "Annotation",
       [`query.columns=${columns}`]
     );
     const { rows } = await this.get(query);
-    return rows.map((r: LabkeyAnnotation) =>
-      camelizeKeys(
-        pick(r, columns)
-      )
-    );
+    return rows.map((r: LabkeyAnnotation) => camelizeKeys(pick(r, columns)));
   }
 
   public async getAnnotationLookups(): Promise<AnnotationLookup[]> {
@@ -277,7 +273,7 @@ export default class LabkeyClient extends HttpCacheClient {
       "DescriptionColumn",
       "SchemaName",
       "TableName",
-      "ScalarTypeId/Name"
+      "ScalarTypeId/Name",
     ];
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,

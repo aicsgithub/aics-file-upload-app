@@ -20,6 +20,7 @@ import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import ApplicationInfoService from "../services/application-info";
+import { FSSClient } from "../services/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -37,7 +38,6 @@ import {
   template,
   upload,
 } from "./";
-import { FSSClient } from "../services/fss-client";
 
 const readFile = promisify(fsReadFile);
 const writeFile = promisify(fsWriteFile);

@@ -10,6 +10,7 @@ import CopyWorker from "worker-loader!./copy-worker";
 
 import { LabkeyClient } from "..";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
+import { UploadMetadata } from "../../state/types";
 import { LocalStorage } from "../../types";
 import {
   UNRECOVERABLE_JOB_ERROR,
@@ -23,7 +24,6 @@ import {
   FileMetadata,
   FSSRequestFile,
   StartUploadResponse,
-  UploadMetadata,
   UploadMetadataResponse,
   UploadServiceFields,
 } from "../aicsfiles/types";

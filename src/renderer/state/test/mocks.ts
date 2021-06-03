@@ -63,7 +63,7 @@ export const mockFavoriteColorAnnotation: Annotation = {
   description: "a description",
   name: "Favorite Color",
   exposeToFileUploadApp: true,
-  "annotationTypeId/Name": ColumnType.DROPDOWN
+  "annotationTypeId/Name": ColumnType.DROPDOWN,
 };
 
 export const mockFavoriteColorTemplateAnnotation: TemplateAnnotation = {
@@ -78,7 +78,7 @@ const mockIntervalAnnotation: Annotation = {
   description: "Example duration annotation",
   name: "Interval",
   exposeToFileUploadApp: true,
-  "annotationTypeId/Name": ColumnType.DURATION
+  "annotationTypeId/Name": ColumnType.DURATION,
 };
 
 export const mockWellAnnotation: Annotation = {
@@ -88,7 +88,7 @@ export const mockWellAnnotation: Annotation = {
   description: "Well associated with this file",
   exposeToFileUploadApp: true,
   name: WELL_ANNOTATION_NAME,
-  "annotationTypeId/Name": ColumnType.LOOKUP
+  "annotationTypeId/Name": ColumnType.LOOKUP,
 };
 
 export const mockNotesAnnotation: Annotation = {
@@ -98,7 +98,7 @@ export const mockNotesAnnotation: Annotation = {
   description: "Other information",
   exposeToFileUploadApp: true,
   name: NOTES_ANNOTATION_NAME,
-  "annotationTypeId/Name": ColumnType.TEXT
+  "annotationTypeId/Name": ColumnType.TEXT,
 };
 
 const mockUnusableStructureAnnotation: Annotation = {
@@ -108,7 +108,7 @@ const mockUnusableStructureAnnotation: Annotation = {
   description: "Other information",
   exposeToFileUploadApp: false,
   name: "Structure",
-  "annotationTypeId/Name": ColumnType.LOOKUP
+  "annotationTypeId/Name": ColumnType.LOOKUP,
 };
 
 export const mockMMSTemplate: Template = {
@@ -661,7 +661,7 @@ export const mockLookups: Lookup[] = [
     lookupId: 1,
     schemaName: "schema",
     tableName: "tablename",
-    "scalarTypeId/Name": "scalartypename"
+    "scalarTypeId/Name": "scalartypename",
   },
 ];
 

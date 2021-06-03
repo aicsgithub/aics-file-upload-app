@@ -20,9 +20,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import {
-  UploadServiceFields,
-} from "../../services/aicsfiles/types";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
 import FileManagementSystem from "../../services/fms-client";
 import {
   FAILED_STATUSES,
@@ -325,9 +323,7 @@ const retryUploadLogic = createLogic({
   ) => {
     const uploadJob: JSSJob<UploadServiceFields> = action.payload;
     const jobName = uploadJob.jobName || "";
-    const fileNames = ctx.files.map(
-      ({ file }: UploadMetadata) => file
-    );
+    const fileNames = ctx.files.map(({ file }: UploadMetadata) => file);
     try {
       await fms.retryUpload(
         uploadJob.jobId,
@@ -468,7 +464,7 @@ const updateSubImagesLogic = createLogic({
     const update: Partial<UploadStateBranch> = {};
 
     const uploads = getUpload(getState());
-    const existingUploadsForFile: UploadMetadata[] = values(uploads).filter(
+    const existingUploadsForFile = values(uploads).filter(
       (u) => u.file === fileRow.file
     );
 
@@ -533,7 +529,7 @@ const updateSubImagesLogic = createLogic({
     subImages.forEach((subImageValue: string | number) => {
       const matchingSubImageRow = existingUploadsForFile
         .filter(isSubImageOnlyRow)
-        .find((u: UploadMetadata) => u[subImageKey] === subImageValue);
+        .find((u) => u[subImageKey] === subImageValue);
 
       if (!matchingSubImageRow) {
         const subImageOnlyRowKey = getUploadRowKey({
@@ -587,21 +583,14 @@ const updateSubImagesLogic = createLogic({
             !includes(subImageNames, u.subImageName)) ||
           (!isNil(u.channelId) && !includes(channelIds, u.channelId))
       )
-      .map(
-        ({
+      .map(({ file, positionIndex, channelId, scene, subImageName }) =>
+        getUploadRowKey({
+          channelId,
           file,
           positionIndex,
-          channelId,
           scene,
           subImageName,
-        }: UploadMetadata) =>
-          getUploadRowKey({
-            channelId,
-            file,
-            positionIndex,
-            scene,
-            subImageName,
-          })
+        })
       );
     next(
       batchActions([

@@ -12,7 +12,6 @@ import {
   isNil,
   keys,
   omit,
-  reduce,
   uniq,
   values,
   without,
@@ -30,10 +29,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import {
-  UploadMetadata as AicsFilesUploadMetadata,
-  Uploads,
-} from "../../services/aicsfiles/types";
+import { Uploads } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
@@ -62,7 +58,7 @@ import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import { State, UploadMetadata, UploadStateBranch } from "../types";
+import { State, UploadMetadata, UploadRow, UploadStateBranch } from "../types";
 
 import { isChannelOnlyRow, isFileRow, isSubImageRow } from "./constants";
 import {
@@ -102,7 +98,7 @@ const EXCLUDED_UPLOAD_FIELDS = [
 
 // this matches the metadata annotations to the ones in the database and removes
 // extra stuff that does not have annotations associated with it but is needed for UI display
-const standardizeUploadMetadata = (metadata: UploadMetadata) => {
+const standardizeUploadRow = (metadata: UploadRow) => {
   const strippedMetadata = omit(metadata, EXCLUDED_UPLOAD_FIELDS);
   const result: any = {};
   forEach(strippedMetadata, (value: any, key: string) => {
@@ -119,34 +115,24 @@ export const getUploadWithCalculatedData = createSelector(
     imagingSessions: ImagingSession[],
     selectedPlates: PlateResponse[],
     wellIdToWell: Map<number, WellResponse>
-  ): DisplayUploadStateBranch => {
-    return reduce(
-      uploads,
-      (
-        accum: DisplayUploadStateBranch,
-        metadata: UploadMetadata,
-        key: string
-      ) => {
-        const wellIds = metadata[WELL_ANNOTATION_NAME];
-        const wellLabels = (wellIds || []).map((wellId: number) =>
-          getWellLabelAndImagingSessionName(
-            wellId,
-            imagingSessions,
-            selectedPlates,
-            wellIdToWell
-          )
-        );
-        return {
-          ...accum,
-          [key]: {
-            ...metadata,
-            wellLabels,
-          },
-        };
-      },
-      {}
-    );
-  }
+  ): DisplayUploadStateBranch =>
+    Object.entries(uploads).reduce((accum, [key, metadata]) => {
+      const wellIds = metadata[WELL_ANNOTATION_NAME] || [];
+      return {
+        ...accum,
+        [key]: {
+          ...metadata,
+          wellLabels: wellIds.map((wellId) =>
+            getWellLabelAndImagingSessionName(
+              wellId,
+              imagingSessions,
+              selectedPlates,
+              wellIdToWell
+            )
+          ),
+        },
+      };
+    }, {} as DisplayUploadStateBranch)
 );
 
 const convertToUploadJobRow = (
@@ -292,26 +278,20 @@ export const getUploadAsTableRows = createSelector(
 
 export const getFileToAnnotationHasValueMap = createSelector(
   [getFileToMetadataMap],
-  (metadataGroupedByFile: { [file: string]: UploadMetadata[] }) => {
+  (metadataGroupedByFile) => {
     const result: { [file: string]: { [key: string]: boolean } } = {};
-    forEach(
-      metadataGroupedByFile,
-      (allMetadata: UploadMetadata[], file: string) => {
-        result[file] = allMetadata.reduce(
-          (accum: { [key: string]: boolean }, curr: UploadMetadata) => {
-            forEach(curr, (value: any, key: string) => {
-              const currentValueIsEmpty = isArray(value)
-                ? isEmpty(value)
-                : isNil(value);
-              accum[key] = accum[key] || !currentValueIsEmpty;
-            });
+    forEach(metadataGroupedByFile, (allMetadata, file) => {
+      result[file] = allMetadata.reduce((accum, curr) => {
+        forEach(curr, (value: any, key: string) => {
+          const currentValueIsEmpty = isArray(value)
+            ? isEmpty(value)
+            : isNil(value);
+          accum[key] = accum[key] || !currentValueIsEmpty;
+        });
 
-            return accum;
-          },
-          {}
-        );
-      }
-    );
+        return accum;
+      }, {} as { [key: string]: boolean });
+    });
     return result;
   }
 );
@@ -346,10 +326,10 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     }
 
     const result: any = {};
-    forEach(upload, (metadata: UploadMetadata, key: string) => {
+    forEach(upload, (metadata, key) => {
       const annotationToErrorMap: { [annotation: string]: string } = {};
       forEach(
-        standardizeUploadMetadata(metadata),
+        standardizeUploadRow(metadata),
         (value: any, annotationName: string) => {
           const templateAnnotation = template.annotations.find(
             (a) => a.name === annotationName
@@ -573,7 +553,7 @@ const getAnnotations = (
     {}
   );
   return flatMap(metadata, (metadatum: UploadMetadata) => {
-    const customData = standardizeUploadMetadata(metadatum);
+    const customData = standardizeUploadRow(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
       annotationName = titleCase(annotationName);
@@ -730,14 +710,12 @@ export const getFileIdsToDelete = createSelector(
 
 export const getEditFileMetadataRequests = createSelector(
   [getUploadPayload],
-  (
-    uploads: Uploads
-  ): Array<{ fileId: string; request: AicsFilesUploadMetadata }> => {
+  (uploads: Uploads): Array<{ fileId: string; request: UploadMetadata }> => {
     const result: Array<{
       fileId: string;
-      request: AicsFilesUploadMetadata;
+      request: UploadMetadata;
     }> = [];
-    forEach(uploads, (request: AicsFilesUploadMetadata, fileId: string) => {
+    forEach(uploads, (request: UploadMetadata, fileId: string) => {
       result.push({
         fileId,
         request,

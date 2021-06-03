@@ -1,10 +1,6 @@
 import { createLogic } from "redux-logic";
 
-import {
-  StepName,
-  UploadMetadata as AicsFilesUploadMetadata,
-  UploadServiceFields,
-} from "../../services/aicsfiles/types";
+import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
 import {
   IN_PROGRESS_STATUSES,
   JSSJob,
@@ -35,9 +31,9 @@ export const handleAbandonedJobsLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
+    // TODO: This filter needs work -- selector for getting jobs at a certain stage
     const abandonedJobs = action.payload.filter(
-      ({ currentStage, serviceFields, status }) =>
-        serviceFields?.type === "upload" &&
+      ({ currentStage, status }) =>
         IN_PROGRESS_STATUSES.includes(status) &&
         [
           StepName.CopyFilesChild.toString(),
@@ -47,56 +43,35 @@ export const handleAbandonedJobsLogic = createLogic({
           "", // if no currentStage, it is probably worth retrying this job
         ].includes(currentStage || "")
     );
+    console.log("abandonedJobs", abandonedJobs);
 
-    if (abandonedJobs.length < 1) {
-      done();
-      return;
-    }
-
-    try {
-      // Wait for every abandoned job to be processed
+    if (abandonedJobs.length) {
       await Promise.all(
         abandonedJobs.map(async (abandonedJob) => {
-          logger.info(
-            `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`
-          );
-          dispatch(
-            setInfoAlert(
-              `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`
-            )
-          );
-
-          // Use the most up to date version of the job, which is returned
-          // after the upload is failed
-          const [updatedJob] = await fms.failUpload(abandonedJob.jobId);
-          const fileNames = updatedJob.serviceFields.files.map(
-            ({ file: { originalPath } }: AicsFilesUploadMetadata) =>
-              originalPath
-          );
-
           try {
+            // Alert user to abandoned job
+            const info = `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`;
+            logger.info(info);
+            dispatch(setInfoAlert(info));
+
+            // Cancel the job before attempting to retry it
+            await fms.cancelUpload(abandonedJob.jobId);
             await fms.retryUpload(
-              updatedJob.jobId,
-              handleUploadProgress(fileNames, (progress) =>
-                dispatch(updateUploadProgressInfo(updatedJob.jobId, progress))
+              abandonedJob.jobId,
+              handleUploadProgress([abandonedJob.jobName || ""], (progress) =>
+                dispatch(updateUploadProgressInfo(abandonedJob.jobId, progress))
               )
             );
           } catch (e) {
-            logger.error(`Retry for upload "${updatedJob.jobName}" failed`, e);
-            dispatch(
-              setErrorAlert(
-                `Retry for upload "${updatedJob.jobName}" failed: ${e.message}`
-              )
-            );
+            const message = `Retry for upload "${abandonedJob.jobName}" failed: ${e.message}`;
+            logger.error(message, e);
+            dispatch(setErrorAlert(message));
           }
         })
       );
-    } catch (e) {
-      logger.error(`Could not retry abandoned jobs.`, e);
-      dispatch(setErrorAlert(`Could not retry abandoned jobs: ${e.message}`));
-    } finally {
-      done();
     }
+
+    done();
   },
   type: RECEIVE_JOBS,
   warnTimeout: 0,

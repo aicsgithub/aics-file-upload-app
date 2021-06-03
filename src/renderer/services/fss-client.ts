@@ -6,10 +6,11 @@ import * as humps from "humps";
 import { castArray } from "lodash";
 import * as hash from "object-hash";
 
+import { UploadMetadata } from "../state/types";
+
 import { LocalStorage } from "./../types";
 import {
   StartUploadResponse,
-  UploadMetadata,
   UploadMetadataRequest,
   UploadMetadataResponse,
   UploadServiceFields,
