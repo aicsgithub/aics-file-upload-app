@@ -16,6 +16,7 @@ export interface LabkeyAnnotation extends LabkeyAudited {
   AnnotationId: number;
   AnnotationTypeId: number;
   Name: string;
+  "AnnotationTypeId/Name": string;
 }
 
 export interface LabkeyAnnotationLookup {
@@ -88,6 +89,7 @@ export interface Annotation extends Audited {
   description: string;
   exposeToFileUploadApp?: boolean;
   name: string;
+  "annotationTypeId/Name": string;
 }
 
 export interface AnnotationLookup {
@@ -112,6 +114,11 @@ export enum ColumnType {
   DURATION = "Duration",
 }
 
+export enum ScalarType {
+  STRING = "string",
+  INT = "int",
+}
+
 export interface AnnotationType {
   annotationTypeId: number;
   name: ColumnType;
@@ -123,6 +130,7 @@ export interface Lookup extends Audited {
   lookupId: number;
   schemaName: string;
   tableName: string;
+  "scalarTypeId/Name": string;
 }
 
 export interface BarcodePrefix {

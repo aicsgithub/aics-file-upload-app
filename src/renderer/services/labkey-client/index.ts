@@ -125,24 +125,27 @@ export default class LabkeyClient extends HttpCacheClient {
    * Gets all annotations
    */
   public async getAnnotations(): Promise<Annotation[]> {
+    const columns = [
+      "AnnotationId",
+      "AnnotationTypeId",
+      "Description",
+      "ExposeToFileUploadApp",
+      "AnnotationTypeId/Name",
+      "Name",
+      "CreatedBy",
+      "Created",
+      "ModifiedBy",
+      "Modified",
+    ]
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
-      "Annotation"
+      "Annotation",
+      [`query.columns=${columns}`]
     );
     const { rows } = await this.get(query);
     return rows.map((r: LabkeyAnnotation) =>
       camelizeKeys(
-        pick(r, [
-          "AnnotationId",
-          "AnnotationTypeId",
-          "Description",
-          "ExposeToFileUploadApp",
-          "Name",
-          "CreatedBy",
-          "Created",
-          "ModifiedBy",
-          "Modified",
-        ])
+        pick(r, columns)
       )
     );
   }
@@ -268,22 +271,21 @@ export default class LabkeyClient extends HttpCacheClient {
   }
 
   public async getLookups(): Promise<Lookup[]> {
+    const columns = [
+      "LookupId",
+      "ColumnName",
+      "DescriptionColumn",
+      "SchemaName",
+      "TableName",
+      "ScalarTypeId/Name"
+    ];
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
-      "Lookup"
+      "Lookup",
+      [`query.columns=${columns}`]
     );
     const { rows } = await this.get(query);
-    return rows.map((r: LabkeyLookup) =>
-      camelizeKeys(
-        pick(r, [
-          "LookupId",
-          "ColumnName",
-          "DescriptionColumn",
-          "SchemaName",
-          "TableName",
-        ])
-      )
-    );
+    return rows.map((r: LabkeyLookup) => camelizeKeys(pick(r, columns)));
   }
 
   public async getTemplates(): Promise<LabkeyTemplate[]> {

@@ -15,13 +15,10 @@ import {
   Middleware,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
-import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
 
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
-import { defaultFs } from "../services/aicsfiles/constants";
-import { FSSClient } from "../services/aicsfiles/helpers/fss-client";
 import ApplicationInfoService from "../services/application-info";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
@@ -40,6 +37,7 @@ import {
   template,
   upload,
 } from "./";
+import { FSSClient } from "../services/fss-client";
 
 const readFile = promisify(fsReadFile);
 const writeFile = promisify(fsWriteFile);
@@ -92,16 +90,9 @@ const applicationInfoService = new ApplicationInfoService(
 export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
-    fs: defaultFs,
-    fssClient: new FSSClient(httpClient, storage, useCache),
-    // We need to define a getter here for testing purposes. WebWorkers are not defined
-    // in the mocha testing environment. It is also easier to unit test components with
-    // the copy portion mocked
-    getCopyWorker: () => new CopyWorker(),
-    jobStatusClient: jssClient,
-    labkeyClient,
-    logLevel: "trace",
-    mmsClient,
+    fss: new FSSClient(httpClient, storage, useCache),
+    jss: jssClient,
+    lk: labkeyClient,
     storage,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),

@@ -5,8 +5,6 @@ import { LONG_DATETIME_FORMAT } from "../../constants";
 import { UploadMetadata, UploadRowId } from "../types";
 import { makeConstant } from "../util";
 
-import { UploadJobTableRow } from "./types";
-
 const BRANCH_NAME = "upload";
 
 export const ADD_UPLOAD_FILES = makeConstant(BRANCH_NAME, "add-upload-files");
@@ -101,19 +99,6 @@ export const getUploadRowKey = ({
   }
 
   return key;
-};
-
-export const getUploadRowKeyFromUploadTableRow = (
-  upload: UploadJobTableRow
-): string => {
-  const { channelId, file, positionIndex, scene, subImageName } = upload;
-  return getUploadRowKey({
-    channelId,
-    file,
-    positionIndex,
-    scene,
-    subImageName,
-  });
 };
 
 export const isSubImageRow = ({

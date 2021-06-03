@@ -63,6 +63,7 @@ export const mockFavoriteColorAnnotation: Annotation = {
   description: "a description",
   name: "Favorite Color",
   exposeToFileUploadApp: true,
+  "annotationTypeId/Name": ColumnType.DROPDOWN
 };
 
 export const mockFavoriteColorTemplateAnnotation: TemplateAnnotation = {
@@ -77,6 +78,7 @@ const mockIntervalAnnotation: Annotation = {
   description: "Example duration annotation",
   name: "Interval",
   exposeToFileUploadApp: true,
+  "annotationTypeId/Name": ColumnType.DURATION
 };
 
 export const mockWellAnnotation: Annotation = {
@@ -86,6 +88,7 @@ export const mockWellAnnotation: Annotation = {
   description: "Well associated with this file",
   exposeToFileUploadApp: true,
   name: WELL_ANNOTATION_NAME,
+  "annotationTypeId/Name": ColumnType.LOOKUP
 };
 
 export const mockNotesAnnotation: Annotation = {
@@ -95,6 +98,7 @@ export const mockNotesAnnotation: Annotation = {
   description: "Other information",
   exposeToFileUploadApp: true,
   name: NOTES_ANNOTATION_NAME,
+  "annotationTypeId/Name": ColumnType.TEXT
 };
 
 const mockUnusableStructureAnnotation: Annotation = {
@@ -104,6 +108,7 @@ const mockUnusableStructureAnnotation: Annotation = {
   description: "Other information",
   exposeToFileUploadApp: false,
   name: "Structure",
+  "annotationTypeId/Name": ColumnType.LOOKUP
 };
 
 export const mockMMSTemplate: Template = {
@@ -203,6 +208,19 @@ export const mockPlate: ImagingSessionIdToPlateMap = {
     plateStatusId: 1,
     seededOn: undefined,
   },
+};
+
+export const mockJob: JSSJob = {
+  created: new Date(),
+  jobId: "1340202",
+  jobName: "Upload Job created by FSS",
+  modified: new Date(),
+  originationHost: "dev-aics-fup-001",
+  service: "aicsfiles-js",
+  serviceFields: null,
+  status: JSSJobStatus.WAITING,
+  updateParent: false,
+  user: "fakeuser",
 };
 
 export const mockSelection: SelectionStateBranch = {
@@ -643,6 +661,7 @@ export const mockLookups: Lookup[] = [
     lookupId: 1,
     schemaName: "schema",
     tableName: "tablename",
+    "scalarTypeId/Name": "scalartypename"
   },
 ];
 

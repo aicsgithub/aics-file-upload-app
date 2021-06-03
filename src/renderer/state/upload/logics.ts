@@ -20,20 +20,17 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { getUUID } from "../../services/aicsfiles/helpers/uploader";
 import {
-  UploadMetadata as AicsFilesUploadMetadata,
   UploadServiceFields,
 } from "../../services/aicsfiles/types";
+import FileManagementSystem from "../../services/fms-client";
 import {
   FAILED_STATUSES,
   JSSJob,
-  JSSJobStatus,
 } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
-  convertToArray,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   pivotAnnotations,
@@ -209,13 +206,13 @@ const initiateUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const groupId = getUUID();
+    const groupId = FileManagementSystem.createUniqueId();
     let initiateUploadResults;
     try {
       initiateUploadResults = await Promise.all(
         Object.entries(getUploadPayload(getState())).map(
           async ([filePath, metadata]) => {
-            const startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
+            const startUploadResponse = await fms.startUpload(
               filePath,
               metadata,
               { groupId }
@@ -246,10 +243,11 @@ const initiateUploadLogic = createLogic({
       initiateUploadResults.map(async (result) => {
         const jobName = basename(result.filePath);
         try {
-          await fms.uploadFiles(
-            result.startUploadResponse,
-            { [result.filePath]: result.metadata },
-            jobName,
+          await fms.uploadFile(
+            result.startUploadResponse.jobId,
+            result.filePath,
+            result.metadata,
+            result.startUploadResponse.uploadDirectory,
             handleUploadProgress(
               [result.filePath],
               (progress: UploadProgressInfo) =>
@@ -291,82 +289,27 @@ export const cancelUploadLogic = createLogic({
     {
       action,
       fms,
-      getState,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const uploadJob = action.payload;
-    const jobIdsToFail = new Set<string>();
-    if (uploadJob.serviceFields?.originalJobId) {
-      jobIdsToFail.add(uploadJob.serviceFields?.originalJobId);
-      const jobIdToJobMap = getJobIdToUploadJobMapGlobal(getState());
-      const originalJob = jobIdToJobMap.get(
-        uploadJob.serviceFields.originalJobId
-      );
-      if (originalJob) {
-        convertToArray(originalJob.serviceFields?.replacementJobIds).forEach(
-          (jobId) => {
-            jobIdsToFail.add(jobId);
-          }
-        );
-      }
-    } else {
-      jobIdsToFail.add(uploadJob.jobId);
-    }
-
+    const job = action.payload;
     try {
-      // TODO FUA-55: we need to do more than this to really stop an upload
-      await Promise.all(
-        Array.from(jobIdsToFail).map((jobId) =>
-          fms.failUpload(jobId, "Cancelled by user", JSSJobStatus.FAILED, {
-            cancelled: true,
-          })
-        )
-      );
-
-      dispatch(cancelUploadSucceeded(uploadJob.jobName || ""));
+      await fms.cancelUpload(job.jobId);
+      dispatch(cancelUploadSucceeded(job.jobName || ""));
     } catch (e) {
       logger.error(`Cancel upload failed`, e);
       dispatch(
         cancelUploadFailed(
-          uploadJob.jobName || "",
-          `Cancel upload ${uploadJob.jobName} failed: ${e.message}`
+          job.jobName || "",
+          `Cancel upload ${job.jobName} failed: ${e.message}`
         )
       );
     }
     done();
   },
   type: CANCEL_UPLOAD,
-  validate: async (
-    {
-      action,
-      dialog,
-    }: ReduxLogicTransformDependenciesWithAction<CancelUploadAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const uploadJob = action.payload;
-    if (!uploadJob) {
-      reject(setErrorAlert("Cannot cancel undefined upload job"));
-    } else {
-      const { response: buttonIndex } = await dialog.showMessageBox({
-        buttons: ["Cancel", "Yes"],
-        cancelId: 0,
-        defaultId: 1,
-        message:
-          "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
-        title: "Danger!",
-        type: "warning",
-      });
-      if (buttonIndex === 1) {
-        next(action);
-      } else {
-        reject({ type: "ignore" });
-      }
-    }
-  },
 });
 
 const retryUploadLogic = createLogic({
@@ -383,7 +326,7 @@ const retryUploadLogic = createLogic({
     const uploadJob: JSSJob<UploadServiceFields> = action.payload;
     const jobName = uploadJob.jobName || "";
     const fileNames = ctx.files.map(
-      ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
+      ({ file }: UploadMetadata) => file
     );
     try {
       await fms.retryUpload(
@@ -1084,25 +1027,8 @@ const updateAndRetryUploadLogic = createLogic({
           requestType
         )
       );
-
-      // attempt to revert job back to previous state
-      try {
-        await jssClient.updateJob(originalJob.jobId, {
-          jobName: originalJob.jobName,
-          serviceFields: {
-            files: originalJob.serviceFields.files,
-          },
-        });
-      } catch (e) {
-        dispatch(
-          setErrorAlert(
-            `Unable to revert upload back to original state: ${e.message}`
-          )
-        );
-      }
-    } finally {
-      done();
     }
+    done();
   },
   validate: (
     {

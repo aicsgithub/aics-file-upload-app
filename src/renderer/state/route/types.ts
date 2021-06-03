@@ -39,3 +39,8 @@ export interface OpenEditFileMetadataTabSucceededAction {
   };
   type: string;
 }
+
+export interface Upload {
+  templateId: number;
+  uploadMetadata: UploadStateBranch;
+}
