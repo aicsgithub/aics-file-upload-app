@@ -9,16 +9,8 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { memoize } from "lodash";
-import {
-  castArray,
-  difference,
-  forEach,
-  isNil,
-  startCase,
-  trim,
-  uniq,
-} from "lodash";
+import { memoize, omit } from "lodash";
+import { castArray, difference, isNil, startCase, trim, uniq } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
 import { ImagingSession } from "../services/labkey-client/types";
@@ -323,16 +315,16 @@ export const getApplyTemplateInfo = async (
     annotations,
     booleanAnnotationTypeId
   );
-  const uploads: UploadStateBranch = {};
-  forEach(upload, (metadata, key) => {
-    annotationsToExclude.forEach(
-      (annotation: string) => delete metadata[annotation]
-    );
-    uploads[key] = {
-      ...additionalAnnotations,
-      ...metadata, // prevent existing annotations from getting overwritten
-    };
-  });
+  const uploads = Object.entries(upload || {}).reduce(
+    (accum, [key, metadata]) => ({
+      ...accum,
+      [key]: {
+        ...additionalAnnotations,
+        ...omit(metadata, annotationsToExclude),
+      },
+    }),
+    {} as UploadStateBranch
+  );
   return { template, uploads };
 };
 

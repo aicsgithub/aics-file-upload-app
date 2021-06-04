@@ -6,7 +6,7 @@ import * as humps from "humps";
 import { castArray } from "lodash";
 import * as hash from "object-hash";
 
-import { UploadMetadata } from "../state/types";
+import { UploadRequest } from "../state/types";
 
 import { LocalStorage } from "./../types";
 import {
@@ -40,7 +40,7 @@ export class FSSClient extends HttpCacheClient {
 
   public async startUpload(
     filePath: string,
-    metadata: UploadMetadata,
+    metadata: UploadRequest,
     serviceFields: Partial<UploadServiceFields>
   ): Promise<StartUploadResponse> {
     const fileName = path.basename(filePath);

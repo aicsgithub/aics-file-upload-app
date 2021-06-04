@@ -1,10 +1,10 @@
 import { BigIntStats, PathLike, StatOptions, Stats } from "fs";
 
-import { UploadMetadata } from "../../../state/types";
+import { UploadRequest } from "../../../state/types";
 import { JSSJob } from "../../job-status-client/types";
 
 export interface Uploads {
-  [filePath: string]: UploadMetadata;
+  [filePath: string]: UploadRequest;
 }
 
 export interface UploadResponse {
@@ -17,7 +17,7 @@ export interface FSSRequestFile {
   fileName: string;
   md5hex: string;
   fileType: string;
-  metadata: UploadMetadata;
+  metadata: UploadRequest;
   shouldBeInArchive?: boolean;
   shouldBeInLocal?: boolean;
 }
@@ -112,7 +112,7 @@ export interface UploadServiceFields extends BaseServiceFields {
   deletedFileIds?: string[];
 
   // populated by FSS when the app requests to start an upload.
-  files: UploadMetadata[];
+  files: UploadRequest[];
 
   // a mapping for all files of this job to their MD5 at the time of the last upload.
   md5: { [originalPath: string]: string };

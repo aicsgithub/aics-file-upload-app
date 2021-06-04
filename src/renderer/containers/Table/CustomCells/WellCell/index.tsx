@@ -7,7 +7,7 @@ import { CellProps } from "react-table";
 import { WELL_ANNOTATION_NAME } from "../../../../constants";
 import { getSelectedWellIds } from "../../../../state/selection/selectors";
 import { updateUpload } from "../../../../state/upload/actions";
-import { UploadJobTableRow } from "../../../../state/upload/types";
+import { UploadTableRow } from "../../../../state/upload/types";
 import ImagingSessionSelector from "../../../ImagingSessionSelector";
 import Plate from "../../../PlateContainer";
 import DisplayCell from "../../DefaultCells/DisplayCell";
@@ -18,7 +18,7 @@ const styles = require("./styles.pcss");
  * This is used in the react-tables when a user is editing a Well annotation cell.
  * It displays the currently selected well labels and a popover with the plate UI for associating more wells.
  */
-export default function WellCell(props: CellProps<UploadJobTableRow>) {
+export default function WellCell(props: CellProps<UploadTableRow>) {
   const dispatch = useDispatch();
   const selectedWells = useSelector(getSelectedWellIds);
   const [isEditing, setIsEditing] = React.useState(false);

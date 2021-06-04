@@ -22,10 +22,7 @@ import {
 } from "../../constants";
 import { UploadServiceFields } from "../../services/aicsfiles/types";
 import FileManagementSystem from "../../services/fms-client";
-import {
-  FAILED_STATUSES,
-  JSSJob,
-} from "../../services/job-status-client/types";
+import { JSSJob } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
@@ -37,7 +34,6 @@ import {
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
-import { getJobIdToUploadJobMapGlobal } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -66,10 +62,10 @@ import {
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependenciesWithAction,
-  UploadMetadata,
+  UploadRequest,
   UploadProgressInfo,
   UploadStateBranch,
-  UploadSummaryTableRow,
+  FileModel,
 } from "../types";
 import { batchActions, handleUploadProgress } from "../util";
 
@@ -99,7 +95,6 @@ import {
   RETRY_UPLOAD,
   SAVE_UPLOAD_DRAFT,
   SUBMIT_FILE_METADATA_UPDATE,
-  UPDATE_AND_RETRY_UPLOAD,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
@@ -110,7 +105,7 @@ import {
   getFileIdsToDelete,
   getUpload,
   getUploadFileNames,
-  getUploadPayload,
+  getUploadRequests,
 } from "./selectors";
 import {
   ApplyTemplateAction,
@@ -120,7 +115,6 @@ import {
   RetryUploadAction,
   SaveUploadDraftAction,
   SubmitFileMetadataUpdateAction,
-  UpdateAndRetryUploadAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
@@ -208,7 +202,7 @@ const initiateUploadLogic = createLogic({
     let initiateUploadResults;
     try {
       initiateUploadResults = await Promise.all(
-        Object.entries(getUploadPayload(getState())).map(
+        Object.entries(getUploadRequests(getState())).map(
           async ([filePath, metadata]) => {
             const startUploadResponse = await fms.startUpload(
               filePath,
@@ -313,7 +307,6 @@ export const cancelUploadLogic = createLogic({
 const retryUploadLogic = createLogic({
   process: async (
     {
-      action,
       ctx,
       fms,
       logger,
@@ -321,66 +314,34 @@ const retryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const uploadJob: JSSJob<UploadServiceFields> = action.payload;
-    const jobName = uploadJob.jobName || "";
-    const fileNames = ctx.files.map(({ file }: UploadMetadata) => file);
+    const job: JSSJob<UploadServiceFields> = ctx.job;
+    const fileNames =
+      job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
     try {
       await fms.retryUpload(
-        uploadJob.jobId,
+        job.jobId,
         handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
-          dispatch(updateUploadProgressInfo(uploadJob.jobId, progress))
+          dispatch(updateUploadProgressInfo(job.jobId, progress))
         )
       );
       done();
     } catch (e) {
-      const error = `Retry upload ${jobName} failed: ${e.message}`;
-      logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-      dispatch(uploadFailed(error, jobName));
+      const error = `Retry upload ${job.jobName} failed: ${e.message}`;
+      logger.error(`Retry for jobId=${job.jobId} failed`, e);
+      dispatch(uploadFailed(error, job.jobName || ""));
       done();
     }
   },
-  validate: (
+  transform: (
     {
       action,
-      ctx,
       getState,
-      logger,
+      ctx,
     }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
+    next: ReduxLogicNextCb
   ) => {
-    const uploadJob: JSSJob<UploadServiceFields> = action.payload;
-    if (isEmpty(uploadJob.serviceFields?.files)) {
-      reject(
-        setErrorAlert(
-          "Not enough information to retry upload. Contact Software."
-        )
-      );
-    } else if (uploadJob.serviceFields?.originalJobId) {
-      logger.info(
-        `This upload job replaced the job ${uploadJob.serviceFields?.originalJobId}. Finding the original to retry.`
-      );
-      let currJob:
-        | UploadSummaryTableRow
-        | JSSJob<UploadServiceFields>
-        | undefined = uploadJob;
-      const jobIdToJobMap = getJobIdToUploadJobMapGlobal(getState());
-      while (currJob?.serviceFields?.originalJobId) {
-        currJob = jobIdToJobMap.get(currJob?.serviceFields?.originalJobId);
-        logger.info(`Now the current job is ${currJob?.jobId}`);
-      }
-      if (!currJob) {
-        reject(setErrorAlert("Could not find original upload to retry"));
-      } else {
-        action.payload = currJob;
-        ctx.files =
-          currJob.serviceFields?.files || uploadJob.serviceFields.files;
-        next(action);
-      }
-    } else {
-      ctx.files = uploadJob.serviceFields?.files;
-      next(action);
-    }
+    ctx.job = action.payload || getSelectedJob(getState());
+    next(action);
   },
   type: RETRY_UPLOAD,
   warnTimeout: 0,
@@ -392,7 +353,7 @@ const getSubImagesAndKey = (
   subImageNames: string[]
 ) => {
   let subImages: Array<string | number> = positionIndexes;
-  let subImageKey: keyof UploadMetadata = "positionIndex";
+  let subImageKey: keyof UploadRequest = "positionIndex";
   if (isEmpty(subImages)) {
     subImages = scenes;
     subImageKey = "scene";
@@ -635,11 +596,11 @@ const convertDatePickerValueToDate = (d: any) => {
 // if not, we pass the value untouched to the reducer.
 // Additionally we take care of converting moment dates back to dates.
 function formatUpload(
-  upload: Partial<UploadMetadata>,
+  upload: Partial<FileModel>,
   template: Template,
   annotationTypes: AnnotationType[]
 ) {
-  const formattedUpload: Partial<UploadMetadata> = {};
+  const formattedUpload: Partial<FileModel> = {};
   forEach(upload, (value: any, key: string) => {
     const annotation = template.annotations.find((a) => a.name === key);
 
@@ -968,87 +929,6 @@ const submitFileMetadataUpdateLogic = createLogic({
   },
 });
 
-const updateAndRetryUploadLogic = createLogic({
-  process: async (
-    {
-      ctx,
-      fms,
-      jssClient,
-    }: ReduxLogicProcessDependenciesWithAction<UpdateAndRetryUploadAction>,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    const { files, selectedJob: originalJob } = ctx;
-    const requestType = `${AsyncRequest.UPLOAD}-${originalJob.jobName}`;
-
-    let selectedJob = originalJob;
-    try {
-      selectedJob = await jssClient.updateJob(
-        originalJob.jobId,
-        {
-          jobName: originalJob.jobName,
-          serviceFields: {
-            files,
-          },
-        },
-        false
-      );
-    } catch (e) {
-      dispatch(
-        requestFailed(
-          `Could not update and retry upload: ${e.message}`,
-          requestType
-        )
-      );
-      done();
-      return;
-    }
-
-    // close the tab to let user watch progress from upload summary page
-    dispatch(closeUpload());
-
-    try {
-      await fms.retryUpload(selectedJob);
-    } catch (e) {
-      dispatch(
-        requestFailed(
-          `Retry upload ${originalJob.jobName} failed: ${e.message}`,
-          requestType
-        )
-      );
-    }
-    done();
-  },
-  validate: (
-    {
-      action,
-      ctx,
-      getState,
-    }: ReduxLogicTransformDependenciesWithAction<UpdateAndRetryUploadAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    ctx.selectedJob = getSelectedJob(getState());
-    if (!ctx.selectedJob || !ctx.selectedJob.jobName) {
-      reject(setErrorAlert("No upload selected"));
-    } else if (FAILED_STATUSES.includes(ctx.selectedJob.status)) {
-      try {
-        // get this information before the tab closes and everything gets cleared out
-        ctx.files = Object.values(getUploadPayload(getState()));
-        next({
-          ...action,
-          payload: ctx.jobName,
-        });
-      } catch (e) {
-        reject(setErrorAlert(e.message));
-      }
-    } else {
-      reject(setErrorAlert("Selected job is not retryable"));
-    }
-  },
-  type: UPDATE_AND_RETRY_UPLOAD,
-});
-
 export default [
   addUploadFilesLogic,
   applyTemplateLogic,
@@ -1058,7 +938,6 @@ export default [
   retryUploadLogic,
   saveUploadDraftLogic,
   submitFileMetadataUpdateLogic,
-  updateAndRetryUploadLogic,
   updateSubImagesLogic,
   updateUploadLogic,
   updateUploadRowsLogic,

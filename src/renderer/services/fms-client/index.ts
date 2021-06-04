@@ -6,11 +6,10 @@ import { noop, uniq } from "lodash";
 import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 import * as uuid from "uuid";
-import CopyWorker from "worker-loader!./copy-worker";
 
 import { LabkeyClient } from "..";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
-import { UploadMetadata } from "../../state/types";
+import { UploadRequest } from "../../state/types";
 import { LocalStorage } from "../../types";
 import {
   UNRECOVERABLE_JOB_ERROR,
@@ -21,7 +20,6 @@ import { CopyError, InvalidMetadataError } from "../aicsfiles/errors";
 import { UnrecoverableJobError } from "../aicsfiles/errors/UnrecoverableJobError";
 import {
   CopyProgressCallBack,
-  FileMetadata,
   FSSRequestFile,
   StartUploadResponse,
   UploadMetadataResponse,
@@ -38,6 +36,8 @@ interface FileManagementSystemConfig {
   jss: JobStatusClient;
   lk: LabkeyClient;
   storage: LocalStorage;
+  // Available as parameter for easier unit testing
+  copyWorkerGetter: () => Worker;
 }
 
 /*
@@ -52,6 +52,7 @@ export default class FileManagementSystem {
   private readonly jss: JobStatusClient;
   private readonly lk: LabkeyClient;
   private readonly storage: LocalStorage;
+  private readonly copyWorkerGetter: () => Worker;
   private jobIdToWorkerMap: { [jobId: string]: Worker } = {};
 
   // Creates JSS friendly unique ids
@@ -64,6 +65,7 @@ export default class FileManagementSystem {
     this.jss = config.jss;
     this.lk = config.lk;
     this.storage = config.storage;
+    this.copyWorkerGetter = config.copyWorkerGetter;
   }
 
   /**
@@ -75,10 +77,10 @@ export default class FileManagementSystem {
    */
   public async startUpload(
     filePath: string,
-    metadata: UploadMetadata,
+    metadata: UploadRequest,
     serviceFields: Partial<UploadServiceFields> = {}
   ): Promise<StartUploadResponse> {
-    console.log("Received uploadFiles request", metadata);
+    console.log("Received startUpload request", metadata);
 
     // Validate the metadata - ensuring the job is trackable
     if (!(await fsExists(filePath))) {
@@ -125,7 +127,7 @@ export default class FileManagementSystem {
   public async uploadFile(
     jobId: string,
     filePath: string,
-    metadata: UploadMetadata,
+    metadata: UploadRequest,
     uploadDirectory: string,
     copyProgressCb: CopyProgressCallBack = noop
   ): Promise<UploadMetadataResponse> {
@@ -261,14 +263,13 @@ export default class FileManagementSystem {
       // This ensures each upload promise is able to complete before
       // evaluating any failures (similar to Promise.allSettled)
       return results.map((result) => {
-        if (result.error) {
-          throw new Error(result.error);
+        const errorCase = result as { error: Error };
+        if (errorCase.error) {
+          throw errorCase;
         }
-        const x = result;
-        return x as UploadMetadataResponse;
+        return result as UploadMetadataResponse;
       });
     } catch (e) {
-      console.timeEnd("upload");
       await this.jss.updateJob(jobId, {
         status:
           e.name === UNRECOVERABLE_JOB_ERROR
@@ -283,16 +284,10 @@ export default class FileManagementSystem {
   }
 
   /**
-   * Fetches the metadata for the given file.
-   */
-  public async findByFileId(fileId: string): Promise<FileMetadata> {
-    throw new Error("TBD");
-  }
-
-  /**
    * Cancels the given Job. This will mark the job as a failure and
-   * stop the copy portion of the upload. Note: the job is not guaranteed
-   * to stop if it has left the client-side upload portion of the upload and
+   * stop the copy portion of the upload if ongoing on the client side.
+   * Note: the job is not guaranteed to stop if it has left the
+   * client-side upload portion of the upload and
    * is being entirely managed by FSS.
    */
   public async cancelUpload(jobId: string): Promise<void> {
@@ -335,15 +330,14 @@ export default class FileManagementSystem {
     }
 
     // Copy worker internals defined in `./copy-worker.ts`
-    const worker = new CopyWorker();
+    const worker = this.copyWorkerGetter();
     this.jobIdToWorkerMap[jobId] = worker;
     return new Promise<string>((resolve, reject) => {
       // Receive messages from the worker. Each message should be formatted
       // like <message_type>:<message> (ex. "upload-progress:111" where the type
       // is that the copy is in progress and message is the amount of bytes copied so far)
-      worker.onmessage = (e: MessageEvent<string>) => {
-        const message = e?.data.toLowerCase();
-        console.info(message);
+      worker.onmessage = (e: MessageEvent) => {
+        const message = e?.data.toLowerCase() as string;
 
         if (message.includes(UPLOAD_WORKER_SUCCEEDED)) {
           // https://apple.stackexchange.com/questions/14980/why-are-dot-underscore-files-created-and-how-can-i-avoid-them

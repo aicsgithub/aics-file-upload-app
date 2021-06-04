@@ -1,5 +1,5 @@
 import { Column } from "react-table";
 
-import { UploadJobTableRow } from "../../state/upload/types";
+import { UploadTableRow } from "../../state/upload/types";
 
-export type CustomColumn = Column<UploadJobTableRow>;
+export type CustomColumn = Column<UploadTableRow>;

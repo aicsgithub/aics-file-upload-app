@@ -1,1 +1,2 @@
-export { FileManagementSystem } from "./file-management-system";
+import FileManagementSystem from "../fms-client";
+export { FileManagementSystem };

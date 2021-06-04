@@ -2,26 +2,25 @@ import { createHash } from "crypto";
 import { createReadStream, createWriteStream } from "fs";
 import { basename, resolve as resolvePath } from "path";
 
-import { noop, throttle } from "lodash";
+import { Cancelable, throttle } from "lodash";
 
 import {
   UPLOAD_WORKER_ON_PROGRESS,
   UPLOAD_WORKER_SUCCEEDED,
 } from "../aicsfiles/constants";
 
+// Milliseconds to wait between progress updates
 const THROTTLE_MS = 20000;
 
 /**
  * Copies source file to destination folder in chunks,
  * reports incremental progress, and returns md5.
  */
-const copyFiles = (
+async function copyFiles(
   source: string,
   dest: string,
-  onProgress: (progress: number) => void = noop,
-  throttleMs: number = THROTTLE_MS
-): Promise<string> => {
-  const onProgressThrottled = throttle(onProgress, throttleMs);
+  onProgress: ((progress: number) => void) & Cancelable
+): Promise<string> {
   return new Promise((resolve, reject) => {
     try {
       // Adapted from these sources:
@@ -34,13 +33,13 @@ const copyFiles = (
       let bytesCopied = 0;
       readable.on("data", (chunk) => {
         bytesCopied += chunk.length;
-        onProgressThrottled(bytesCopied);
+        onProgress(bytesCopied);
         hash.update(chunk, "utf8");
       });
 
       readable.on("end", () => {
         // Ensure that final call to `onProgress` happens
-        onProgressThrottled.flush();
+        onProgress.flush();
         resolve(hash.digest("hex"));
       });
 
@@ -63,22 +62,18 @@ const copyFiles = (
       reject(e);
     }
   });
-};
+}
 
 // Performs actual copy as a web worker (used in fms.copyFile)
 const ctx: Worker = self as any;
 ctx.onmessage = async (e: MessageEvent) => {
-  const [originalPath, targetFolder, copyProgressCbThrottleMs] = e.data;
+  const [originalPath, targetFolder] = e.data;
 
   try {
-    const md5 = await copyFiles(
-      originalPath,
-      targetFolder,
-      (progress: number) => {
-        ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${progress}`);
-      },
-      copyProgressCbThrottleMs
-    );
+    const onProgress = throttle((progress: number) => {
+      ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${progress}`);
+    }, THROTTLE_MS);
+    const md5 = await copyFiles(originalPath, targetFolder, onProgress);
     ctx.postMessage(`${UPLOAD_WORKER_SUCCEEDED}:${md5}`);
   } catch (e) {
     ctx.postMessage(`Copy failed: ${e.message}`);

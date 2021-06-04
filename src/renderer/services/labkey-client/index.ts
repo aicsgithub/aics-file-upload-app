@@ -31,11 +31,13 @@ import {
   Unit,
 } from "./types";
 
-const LK_FILEMETADATA_SCHEMA = "filemetadata";
-const LK_FMS_SCHEMA = "fms";
-const LK_MICROSCOPY_SCHEMA = "microscopy";
-const LK_PROCESSING_SCHEMA = "processing";
-const LK_UPLOADER_SCHEMA = "uploader";
+export enum LK_SCHEMA {
+  FILE_METADATA = "filemetadata",
+  FMS = "fms",
+  MICROSCOPY = "microscopy",
+  PROCESSING = "processing",
+  UPLOADER = "uploader",
+}
 const BASE_URL = "/labkey";
 const IN_SEPARATOR = "%3B";
 
@@ -99,7 +101,7 @@ export default class LabkeyClient extends HttpCacheClient {
     annotationId: number
   ): Promise<boolean> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "CustomAnnotationJunction",
       [`query.AnnotationId~eq=${annotationId}`, `query.maxRows=1`]
     );
@@ -112,7 +114,7 @@ export default class LabkeyClient extends HttpCacheClient {
    */
   public async getAnnotationTypes(): Promise<AnnotationType[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "AnnotationType"
     );
     const { rows } = await this.get(query);
@@ -138,7 +140,7 @@ export default class LabkeyClient extends HttpCacheClient {
       "Modified",
     ];
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "Annotation",
       [`query.columns=${columns}`]
     );
@@ -148,7 +150,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getAnnotationLookups(): Promise<AnnotationLookup[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "AnnotationLookup"
     );
     const { rows } = await this.get(query);
@@ -159,7 +161,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getAnnotationOptions(): Promise<AnnotationOption[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "AnnotationOption"
     );
     const { rows } = await this.get(query);
@@ -239,7 +241,7 @@ export default class LabkeyClient extends HttpCacheClient {
    */
   public async getImagingSessions(): Promise<ImagingSession[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
+      LK_SCHEMA.MICROSCOPY,
       "ImagingSession"
     );
     const response = await this.get(query);
@@ -255,7 +257,7 @@ export default class LabkeyClient extends HttpCacheClient {
    */
   public async getBarcodePrefixes(): Promise<BarcodePrefix[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
+      LK_SCHEMA.MICROSCOPY,
       "PlateBarcodePrefix"
     );
     const response = await this.get(query);
@@ -276,7 +278,7 @@ export default class LabkeyClient extends HttpCacheClient {
       "ScalarTypeId/Name",
     ];
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "Lookup",
       [`query.columns=${columns}`]
     );
@@ -285,7 +287,7 @@ export default class LabkeyClient extends HttpCacheClient {
   }
 
   public async getTemplates(): Promise<LabkeyTemplate[]> {
-    const query = LabkeyClient.getSelectRowsURL(LK_UPLOADER_SCHEMA, "Template");
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.UPLOADER, "Template");
     const response = await this.get(query);
     return response.rows;
   }
@@ -294,7 +296,7 @@ export default class LabkeyClient extends HttpCacheClient {
    * Retrieves all units
    */
   public async getUnits(): Promise<Unit[]> {
-    const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Units");
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Units");
     const response = await this.get(query);
     return response.rows.map((unit: LabkeyUnit) => ({
       description: unit.Description,
@@ -320,7 +322,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getChannels(): Promise<Channel[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_PROCESSING_SCHEMA,
+      LK_SCHEMA.PROCESSING,
       "ContentType"
     );
     const response = await this.get(query);
@@ -332,7 +334,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getTemplateHasBeenUsed(templateId: number): Promise<boolean> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_UPLOADER_SCHEMA,
+      LK_SCHEMA.UPLOADER,
       "FileTemplateJunction",
       [`query.TemplateId~eq=${templateId}`]
     );
@@ -343,7 +345,7 @@ export default class LabkeyClient extends HttpCacheClient {
   public async getPlateBarcodeAndAllImagingSessionIdsFromWellId(
     wellId: number
   ): Promise<string> {
-    const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Well", [
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Well", [
       `query.wellid~eq=${wellId}`,
     ]);
     const response = await this.get(query);
@@ -352,7 +354,7 @@ export default class LabkeyClient extends HttpCacheClient {
       throw new Error("could not find plate from wellId");
     }
     const plateQuery = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
+      LK_SCHEMA.MICROSCOPY,
       "Plate",
       [`query.plateid~eq=${plateId}`]
     );
@@ -363,7 +365,7 @@ export default class LabkeyClient extends HttpCacheClient {
   public async getImagingSessionIdsForBarcode(
     barcode: string
   ): Promise<Array<number | null>> {
-    const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate", [
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Plate", [
       `query.barcode~eq=${encodeURIComponent(barcode)}`,
     ]);
     const response = await this.get(query);
@@ -379,7 +381,7 @@ export default class LabkeyClient extends HttpCacheClient {
     md5: string,
     name: string
   ): Promise<boolean> {
-    const query = LabkeyClient.getSelectRowsURL(LK_FMS_SCHEMA, "File", [
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.FMS, "File", [
       `query.FileName~eq=${name}`,
       `query.MD5~eq=${md5}`,
     ]);

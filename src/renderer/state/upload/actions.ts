@@ -2,12 +2,7 @@ import {
   PREFERRED_TEMPLATE_ID,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../../shared/constants";
-import {
-  State,
-  UploadMetadata,
-  UploadRowId,
-  UploadSummaryTableRow,
-} from "../types";
+import { State, FileModel, FileModelId, UploadSummaryTableRow } from "../types";
 
 import {
   APPLY_TEMPLATE,
@@ -30,7 +25,6 @@ import {
   SAVE_UPLOAD_DRAFT,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   SUBMIT_FILE_METADATA_UPDATE,
-  UPDATE_AND_RETRY_UPLOAD,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
@@ -61,19 +55,18 @@ import {
   SaveUploadDraftAction,
   SaveUploadDraftSuccessAction,
   SubmitFileMetadataUpdateAction,
-  UpdateAndRetryUploadAction,
   UpdateSubImagesAction,
   UpdateSubImagesPayload,
   UpdateUploadAction,
   UpdateUploadRowsAction,
   UpdateUploadsAction,
   UploadFailedAction,
-  UploadJobTableRow,
+  UploadTableRow,
   UploadSucceededAction,
 } from "./types";
 
 export function addUploadFiles(
-  uploadFiles: UploadRowId[]
+  uploadFiles: FileModelId[]
 ): AddUploadFilesAction {
   return {
     autoSave: true,
@@ -177,7 +170,7 @@ export function applyTemplate(templateId: number): ApplyTemplateAction {
 
 export function updateUpload(
   key: string,
-  upload: Partial<UploadMetadata>
+  upload: Partial<FileModel>
 ): UpdateUploadAction {
   return {
     autoSave: true,
@@ -191,7 +184,7 @@ export function updateUpload(
 
 export function updateUploadRows(
   uploadKeys: string[],
-  metadataUpdate: Partial<UploadMetadata>
+  metadataUpdate: Partial<FileModel>
 ): UpdateUploadRowsAction {
   return {
     autoSave: true,
@@ -240,7 +233,7 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
 }
 
 export function updateUploads(
-  uploads: Partial<UploadMetadata>,
+  uploads: Partial<FileModel>,
   clearAll = false
 ): UpdateUploadsAction {
   return {
@@ -254,7 +247,7 @@ export function updateUploads(
 }
 
 export function updateSubImages(
-  row: UploadJobTableRow,
+  row: UploadTableRow,
   payload: Partial<UpdateSubImagesPayload>
 ): UpdateSubImagesAction {
   return {
@@ -348,11 +341,5 @@ export function editFileMetadataFailed(
       jobName,
     },
     type: EDIT_FILE_METADATA_FAILED,
-  };
-}
-
-export function updateAndRetryUpload(): UpdateAndRetryUploadAction {
-  return {
-    type: UPDATE_AND_RETRY_UPLOAD,
   };
 }

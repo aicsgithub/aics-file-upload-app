@@ -58,14 +58,14 @@ import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import { State, UploadMetadata, UploadRow, UploadStateBranch } from "../types";
+import { State, UploadRequest, FileModel, UploadStateBranch } from "../types";
 
 import { isChannelOnlyRow, isFileRow, isSubImageRow } from "./constants";
 import {
   DisplayUploadStateBranch,
   FileType,
   MMSAnnotationValueRequest,
-  UploadJobTableRow,
+  UploadTableRow,
   UploadMetadataWithDisplayFields,
 } from "./types";
 
@@ -98,7 +98,7 @@ const EXCLUDED_UPLOAD_FIELDS = [
 
 // this matches the metadata annotations to the ones in the database and removes
 // extra stuff that does not have annotations associated with it but is needed for UI display
-const standardizeUploadRow = (metadata: UploadRow) => {
+const standardizeUploadRow = (metadata: FileModel) => {
   const strippedMetadata = omit(metadata, EXCLUDED_UPLOAD_FIELDS);
   const result: any = {};
   forEach(strippedMetadata, (value: any, key: string) => {
@@ -137,19 +137,17 @@ export const getUploadWithCalculatedData = createSelector(
 
 const convertToUploadJobRow = (
   metadata: UploadMetadataWithDisplayFields,
-  subRows: UploadJobTableRow[] = [],
+  subRows: UploadTableRow[] = [],
   channelIds: string[] = [],
   positionIndexes: number[] = [],
   scenes: number[] = [],
   subImageNames: string[] = []
-): UploadJobTableRow => {
+): UploadTableRow => {
   return {
     ...metadata,
     subRows,
     [CHANNEL_ANNOTATION_NAME]: channelIds,
-    [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME]
-      ? metadata[NOTES_ANNOTATION_NAME][0]
-      : undefined,
+    [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME] || [],
     [WELL_ANNOTATION_NAME]: metadata[WELL_ANNOTATION_NAME] || [],
     positionIndexes,
     scenes,
@@ -192,7 +190,7 @@ const getSubImageChannelRows = (
 const getSubImageRows = (
   allMetadataForFile: UploadMetadataWithDisplayFields[]
 ) => {
-  const subImageRows: UploadJobTableRow[] = [];
+  const subImageRows: UploadTableRow[] = [];
   const subImageMetadata = allMetadataForFile.filter(isSubImageRow);
   const metadataGroupedBySubImage = groupBy(
     subImageMetadata,
@@ -226,11 +224,11 @@ const getSubImageRows = (
   return subImageRows;
 };
 
-// Maps UploadMetadata to shape of data needed by react-table
+// Maps UploadRequest to shape of data needed by react-table
 // including information about how to display subrows
 export const getUploadAsTableRows = createSelector(
   [getFileToMetadataMap],
-  (metadataGroupedByFile): UploadJobTableRow[] => {
+  (metadataGroupedByFile): UploadTableRow[] => {
     return Object.values(metadataGroupedByFile).flatMap(
       (allMetadataForFile) => {
         const fileMetadata = allMetadataForFile.find(isFileRow);
@@ -475,7 +473,7 @@ export const getUploadValidationErrors = createSelector(
     getSelectedBarcode,
   ],
   (
-    rows: UploadJobTableRow[],
+    rows: UploadTableRow[],
     fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
     validationErrorsMap: { [key: string]: { [annotation: string]: string } },
     template?: TemplateWithTypeNames,
@@ -540,7 +538,7 @@ export const getUploadValidationErrors = createSelector(
 
 // the userData relates to the same file but differs for subimage/channel combinations
 const getAnnotations = (
-  metadata: UploadMetadata[],
+  metadata: FileModel[],
   appliedTemplate: TemplateWithTypeNames
 ): MMSAnnotationValueRequest[] => {
   const annotationNameToAnnotationMap: {
@@ -552,7 +550,7 @@ const getAnnotations = (
     }),
     {}
   );
-  return flatMap(metadata, (metadatum: UploadMetadata) => {
+  return flatMap(metadata, (metadatum) => {
     const customData = standardizeUploadRow(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
@@ -621,7 +619,7 @@ const extensionToFileTypeMap: { [index: string]: FileType } = {
   ".txt": FileType.TEXT,
 };
 
-export const getUploadPayload = createSelector(
+export const getUploadRequests = createSelector(
   [getUpload, getCompleteAppliedTemplate],
   (uploads: UploadStateBranch, template?: TemplateWithTypeNames): Uploads => {
     if (!template) {
@@ -630,40 +628,37 @@ export const getUploadPayload = createSelector(
 
     let result = {};
     const metadataGroupedByFile = groupBy(values(uploads), "file");
-    forEach(
-      metadataGroupedByFile,
-      (metadata: UploadMetadata[], fullPath: string) => {
-        // to support the current way of storing metadata in bob the blob, we continue to include
-        // wellIds in the microscopy block. Since a file may have 1 or more scenes and channels
-        // per file, we set these values to a uniq list of all of the values found across each "dimension"
-        const wellIds = uniq(
-          flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || [])
-        ).filter((w) => !!w);
-        const fileKey = metadata[0]?.fileId || fullPath;
-        result = {
-          ...result,
-          [fileKey]: {
-            customMetadata: {
-              annotations: getAnnotations(metadata, template),
-              templateId: template.templateId,
-            },
-            file: {
-              disposition: "tape", // prevent czi -> ome.tiff conversions
-              ...(metadata[0]?.fileId && { fileId: metadata[0]?.fileId }),
-              fileType:
-                extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
-                FileType.OTHER,
-              originalPath: fullPath,
-              shouldBeInArchive: true,
-              shouldBeInLocal: true,
-            },
-            microscopy: {
-              ...(wellIds.length && { wellIds }),
-            },
+    forEach(metadataGroupedByFile, (metadata, fullPath) => {
+      // to support the current way of storing metadata in bob the blob, we continue to include
+      // wellIds in the microscopy block. Since a file may have 1 or more scenes and channels
+      // per file, we set these values to a uniq list of all of the values found across each "dimension"
+      const wellIds = uniq(
+        flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || [])
+      ).filter((w) => !!w);
+      const fileKey = metadata[0]?.fileId || fullPath;
+      result = {
+        ...result,
+        [fileKey]: {
+          customMetadata: {
+            annotations: getAnnotations(metadata, template),
+            templateId: template.templateId,
           },
-        };
-      }
-    );
+          file: {
+            disposition: "tape", // prevent czi -> ome.tiff conversions
+            ...(metadata[0]?.fileId && { fileId: metadata[0]?.fileId }),
+            fileType:
+              extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
+              FileType.OTHER,
+            originalPath: fullPath,
+            shouldBeInArchive: true,
+            shouldBeInLocal: true,
+          },
+          microscopy: {
+            ...(wellIds.length && { wellIds }),
+          },
+        },
+      };
+    });
 
     return result;
   }
@@ -672,9 +667,7 @@ export const getUploadPayload = createSelector(
 export const getUploadFileNames = createSelector(
   [getUpload],
   (upload: UploadStateBranch): string[] =>
-    uniq(
-      Object.values(upload).map(({ file }: UploadMetadata) => basename(file))
-    ).sort()
+    uniq(Object.values(upload).map(({ file }) => basename(file))).sort()
 );
 
 export const getCanSaveUploadDraft = createSelector(
@@ -702,20 +695,20 @@ export const getFileIdsToDelete = createSelector(
       return [];
     }
     const selectedJobFileIds: string[] = selectedJob.serviceFields.result.map(
-      ({ fileId }: UploadMetadata) => fileId
+      ({ fileId }: UploadRequest) => fileId
     );
     return difference(selectedJobFileIds, uploadFileIds);
   }
 );
 
 export const getEditFileMetadataRequests = createSelector(
-  [getUploadPayload],
-  (uploads: Uploads): Array<{ fileId: string; request: UploadMetadata }> => {
+  [getUploadRequests],
+  (uploads: Uploads): Array<{ fileId: string; request: UploadRequest }> => {
     const result: Array<{
       fileId: string;
-      request: UploadMetadata;
+      request: UploadRequest;
     }> = [];
-    forEach(uploads, (request: UploadMetadata, fileId: string) => {
+    forEach(uploads, (request: UploadRequest, fileId: string) => {
       result.push({
         fileId,
         request,

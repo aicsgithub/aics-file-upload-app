@@ -12,15 +12,13 @@ import {
   MINUTE_AS_MS,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { FMS } from "../../services/aicsfiles/constants";
 import {
   Annotation,
-  CustomFileMetadata,
   FSSResponseFile,
   LabKeyFileMetadata,
 } from "../../services/aicsfiles/types";
 import { JSSJobStatus } from "../../services/job-status-client/types";
-import LabkeyClient from "../../services/labkey-client";
+import LabkeyClient, { LK_SCHEMA } from "../../services/labkey-client";
 import {
   ColumnType,
   Lookup,
@@ -69,7 +67,7 @@ import {
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
   State,
-  UploadMetadata,
+  UploadRequest,
   UploadStateBranch,
 } from "../types";
 import {
@@ -244,8 +242,8 @@ const getPlateRelatedActions = async (
   separated value sets.
 */
 // TODO omit  ["annotations", "labkeyurlModifiedBy", "labkeyurlThumbnailId"]
-function getUploadMetadataFromJobFiles(
-  files: UploadMetadata[],
+function convertUploadRequestsToUploadStateBranch(
+  files: UploadRequest[],
   state: State
 ): Upload {
   const annotations = getAnnotations(state);
@@ -262,10 +260,13 @@ function getUploadMetadataFromJobFiles(
 
   let templateId: number | undefined = undefined;
   const uploadMetadata = files.reduce((uploadSoFar, file) => {
-    templateId = file.templateId || templateId;
+    templateId = file.customMetadata.templateId || templateId;
     return file.customMetadata.annotations.reduce(
       (keyToMetadataSoFar: UploadStateBranch, annotation: Annotation) => {
-        const key = getUploadRowKey({ file: file.file.originalPath, ...annotation });
+        const key = getUploadRowKey({
+          file: file.file.originalPath,
+          ...annotation,
+        });
         const annotationDefinition =
           annotationIdToAnnotationMap[annotation.annotationId]?.[0];
         if (!annotationDefinition) {
@@ -284,11 +285,11 @@ function getUploadMetadataFromJobFiles(
             values = values.map((v) => new Date(`${v}`));
             break;
           case ColumnType.LOOKUP:
-            const type =
+            if (
               annotationIdToLookupMap[annotation.annotationId]?.[
                 "scalarTypeId/Name"
-              ];
-            if (type === ScalarType.INT) {
+              ] === ScalarType.INT
+            ) {
               values = values.map((v) => parseInt(v, 10));
             }
             break;
@@ -330,8 +331,9 @@ function getUploadMetadataFromJobFiles(
           ...keyToMetadataSoFar,
           [key]: {
             ...(keyToMetadataSoFar[key] || {}),
+            file: file.file.originalPath,
+            fileId: file.fileId,
             channelId: annotation.channelId,
-            fileId: file.fileId || "",
             fovId: annotation.fovId,
             positionIndex: annotation.positionIndex,
             scene: annotation.scene,
@@ -397,12 +399,12 @@ const openEditFileMetadataTabLogic = createLogic({
         ctx.fileIds.map(async (fileId: string) => {
           const [labkeyFileMetadata, customMetadata] = await Promise.all([
             labkeyClient.selectFirst<LabKeyFileMetadata>(
-              FMS,
+              LK_SCHEMA.FMS,
               "File",
               RELEVANT_FILE_COLUMNS,
               [LabkeyClient.createFilter("FileId", fileId)]
             ),
-            mmsClient.getFileMetadata(fileId) as Promise<CustomFileMetadata>,
+            mmsClient.getFileMetadata(fileId),
           ]);
           return {
             ...labkeyFileMetadata,
@@ -411,7 +413,7 @@ const openEditFileMetadataTabLogic = createLogic({
         })
       );
     }
-    const newUpload = getUploadMetadataFromJobFiles(files, state);
+    const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
 
     const actions: AnyAction[] = [];
     // if we have a well, we can get the barcode and other plate info. This will be necessary

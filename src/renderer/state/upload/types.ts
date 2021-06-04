@@ -8,9 +8,8 @@ import { JSSJob } from "../../services/job-status-client/types";
 import {
   AutoSaveAction,
   State,
-  UploadMetadata,
-  UploadRow,
-  UploadRowId,
+  FileModel,
+  FileModelId,
   WriteToStoreAction,
 } from "../types";
 
@@ -18,7 +17,7 @@ export interface DisplayUploadStateBranch {
   [fullPath: string]: UploadMetadataWithDisplayFields;
 }
 
-export interface UploadMetadataWithDisplayFields extends UploadRow {
+export interface UploadMetadataWithDisplayFields extends FileModel {
   wellLabels: string[];
 }
 
@@ -32,7 +31,7 @@ export interface MMSAnnotationValueRequest {
 }
 
 export interface AddUploadFilesAction extends AutoSaveAction {
-  payload: UploadRowId[];
+  payload: FileModelId[];
   type: string;
 }
 
@@ -44,7 +43,7 @@ export interface ApplyTemplateAction extends WriteToStoreAction {
 export interface UpdateUploadAction extends AutoSaveAction {
   payload: {
     key: string;
-    upload: Partial<UploadMetadata>;
+    upload: Partial<FileModel>;
   };
   type: string;
 }
@@ -52,23 +51,14 @@ export interface UpdateUploadAction extends AutoSaveAction {
 export interface UpdateUploadRowsAction extends AutoSaveAction {
   payload: {
     uploadKeys: string[];
-    metadataUpdate: Partial<UploadMetadata>;
+    metadataUpdate: Partial<FileModel>;
   };
   type: string;
 }
 
-export interface UploadJobTableRow extends UploadRowId {
-  // custom annotations
-  [key: string]: any;
-
-  // Keeps track of all channelIds - used only on the top-level row
-  [CHANNEL_ANNOTATION_NAME]: string[];
-
+export interface UploadTableRow extends FileModel {
   // react-table property for discovering sub rows for any given row
-  subRows: UploadJobTableRow[];
-
-  // notes associated with the file
-  [NOTES_ANNOTATION_NAME]?: string;
+  subRows: UploadTableRow[];
 
   // Keeps track of all positionIndexes - used only on the top-level row
   positionIndexes: number[];
@@ -78,6 +68,12 @@ export interface UploadJobTableRow extends UploadRowId {
 
   // Keeps track of all sub image names - used only on top-level row
   subImageNames: string[];
+
+  // Keeps track of all channelIds - used only on the top-level row
+  [CHANNEL_ANNOTATION_NAME]: string[];
+
+  // notes associated with the file
+  [NOTES_ANNOTATION_NAME]?: string[];
 
   // all wellIds associated with this file model
   [WELL_ANNOTATION_NAME]?: number[];
@@ -165,7 +161,7 @@ export interface CancelUploadFailedAction {
 export interface UpdateUploadsAction extends AutoSaveAction {
   payload: {
     clearAll: boolean;
-    uploads: Partial<UploadMetadata>;
+    uploads: Partial<FileModel>;
   };
   type: string;
 }
@@ -173,7 +169,7 @@ export interface UpdateUploadsAction extends AutoSaveAction {
 export interface UpdateSubImagesPayload {
   channelIds: string[];
   positionIndexes: number[];
-  row: UploadJobTableRow;
+  row: UploadTableRow;
   scenes: number[];
   subImageNames: string[];
 }
@@ -227,11 +223,6 @@ export interface SaveUploadDraftSuccessAction extends WriteToStoreAction {
   // this is the file path of the draft that was saved. It is undefined if we do not want to set this value on
   // the store - for example when closing the upload tab we may save the draft but we want this value to be undefined.
   payload?: string;
-  type: string;
-}
-
-export interface UpdateAndRetryUploadAction {
-  payload?: string; // job name
   type: string;
 }
 

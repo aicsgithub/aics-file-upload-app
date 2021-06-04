@@ -11,7 +11,7 @@ import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
-import { WELL_ANNOTATION_NAME } from "../constants";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import {
@@ -159,7 +159,6 @@ export enum AsyncRequest {
   SAVE_TEMPLATE = "SAVE_TEMPLATE",
   UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
   CREATE_BARCODE = "CREATE_BARCODE",
-  UPDATE_AND_RETRY_UPLOAD = "UPDATE_AND_RETRY_UPLOAD",
   REQUEST_ANNOTATION_USAGE = "REQUEST_ANNOTATION_USAGE",
 }
 
@@ -213,13 +212,13 @@ export interface JobStateBranch {
   jobFilter: JobFilter;
 }
 
-// TODO: Is this really fullPath or is it uploadKey?
+// Map of the output of getUploadRowKey to the FileModel
 export interface UploadStateBranch {
-  [fullPath: string]: UploadRow;
+  [fileModelKey: string]: FileModel;
 }
 
 // Think of this group as a composite key. No two rows should have the same combination of these values.
-export interface UploadRowId {
+export interface FileModelId {
   channelId?: string;
   file: string; // fullpath
   positionIndex?: number;
@@ -228,13 +227,12 @@ export interface UploadRowId {
 }
 
 // Metadata associated with a file
-export interface UploadRow extends UploadRowId {
-  barcode?: string;
-  notes?: string[]; // only one note expected but we treat this like other custom annotations
-  templateId?: number;
-  subFiles?: UploadStateBranch;
+export interface FileModel extends FileModelId {
+  // Known custom annotations
   [WELL_ANNOTATION_NAME]?: number[];
-  [genericKey: string]: any;
+  [NOTES_ANNOTATION_NAME]?: string[];
+  // Any other annotations will be generically added
+  [annotationName: string]: any;
 }
 
 interface FileMetadataBlock {
@@ -244,7 +242,7 @@ interface FileMetadataBlock {
   [id: string]: any;
 }
 
-export interface UploadMetadata {
+export interface UploadRequest {
   customMetadata: CustomFileMetadataRequest;
   fileType?: string;
   file: FileMetadataBlock;
@@ -311,7 +309,7 @@ export interface UploadKeyValue {
   rowIndex: number;
 }
 
-export interface UploadRow {
+export interface UploadRowTableId {
   id: string;
   index: number;
 }
@@ -325,7 +323,7 @@ export interface UploadTabSelections {
   job?: JSSJob<UploadServiceFields>;
   massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
-  rowsSelectedForDragEvent?: UploadRow[];
+  rowsSelectedForDragEvent?: UploadRowTableId[];
   rowsSelectedForMassEdit?: string[];
   subFileSelectionModalFile?: string;
   wells: ImagingSessionIdToWellsMap;

@@ -10,14 +10,14 @@ import DragAndDrop from "../../../../components/DragAndDrop";
 import { setAlert } from "../../../../state/feedback/actions";
 import { AlertType, DragAndDropFileList } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
-import { UploadJobTableRow } from "../../../../state/upload/types";
+import { UploadTableRow } from "../../../../state/upload/types";
 import { onDrop, onOpen } from "../../../../util";
 
 const styles = require("./styles.pcss");
 
 const { TextArea } = Input;
 
-type Props = CellProps<UploadJobTableRow, string>;
+type Props = CellProps<UploadTableRow, string>;
 
 // Only want user to be able to select 1 file & it must be of type .txt
 const openDialogOptions: OpenDialogOptions = {

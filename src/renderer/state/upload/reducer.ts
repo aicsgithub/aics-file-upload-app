@@ -16,7 +16,7 @@ import {
 } from "../selection/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
-import { TypeToDescriptionMap, UploadRowId, UploadStateBranch } from "../types";
+import { TypeToDescriptionMap, FileModelId, UploadStateBranch } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
@@ -51,7 +51,7 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       action.type === ADD_UPLOAD_FILES,
     perform: (state: UploadStateBranch, action: AddUploadFilesAction) => {
       return action.payload.reduce(
-        (uploads: UploadStateBranch, uploadRowId: UploadRowId) => ({
+        (uploads: UploadStateBranch, uploadRowId: FileModelId) => ({
           ...uploads,
           [getUploadRowKey(uploadRowId)]: { ...uploadRowId },
         }),

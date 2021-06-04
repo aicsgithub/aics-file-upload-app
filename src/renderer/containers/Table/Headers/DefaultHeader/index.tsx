@@ -2,7 +2,7 @@ import { Icon, Tooltip } from "antd";
 import React from "react";
 import { HeaderProps } from "react-table";
 
-import { UploadJobTableRow } from "../../../../state/upload/types";
+import { UploadTableRow } from "../../../../state/upload/types";
 
 const styles = require("./styles.pcss");
 
@@ -13,7 +13,7 @@ const styles = require("./styles.pcss");
 export default function DefaultHeader({
   column,
   name,
-}: HeaderProps<UploadJobTableRow>) {
+}: HeaderProps<UploadTableRow>) {
   return (
     <Tooltip title={column.description}>
       <div className={styles.header}>

@@ -4,7 +4,7 @@ import { CellProps } from "react-table";
 
 import { ColumnType } from "../../../services/labkey-client/types";
 import { updateUpload } from "../../../state/upload/actions";
-import { UploadJobTableRow } from "../../../state/upload/types";
+import { UploadTableRow } from "../../../state/upload/types";
 import { Duration } from "../../../types";
 import BooleanEditor from "../Editors/BooleanEditor";
 import DateEditor from "../Editors/DateEditor";
@@ -22,7 +22,7 @@ import DisplayCell from "./DisplayCell";
   editor based on the column's annotation type
 */
 export default function DefaultCell(
-  props: CellProps<UploadJobTableRow, ColumnValue>
+  props: CellProps<UploadTableRow, ColumnValue>
 ) {
   const { column, value } = props;
   const dispatch = useDispatch();

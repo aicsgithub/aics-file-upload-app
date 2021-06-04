@@ -15,6 +15,7 @@ import {
   Middleware,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
+import CopyWorker from "worker-loader!../services/fms-client/copy-worker";
 
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
@@ -94,6 +95,7 @@ export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
     jss: jssClient,
     lk: labkeyClient,
     storage,
+    copyWorkerGetter: () => new CopyWorker(),
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   ipcRenderer,

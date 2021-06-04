@@ -9,7 +9,7 @@ import { CellProps } from "react-table";
 
 import { openSubFileSelectionModal } from "../../../../state/selection/actions";
 import { TutorialStep } from "../../../../state/types";
-import { UploadJobTableRow } from "../../../../state/upload/types";
+import { UploadTableRow } from "../../../../state/upload/types";
 import TutorialTooltip from "../../../TutorialTooltip";
 
 const styles = require("./styles.pcss");
@@ -23,7 +23,7 @@ export default function FilenameCell({
   column,
   row,
   value: file,
-}: CellProps<UploadJobTableRow, string>) {
+}: CellProps<UploadTableRow, string>) {
   const dispatch = useDispatch();
   const [isHighlighted, setIsHighlighted] = React.useState(false);
   const { positionIndex, scene, subImageName, channelId } = row.original;

@@ -19,13 +19,13 @@ import {
 import { updateUpload } from "../../../../state/upload/actions";
 import { getUploadRowKey } from "../../../../state/upload/constants";
 import { getFileToAnnotationHasValueMap } from "../../../../state/upload/selectors";
-import { UploadJobTableRow } from "../../../../state/upload/types";
+import { UploadTableRow } from "../../../../state/upload/types";
 import { Duration } from "../../../../types";
 import { ColumnValue } from "../../types";
 
 const styles = require("./styles.pcss");
 
-interface Props extends CellProps<UploadJobTableRow> {
+interface Props extends CellProps<UploadTableRow> {
   onStartEditing: () => void;
   onTabExit?: () => void;
 }

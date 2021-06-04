@@ -15,13 +15,13 @@ import {
   getCanRedoUpload,
   getCanUndoUpload,
 } from "../../../state/upload/selectors";
-import { UploadJobTableRow } from "../../../state/upload/types";
+import { UploadTableRow } from "../../../state/upload/types";
 import TutorialTooltip from "../../TutorialTooltip";
 
 const styles = require("./styles.pcss");
 
 interface Props {
-  selectedRows: Row<UploadJobTableRow>[];
+  selectedRows: Row<UploadTableRow>[];
 }
 
 /*
