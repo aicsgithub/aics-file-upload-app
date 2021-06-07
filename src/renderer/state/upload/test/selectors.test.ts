@@ -7,6 +7,7 @@ import {
   WELL_ANNOTATION_NAME,
 } from "../../../constants";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
+import { UploadRequest } from "../../../services/types";
 import { Duration } from "../../../types";
 import {
   getMockStateWithHistory,
@@ -35,7 +36,7 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { FileModel, State, UploadRequest } from "../../types";
+import { FileModel, State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanUndoUpload,

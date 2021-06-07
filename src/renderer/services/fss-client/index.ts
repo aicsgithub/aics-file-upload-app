@@ -6,13 +6,16 @@ import * as humps from "humps";
 import { castArray } from "lodash";
 import * as hash from "object-hash";
 
-import { UploadServiceFields } from "../state/job/types";
-import { UploadRequest } from "../state/types";
-
-import { LocalStorage } from "./../types";
-import HttpCacheClient from "./http-cache-client";
-import { JSSJob } from "./job-status-client/types";
-import { AicsSuccessResponse, HttpClient } from "./types";
+import { LocalStorage } from "../../types";
+import HttpCacheClient from "../http-cache-client";
+import { JSSJob } from "../job-status-client/types";
+import {
+  AicsSuccessResponse,
+  FSSResponseFile,
+  HttpClient,
+  UploadRequest,
+  UploadServiceFields,
+} from "../types";
 
 const UPLOAD_TYPE = "upload";
 
@@ -37,12 +40,6 @@ interface UploadMetadataRequest {
 export interface StartUploadResponse {
   jobId: string;
   uploadDirectory: string;
-}
-
-export interface FSSResponseFile {
-  fileName: string;
-  fileId: string;
-  readPath: string;
 }
 
 export interface UploadMetadataResponse {

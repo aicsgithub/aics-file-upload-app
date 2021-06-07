@@ -1,4 +1,5 @@
 import { JSSJob } from "../../services/job-status-client/types";
+import { BaseServiceFields } from "../../services/types";
 import { JobFilter, UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
@@ -14,7 +15,6 @@ import {
   SelectJobFilterAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
-  BaseServiceFields,
 } from "./types";
 
 export function receiveJobs(uploadJobs: JSSJob[] = []): ReceiveJobsAction {

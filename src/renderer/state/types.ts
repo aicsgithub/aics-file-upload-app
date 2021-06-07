@@ -36,9 +36,9 @@ import {
   Template,
   WellResponse,
 } from "../services/mms-client/types";
+import { UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
-import { UploadServiceFields } from "./job/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -231,40 +231,6 @@ export interface FileModel extends FileModelId {
   [NOTES_ANNOTATION_NAME]?: string[];
   // Any other annotations will be generically added
   [annotationName: string]: any;
-}
-
-interface FileMetadataBlock {
-  originalPath: string;
-  fileName?: string;
-  fileType: string;
-  [id: string]: any;
-}
-
-export interface ImageModelBase {
-  channelId?: string;
-  fovId?: number;
-  positionIndex?: number;
-  scene?: number;
-  subImageName?: string;
-}
-
-// This is used for the POST request to mms for creating file metadata
-export interface CustomFileAnnotationRequest extends ImageModelBase {
-  annotationId: number;
-  values: string[];
-}
-
-// This is used for the POST request to mms for creating file metadata
-export interface CustomFileMetadataRequest {
-  annotations: CustomFileAnnotationRequest[];
-  templateId?: number;
-}
-
-export interface UploadRequest {
-  customMetadata: CustomFileMetadataRequest;
-  fileType?: string;
-  file: FileMetadataBlock;
-  [id: string]: any;
 }
 
 export interface MetadataStateBranch {

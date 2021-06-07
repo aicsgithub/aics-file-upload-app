@@ -12,9 +12,9 @@ import {
   SolutionLot,
   WellResponse,
 } from "../../services/mms-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { getWellLabel, getWellLabelAndImagingSessionName } from "../../util";
 import { ROW_COUNT_COLUMN } from "../constants";
-import { UploadServiceFields } from "../job/types";
 import { getImagingSessions, getUnits } from "../metadata/selectors";
 import {
   ImagingSessionIdToPlateMap,

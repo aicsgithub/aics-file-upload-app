@@ -7,6 +7,7 @@ import {
   JSSJob,
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { convertToArray } from "../../util";
 import {
   JobFilter,
@@ -15,8 +16,6 @@ import {
   UploadProgressInfo,
   UploadSummaryTableRow,
 } from "../types";
-
-import { UploadServiceFields } from "./types";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;

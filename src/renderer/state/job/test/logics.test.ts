@@ -4,6 +4,7 @@ import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
+import { UploadServiceFields } from "../../../services/types";
 import { setErrorAlert, setInfoAlert } from "../../feedback/actions";
 import {
   createMockReduxStore,
@@ -22,7 +23,6 @@ import { State } from "../../types";
 import { uploadFailed, uploadSucceeded } from "../../upload/actions";
 import { receiveJobs, receiveJobUpdate } from "../actions";
 import { handleAbandonedJobsLogic } from "../logics";
-import { UploadServiceFields } from "../types";
 
 describe("Job logics", () => {
   const sandbox = createSandbox();

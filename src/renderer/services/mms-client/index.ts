@@ -1,10 +1,14 @@
 import { decamelizeKeys } from "humps";
 
-import { ImageModelBase, UploadRequest } from "../../state/types";
 import { LocalStorage } from "../../types";
 import HttpCacheClient from "../http-cache-client";
 import { Annotation, LabKeyFileMetadata } from "../labkey-client/types";
-import { AicsSuccessResponse, HttpClient } from "../types";
+import {
+  AicsSuccessResponse,
+  HttpClient,
+  ImageModelBase,
+  UploadRequest,
+} from "../types";
 
 import {
   AnnotationMetadataRequest,

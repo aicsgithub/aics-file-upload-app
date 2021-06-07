@@ -32,6 +32,7 @@ import {
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import { UploadRequest } from "../../services/types";
 import { Duration } from "../../types";
 import { getWellLabelAndImagingSessionName, titleCase } from "../../util";
 import {
@@ -57,7 +58,7 @@ import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import { State, UploadRequest, FileModel, UploadStateBranch } from "../types";
+import { State, FileModel, UploadStateBranch } from "../types";
 
 import { isChannelOnlyRow, isFileRow, isSubImageRow } from "./constants";
 import {

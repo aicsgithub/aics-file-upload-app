@@ -4,7 +4,7 @@ import {
   WELL_ANNOTATION_NAME,
 } from "../../constants";
 import { JSSJob } from "../../services/job-status-client/types";
-import { UploadServiceFields } from "../job/types";
+import { UploadServiceFields } from "../../services/types";
 import {
   AutoSaveAction,
   State,

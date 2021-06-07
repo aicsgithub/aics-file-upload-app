@@ -21,6 +21,7 @@ import {
   Template,
   TemplateAnnotation,
 } from "../../services/mms-client/types";
+import { UploadServiceFields } from "../../services/types";
 import {
   feedback,
   job,
@@ -31,7 +32,6 @@ import {
   template,
   upload,
 } from "../index";
-import { UploadServiceFields } from "../job/types";
 import { Well } from "../selection/types";
 import {
   AnnotationDraft,

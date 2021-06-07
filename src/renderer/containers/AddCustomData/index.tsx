@@ -19,6 +19,7 @@ import {
   LabkeyTemplate,
 } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { setAlert } from "../../state/feedback/actions";
 import {
   getIsLoading,
@@ -26,7 +27,6 @@ import {
   getUploadError,
 } from "../../state/feedback/selectors";
 import { SetAlertAction } from "../../state/feedback/types";
-import { UploadServiceFields } from "../../state/job/types";
 import { createBarcode } from "../../state/metadata/actions";
 import {
   getBarcodePrefixes,

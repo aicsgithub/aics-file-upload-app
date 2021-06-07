@@ -9,8 +9,6 @@ import * as uuid from "uuid";
 
 import { LabkeyClient } from "..";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
-import { UploadServiceFields } from "../../state/job/types";
-import { UploadRequest } from "../../state/types";
 import { LocalStorage } from "../../types";
 import {
   FSSClient,
@@ -20,6 +18,7 @@ import {
 } from "../fss-client";
 import JobStatusClient from "../job-status-client";
 import { JSSJob, JSSJobStatus } from "../job-status-client/types";
+import { UploadRequest, UploadServiceFields } from "../types";
 
 import {
   UPLOAD_WORKER_ON_PROGRESS,

@@ -5,6 +5,7 @@ import {
   JSSJob,
   JSSJobStatus,
 } from "../../services/job-status-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { setErrorAlert, setInfoAlert } from "../feedback/actions";
 import {
   ReduxLogicDoneCb,
@@ -18,11 +19,7 @@ import { handleUploadProgress } from "../util";
 import { updateUploadProgressInfo } from "./actions";
 import { RECEIVE_JOB_UPDATE, RECEIVE_JOBS } from "./constants";
 import { getJobIdToUploadJobMapGlobal } from "./selectors";
-import {
-  ReceiveJobsAction,
-  ReceiveJobUpdateAction,
-  UploadServiceFields,
-} from "./types";
+import { ReceiveJobsAction, ReceiveJobUpdateAction } from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
   process: async (

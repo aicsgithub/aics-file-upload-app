@@ -14,6 +14,7 @@ import {
 } from "../../../shared/constants";
 import StatusBar from "../../components/StatusBar";
 import { JSSJob } from "../../services/job-status-client/types";
+import { BaseServiceFields } from "../../services/types";
 import {
   addRequestToInProgress,
   checkForUpdate,
@@ -33,7 +34,6 @@ import {
   receiveJobUpdate,
 } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
-import { BaseServiceFields } from "../../state/job/types";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getPage } from "../../state/route/selectors";
 import {

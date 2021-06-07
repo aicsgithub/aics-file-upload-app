@@ -12,7 +12,6 @@ import {
   MINUTE_AS_MS,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { FSSResponseFile } from "../../services/fss-client";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
 import {
@@ -23,6 +22,7 @@ import {
   ScalarType,
 } from "../../services/labkey-client/types";
 import MMSClient, { AnnotationValue } from "../../services/mms-client";
+import { FSSResponseFile, UploadRequest } from "../../services/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { Duration } from "../../types";
 import {
@@ -65,7 +65,6 @@ import {
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
   State,
-  UploadRequest,
   UploadStateBranch,
 } from "../types";
 import {

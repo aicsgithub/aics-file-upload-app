@@ -24,6 +24,7 @@ import FileManagementSystem from "../../services/fms-client";
 import { JSSJob } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
+import { UploadRequest, UploadServiceFields } from "../../services/types";
 import {
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
@@ -33,7 +34,6 @@ import {
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
-import { UploadServiceFields } from "../job/types";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -58,7 +58,6 @@ import {
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependenciesWithAction,
-  UploadRequest,
   UploadProgressInfo,
   UploadStateBranch,
   FileModel,
