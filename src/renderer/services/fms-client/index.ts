@@ -48,9 +48,8 @@ type CopyProgressCallBack = (
 
 /*
     Service entity for storing or retrieving files from the AICS FMS. This
-    class is responsible for abstracting the work needed to upload a file into the
-    FMS as well as retrieving the metadata for a file that has been uploaded into the
-    FMS.
+    class is responsible for abstracting the work needed to upload a file into
+    the FMS.
 */
 export default class FileManagementSystem {
   private static readonly DEFAULT_MOUNT_POINT = "/allen/aics";
@@ -78,8 +77,7 @@ export default class FileManagementSystem {
    * This informs FSS of the file we want to upload & retrieves an upload directory for
    * the client to start physically copying the files to.
    *
-   * Throws InvalidMetadataError if a file was not found or if more than one files have the same name
-   * returns StartUploadResponse
+   * Throws error if a file was not found or the metadata is malformed
    */
   public async startUpload(
     filePath: string,

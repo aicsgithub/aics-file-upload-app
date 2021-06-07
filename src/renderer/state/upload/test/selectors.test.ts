@@ -190,7 +190,6 @@ describe("Upload selectors", () => {
         ...nonEmptyStateForInitiatingUpload,
         upload: getMockStateWithHistory({
           "/path/to.dot/image.tiff": {
-            // TODO
             barcode: "452",
             file: "/path/to.dot/image.tiff",
             ["Favorite Color"]: ["blue"],
@@ -199,7 +198,6 @@ describe("Upload selectors", () => {
             [WELL_ANNOTATION_NAME]: [],
           },
           "/path/to.dot/image.tiffscene:1channel:1": {
-            // TODO
             barcode: "452",
             channelId: "Raw 468 nm",
             ["Favorite Color"]: "yellow",
@@ -317,7 +315,7 @@ describe("Upload selectors", () => {
           file: {
             disposition: "tape",
             fileType: FileType.IMAGE,
-            originalPath: "/path/to.dot/image.tiff", // TODO
+            originalPath: "/path/to.dot/image.tiff",
             shouldBeInArchive: true,
             shouldBeInLocal: true,
           },
