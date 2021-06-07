@@ -1,13 +1,13 @@
 import { AnyAction } from "redux";
 
 import {
-  OPEN_EDIT_FILE_METADATA_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  OPEN_JOB_AS_UPLOAD,
+  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
   RESET_UPLOAD,
 } from "../route/constants";
 import {
-  OpenEditFileMetadataTabAction,
-  OpenEditFileMetadataTabSucceededAction,
+  OpenJobAsUploadAction,
+  OpenJobAsUploadSucceededAction,
   ResetUploadAction,
 } from "../route/types";
 import { MetadataStateBranch, TypeToDescriptionMap } from "../types";
@@ -146,22 +146,20 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
     }),
   },
   // this is necessary because we are sharing the upload tab
-  [OPEN_EDIT_FILE_METADATA_TAB]: {
-    accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB,
+  [OPEN_JOB_AS_UPLOAD]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
+      action.type === OPEN_JOB_AS_UPLOAD,
     perform: (state: MetadataStateBranch) => ({
       ...state,
       currentUploadFilePath: undefined,
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
-    accepts: (
-      action: AnyAction
-    ): action is OpenEditFileMetadataTabSucceededAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  [OPEN_JOB_AS_UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadSucceededAction =>
+      action.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED,
     perform: (
       state: MetadataStateBranch,
-      { payload: { originalUpload } }: OpenEditFileMetadataTabSucceededAction
+      { payload: { originalUpload } }: OpenJobAsUploadSucceededAction
     ) => ({
       ...state,
       originalUpload,

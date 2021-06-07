@@ -26,13 +26,13 @@ import {
   RequestMetadataAction,
 } from "../metadata/types";
 import {
-  OPEN_EDIT_FILE_METADATA_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  OPEN_JOB_AS_UPLOAD,
+  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
   RESET_UPLOAD,
 } from "../route/constants";
 import {
-  OpenEditFileMetadataTabAction,
-  OpenEditFileMetadataTabSucceededAction,
+  OpenJobAsUploadAction,
+  OpenJobAsUploadSucceededAction,
   ResetUploadAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
@@ -383,9 +383,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB]: {
-    accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB,
+  [OPEN_JOB_AS_UPLOAD]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
+      action.type === OPEN_JOB_AS_UPLOAD,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: uniq([
@@ -625,11 +625,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
-    accepts: (
-      action: AnyAction
-    ): action is OpenEditFileMetadataTabSucceededAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  [OPEN_JOB_AS_UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadSucceededAction =>
+      action.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: removeRequestFromInProgress(

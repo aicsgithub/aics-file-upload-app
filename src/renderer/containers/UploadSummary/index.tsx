@@ -20,12 +20,9 @@ import {
 import { selectJobFilter } from "../../state/job/actions";
 import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
 import { SelectJobFilterAction } from "../../state/job/types";
+import { openJobAsUpload, startNewUpload } from "../../state/route/actions";
 import {
-  openEditFileMetadataTab,
-  startNewUpload,
-} from "../../state/route/actions";
-import {
-  OpenEditFileMetadataTabAction,
+  OpenJobAsUploadAction,
   StartNewUploadAction,
 } from "../../state/route/types";
 import {
@@ -51,7 +48,7 @@ interface Props {
   className?: string;
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
-  openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
+  openJobAsUpload: ActionCreator<OpenJobAsUploadAction>;
   requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
   retryUpload: ActionCreator<RetryUploadAction>;
@@ -218,7 +215,7 @@ class UploadSummary extends React.Component<Props, {}> {
   };
 
   private viewJob = (row: UploadSummaryTableRow) => () => {
-    this.props.openEditFileMetadataTab(row);
+    this.props.openJobAsUpload(row);
   };
 }
 
@@ -233,7 +230,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   cancelUpload,
-  openEditFileMetadataTab,
+  openJobAsUpload,
   retryUpload,
   selectJobFilter,
   startNewUpload,

@@ -33,16 +33,6 @@ interface UploadProgressProps {
 const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
   row: { progress, status, serviceFields },
 }: UploadProgressProps) => {
-  if (serviceFields?.replacementJobId) {
-    // TODO This is not very helpful to the user. But until we stop
-    // replacing jobs with other jobs, we'll need to show the user what happened
-    return (
-      <div className={styles.replaced}>
-        Replaced with jobId {serviceFields.replacementJobId}
-      </div>
-    );
-  }
-
   if (
     [
       JSSJobStatus.SUCCEEDED,

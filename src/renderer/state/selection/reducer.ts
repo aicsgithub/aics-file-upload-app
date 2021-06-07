@@ -4,11 +4,8 @@ import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
 import { RESET_HISTORY } from "../metadata/constants";
-import { OPEN_EDIT_FILE_METADATA_TAB, RESET_UPLOAD } from "../route/constants";
-import {
-  OpenEditFileMetadataTabAction,
-  ResetUploadAction,
-} from "../route/types";
+import { OPEN_JOB_AS_UPLOAD, RESET_UPLOAD } from "../route/constants";
+import { OpenJobAsUploadAction, ResetUploadAction } from "../route/types";
 import {
   SelectionStateBranch,
   TypeToDescriptionMap,
@@ -278,13 +275,10 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       rowsSelectedForDragEvent: undefined,
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB]: {
-    accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB,
-    perform: (
-      state: SelectionStateBranch,
-      action: OpenEditFileMetadataTabAction
-    ) => ({
+  [OPEN_JOB_AS_UPLOAD]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
+      action.type === OPEN_JOB_AS_UPLOAD,
+    perform: (state: SelectionStateBranch, action: OpenJobAsUploadAction) => ({
       ...state,
       job: action.payload,
     }),

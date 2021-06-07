@@ -39,11 +39,7 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
-import {
-  closeUpload,
-  openEditFileMetadataTab,
-  resetUpload,
-} from "../route/actions";
+import { closeUpload, openJobAsUpload, resetUpload } from "../route/actions";
 import {
   handleStartingNewUploadJob,
   resetHistoryActions,
@@ -810,8 +806,8 @@ const openUploadLogic = createLogic({
       const selectedJob = getSelectedJob(ctx.draft);
       if (selectedJob) {
         // If a selectedJob exists on the draft, we know that the upload has been submitted before
-        // and we actually want to edit it. This will go through the openEditFileMetadataTab logics instead.
-        reject(openEditFileMetadataTab(selectedJob));
+        // and we actually want to edit it. This will go through the openJobAsUpload logics instead.
+        reject(openJobAsUpload(selectedJob));
       } else {
         next(action);
       }

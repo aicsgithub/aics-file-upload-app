@@ -7,8 +7,8 @@ import {
 } from "../../metadata/actions";
 import {
   resetUpload,
-  openEditFileMetadataTab,
-  openEditFileMetadataTabSucceeded,
+  openJobAsUpload,
+  openJobAsUploadSucceeded,
 } from "../../route/actions";
 import {
   openTemplateEditor,
@@ -277,11 +277,11 @@ describe("feedback reducer", () => {
       expect(result.uploadError).to.be.undefined;
     });
   });
-  describe("openEditFileMetadataTab", () => {
+  describe("openJobAsUpload", () => {
     it("adds request in progress for GET_FILE_METADATA_FOR_JOB", () => {
       const result = reducer(
         initialState,
-        openEditFileMetadataTab(mockSuccessfulUploadJob)
+        openJobAsUpload(mockSuccessfulUploadJob)
       );
       expect(
         result.requestsInProgress.includes(
@@ -563,7 +563,7 @@ describe("feedback reducer", () => {
           ...initialState,
           requestsInProgress: [AsyncRequest.GET_FILE_METADATA_FOR_JOB],
         },
-        openEditFileMetadataTabSucceeded(mockWellUpload)
+        openJobAsUploadSucceeded(mockWellUpload)
       );
       expect(
         result.requestsInProgress.includes(

@@ -3,13 +3,13 @@ import { makeConstant } from "../util";
 const BRANCH_NAME = "route";
 
 export const CLOSE_UPLOAD = makeConstant(BRANCH_NAME, "close-upload");
-export const OPEN_EDIT_FILE_METADATA_TAB = makeConstant(
+export const OPEN_JOB_AS_UPLOAD = makeConstant(
   BRANCH_NAME,
-  "open-edit-file-metadata-tab"
+  "open-job-as-upload"
 );
-export const OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED = makeConstant(
+export const OPEN_JOB_AS_UPLOAD_SUCCEEDED = makeConstant(
   BRANCH_NAME,
-  "open-edit-file-metadata-tab-succeeded"
+  "open-job-as-upload-succeeded"
 );
 export const RESET_UPLOAD = makeConstant(BRANCH_NAME, "reset-upload");
 export const SELECT_PAGE = makeConstant(BRANCH_NAME, "select-page");
