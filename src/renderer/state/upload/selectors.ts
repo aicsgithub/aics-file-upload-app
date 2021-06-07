@@ -29,7 +29,6 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { Uploads } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
@@ -621,46 +620,42 @@ const extensionToFileTypeMap: { [index: string]: FileType } = {
 
 export const getUploadRequests = createSelector(
   [getUpload, getCompleteAppliedTemplate],
-  (uploads: UploadStateBranch, template?: TemplateWithTypeNames): Uploads => {
+  (
+    uploads: UploadStateBranch,
+    template?: TemplateWithTypeNames
+  ): UploadRequest[] => {
     if (!template) {
       throw new Error("Template has not been applied");
     }
 
-    let result = {};
     const metadataGroupedByFile = groupBy(values(uploads), "file");
-    forEach(metadataGroupedByFile, (metadata, fullPath) => {
+    return Object.entries(metadataGroupedByFile).map(([filePath, metadata]) => {
       // to support the current way of storing metadata in bob the blob, we continue to include
       // wellIds in the microscopy block. Since a file may have 1 or more scenes and channels
       // per file, we set these values to a uniq list of all of the values found across each "dimension"
       const wellIds = uniq(
         flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || [])
       ).filter((w) => !!w);
-      const fileKey = metadata[0]?.fileId || fullPath;
-      result = {
-        ...result,
-        [fileKey]: {
-          customMetadata: {
-            annotations: getAnnotations(metadata, template),
-            templateId: template.templateId,
-          },
-          file: {
-            disposition: "tape", // prevent czi -> ome.tiff conversions
-            ...(metadata[0]?.fileId && { fileId: metadata[0]?.fileId }),
-            fileType:
-              extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
-              FileType.OTHER,
-            originalPath: fullPath,
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
-          },
-          microscopy: {
-            ...(wellIds.length && { wellIds }),
-          },
+      return {
+        customMetadata: {
+          annotations: getAnnotations(metadata, template),
+          templateId: template.templateId,
+        },
+        file: {
+          disposition: "tape", // prevent czi -> ome.tiff conversions
+          ...(metadata[0].fileId && { fileId: metadata[0].fileId }),
+          fileType:
+            extensionToFileTypeMap[extname(filePath).toLowerCase()] ||
+            FileType.OTHER,
+          originalPath: filePath,
+          shouldBeInArchive: true,
+          shouldBeInLocal: true,
+        },
+        microscopy: {
+          ...(wellIds.length && { wellIds }),
         },
       };
     });
-
-    return result;
   }
 );
 
@@ -698,22 +693,5 @@ export const getFileIdsToDelete = createSelector(
       ({ fileId }: UploadRequest) => fileId
     );
     return difference(selectedJobFileIds, uploadFileIds);
-  }
-);
-
-export const getEditFileMetadataRequests = createSelector(
-  [getUploadRequests],
-  (uploads: Uploads): Array<{ fileId: string; request: UploadRequest }> => {
-    const result: Array<{
-      fileId: string;
-      request: UploadRequest;
-    }> = [];
-    forEach(uploads, (request: UploadRequest, fileId: string) => {
-      result.push({
-        fileId,
-        request,
-      });
-    });
-    return result;
   }
 );

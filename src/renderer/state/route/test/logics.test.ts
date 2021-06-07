@@ -9,8 +9,7 @@ import {
 } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { FileManagementSystem } from "../../../services/aicsfiles";
-import { ImageModelMetadata } from "../../../services/aicsfiles/types";
+import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import LabkeyClient from "../../../services/labkey-client";
@@ -210,7 +209,7 @@ describe("Route logics", () => {
     });
   });
   describe("openJobAsUploadLogic", () => {
-    const fileMetadata: ImageModelMetadata = {
+    const fileMetadata = {
       fileId: "abcdefg",
       filename: "name",
       fileSize: 1,

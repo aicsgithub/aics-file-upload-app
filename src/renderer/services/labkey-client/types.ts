@@ -163,3 +163,40 @@ export interface LabkeyUnit {
   UnitsId: number;
   Name: string;
 }
+
+export interface LabKeyResponse<T> {
+  rows: T[];
+}
+
+export enum FilterType {
+  EQUALS = "EQUALS",
+  IN = "IN",
+}
+
+export interface Filter {
+  filterColumn: string;
+  searchValue?: any | any[];
+  type?: FilterType;
+}
+
+export interface LabKeyFileMetadata {
+  archiveFilePath?: string;
+  filename: string;
+  fileId: string;
+  fileSize: number;
+  fileType: string;
+  localFilePath?: string;
+  publicFilePath?: string;
+  thumbnailLocalFilePath?: string;
+  thumbnailId?: string;
+  modified: string;
+  modifiedBy: string;
+}
+
+export enum LK_SCHEMA {
+  FILE_METADATA = "filemetadata",
+  FMS = "fms",
+  MICROSCOPY = "microscopy",
+  PROCESSING = "processing",
+  UPLOADER = "uploader",
+}

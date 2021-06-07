@@ -13,8 +13,8 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../../constants";
-import { FileManagementSystem } from "../../../services/aicsfiles";
-import { StartUploadResponse } from "../../../services/aicsfiles/types";
+import FileManagementSystem from "../../../services/fms-client";
+import { StartUploadResponse } from "../../../services/fss-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { ColumnType } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
@@ -263,10 +263,11 @@ describe("Upload logics", () => {
       expect(fms.uploadFile.called).to.be.true;
     });
 
-    it("dispatches uploadFailed if uploadFiles fails error", async () => {
+    it("dispatches uploadFailed if uploadFile fails error", async () => {
       fms.startUpload.resolves(startUploadResponse);
       jssClient.existsById.resolves(true);
-      fms.uploadFile.rejects(new Error("error message"));
+      const errorMessage = "uploadFile failed";
+      fms.uploadFile.rejects(new Error(errorMessage));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         mockReduxLogicDeps,
@@ -278,7 +279,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          uploadFailed(`Upload ${jobName} failed: error message`, jobName)
+          uploadFailed(`Upload ${jobName} failed: ${errorMessage}`, jobName)
         )
       ).to.be.true;
     });
@@ -1100,7 +1101,7 @@ describe("Upload logics", () => {
 
       // after
       const upload = getUpload(store.getState());
-      expect(upload[uploadRowKey][annotation][0] instanceof Date).to.be.true;
+      expect(upload[uploadRowKey][annotation][0]).to.be.instanceOf(Date);
     });
     it("converts strings to arrays of strings if type is TEXT", () => {
       const { store } = createMockReduxStore({

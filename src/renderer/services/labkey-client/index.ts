@@ -2,7 +2,6 @@ import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
 import { LocalStorage } from "../../types";
-import { Filter, FilterType, LabKeyResponse } from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
 import { HttpClient } from "../types";
 
@@ -13,6 +12,8 @@ import {
   AnnotationType,
   BarcodePrefix,
   Channel,
+  Filter,
+  FilterType,
   ImagingSession,
   LabkeyAnnotation,
   LabkeyAnnotationLookup,
@@ -24,20 +25,15 @@ import {
   LabkeyPlate,
   LabKeyPlateBarcodePrefix,
   LabkeyPlateResponse,
+  LabKeyResponse,
   LabkeyResponse,
   LabkeyTemplate,
   LabkeyUnit,
+  LK_SCHEMA,
   Lookup,
   Unit,
 } from "./types";
 
-export enum LK_SCHEMA {
-  FILE_METADATA = "filemetadata",
-  FMS = "fms",
-  MICROSCOPY = "microscopy",
-  PROCESSING = "processing",
-  UPLOADER = "uploader",
-}
 const BASE_URL = "/labkey";
 const IN_SEPARATOR = "%3B";
 

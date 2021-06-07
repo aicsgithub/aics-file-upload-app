@@ -13,7 +13,6 @@ import {
   SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../../../shared/constants";
 import StatusBar from "../../components/StatusBar";
-import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import {
   addRequestToInProgress,
@@ -34,6 +33,7 @@ import {
   receiveJobUpdate,
 } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
+import { BaseServiceFields } from "../../state/job/types";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getPage } from "../../state/route/selectors";
 import {

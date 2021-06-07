@@ -9,7 +9,7 @@ import {
 } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { FileManagementSystem } from "../../../services/aicsfiles";
+import FileManagementSystem from "../../../services/fms-client";
 import LabkeyClient from "../../../services/labkey-client";
 import {
   LabkeyPlateResponse,

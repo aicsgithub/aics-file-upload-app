@@ -2,10 +2,6 @@ import { StateWithHistory } from "redux-undo";
 
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import {
-  AddMetadataServiceFields,
-  UploadServiceFields,
-} from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   Annotation,
@@ -35,6 +31,7 @@ import {
   template,
   upload,
 } from "../index";
+import { UploadServiceFields } from "../job/types";
 import { Well } from "../selection/types";
 import {
   AnnotationDraft,
@@ -497,7 +494,7 @@ export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
   user: "test_user",
 };
 
-const mockAddMetadataJob: JSSJob<AddMetadataServiceFields> = {
+const mockAddMetadataJob: JSSJob = {
   created: new Date(),
   currentStage: "Complete",
   jobId: "addMetadataJobId",
@@ -508,13 +505,6 @@ const mockAddMetadataJob: JSSJob<AddMetadataServiceFields> = {
   },
   status: JSSJobStatus.WAITING,
   user: "test_user",
-};
-
-export const mockSuccessfulAddMetadataJob: JSSJob = {
-  ...mockAddMetadataJob,
-  jobId: "addMetadataJobId2",
-  parentId: "123434234",
-  status: JSSJobStatus.SUCCEEDED,
 };
 
 export const mockWorkingAddMetadataJob: JSSJob = {

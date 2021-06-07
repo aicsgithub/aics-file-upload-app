@@ -1,6 +1,5 @@
 import { AnyAction } from "redux";
 
-import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
@@ -19,6 +18,7 @@ import {
   SelectJobFilterAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
+  UploadServiceFields,
 } from "./types";
 
 export const initialState: JobStateBranch = {

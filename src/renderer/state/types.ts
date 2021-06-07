@@ -13,12 +13,8 @@ import { StateWithHistory } from "redux-undo";
 import { LimsUrl } from "../../shared/types";
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
-import { FileManagementSystem } from "../services/aicsfiles";
-import {
-  CustomFileMetadataRequest,
-  UploadServiceFields,
-} from "../services/aicsfiles/types";
 import ApplicationInfoService from "../services/application-info";
+import FileManagementSystem from "../services/fms-client";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {
@@ -41,6 +37,8 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { LocalStorage } from "../types";
+
+import { UploadServiceFields } from "./job/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -240,6 +238,26 @@ interface FileMetadataBlock {
   fileName?: string;
   fileType: string;
   [id: string]: any;
+}
+
+export interface ImageModelBase {
+  channelId?: string;
+  fovId?: number;
+  positionIndex?: number;
+  scene?: number;
+  subImageName?: string;
+}
+
+// This is used for the POST request to mms for creating file metadata
+export interface CustomFileAnnotationRequest extends ImageModelBase {
+  annotationId: number;
+  values: string[];
+}
+
+// This is used for the POST request to mms for creating file metadata
+export interface CustomFileMetadataRequest {
+  annotations: CustomFileAnnotationRequest[];
+  templateId?: number;
 }
 
 export interface UploadRequest {

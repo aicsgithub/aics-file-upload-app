@@ -1,6 +1,5 @@
 import { createLogic } from "redux-logic";
 
-import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
 import {
   IN_PROGRESS_STATUSES,
   JSSJob,
@@ -19,7 +18,11 @@ import { handleUploadProgress } from "../util";
 import { updateUploadProgressInfo } from "./actions";
 import { RECEIVE_JOB_UPDATE, RECEIVE_JOBS } from "./constants";
 import { getJobIdToUploadJobMapGlobal } from "./selectors";
-import { ReceiveJobsAction, ReceiveJobUpdateAction } from "./types";
+import {
+  ReceiveJobsAction,
+  ReceiveJobUpdateAction,
+  UploadServiceFields,
+} from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
   process: async (
@@ -31,17 +34,9 @@ export const handleAbandonedJobsLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    // TODO: This filter needs work -- selector for getting jobs at a certain stage
-    const abandonedJobs = action.payload.filter(
-      ({ currentStage, status }) =>
-        IN_PROGRESS_STATUSES.includes(status) &&
-        [
-          StepName.CopyFilesChild.toString(),
-          StepName.AddMetadata.toString(),
-          StepName.CopyFiles.toString(),
-          StepName.Waiting.toString(),
-          "", // if no currentStage, it is probably worth retrying this job
-        ].includes(currentStage || "")
+    // TODO: Filter out jobs that FSS is currently doing i.e. done with client side
+    const abandonedJobs = action.payload.filter(({ status }) =>
+      IN_PROGRESS_STATUSES.includes(status)
     );
     console.log("abandonedJobs", abandonedJobs);
 

@@ -6,16 +6,10 @@ import * as humps from "humps";
 import { castArray } from "lodash";
 import * as hash from "object-hash";
 
+import { UploadServiceFields } from "../state/job/types";
 import { UploadRequest } from "../state/types";
 
 import { LocalStorage } from "./../types";
-import {
-  StartUploadResponse,
-  UploadMetadataRequest,
-  UploadMetadataResponse,
-  UploadServiceFields,
-} from "./aicsfiles/types";
-import { FSSRequestFile } from "./aicsfiles/types";
 import HttpCacheClient from "./http-cache-client";
 import { JSSJob } from "./job-status-client/types";
 import { AicsSuccessResponse, HttpClient } from "./types";
@@ -23,6 +17,38 @@ import { AicsSuccessResponse, HttpClient } from "./types";
 const UPLOAD_TYPE = "upload";
 
 const fssURL = "/fss";
+
+// Request Types
+export interface FSSRequestFile {
+  fileName: string;
+  md5hex: string;
+  fileType: string;
+  metadata: UploadRequest;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
+}
+
+interface UploadMetadataRequest {
+  jobId: string;
+  files: FSSRequestFile[];
+}
+
+// Response Types
+export interface StartUploadResponse {
+  jobId: string;
+  uploadDirectory: string;
+}
+
+export interface FSSResponseFile {
+  fileName: string;
+  fileId: string;
+  readPath: string;
+}
+
+export interface UploadMetadataResponse {
+  jobId: string;
+  files: FSSResponseFile[];
+}
 
 /**
  * Provides interface with FSS endpoints.

@@ -19,8 +19,8 @@ import CopyWorker from "worker-loader!../services/fms-client/copy-worker";
 
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
-import { FileManagementSystem } from "../services/aicsfiles";
 import ApplicationInfoService from "../services/application-info";
+import FileManagementSystem from "../services/fms-client";
 import { FSSClient } from "../services/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";

@@ -9,25 +9,26 @@ import * as uuid from "uuid";
 
 import { LabkeyClient } from "..";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
+import { UploadServiceFields } from "../../state/job/types";
 import { UploadRequest } from "../../state/types";
 import { LocalStorage } from "../../types";
 import {
-  UNRECOVERABLE_JOB_ERROR,
-  UPLOAD_WORKER_ON_PROGRESS,
-  UPLOAD_WORKER_SUCCEEDED,
-} from "../aicsfiles/constants";
-import { CopyError, InvalidMetadataError } from "../aicsfiles/errors";
-import { UnrecoverableJobError } from "../aicsfiles/errors/UnrecoverableJobError";
-import {
-  CopyProgressCallBack,
+  FSSClient,
   FSSRequestFile,
   StartUploadResponse,
   UploadMetadataResponse,
-  UploadServiceFields,
-} from "../aicsfiles/types";
-import { FSSClient } from "../fss-client";
+} from "../fss-client";
 import JobStatusClient from "../job-status-client";
 import { JSSJob, JSSJobStatus } from "../job-status-client/types";
+
+import {
+  UPLOAD_WORKER_ON_PROGRESS,
+  UPLOAD_WORKER_SUCCEEDED,
+} from "./copy-worker";
+import {
+  UnrecoverableJobError,
+  UNRECOVERABLE_JOB_ERROR,
+} from "./UnrecoverableJobError";
 
 const fsExists = promisify(fs.exists);
 
@@ -39,6 +40,12 @@ interface FileManagementSystemConfig {
   // Available as parameter for easier unit testing
   copyWorkerGetter: () => Worker;
 }
+
+type CopyProgressCallBack = (
+  originalFilePath: string,
+  bytesCopied: number,
+  totalBytes: number
+) => void;
 
 /*
     Service entity for storing or retrieving files from the AICS FMS. This
@@ -84,25 +91,25 @@ export default class FileManagementSystem {
 
     // Validate the metadata - ensuring the job is trackable
     if (!(await fsExists(filePath))) {
-      throw new InvalidMetadataError(`Can not find file: ${filePath}`);
+      throw new Error(`Can not find file: ${filePath}`);
     }
     if (!metadata.file) {
-      throw new InvalidMetadataError(
+      throw new Error(
         `Metadata for file ${filePath} is missing the property file`
       );
     }
     if (!metadata.file.fileType) {
-      throw new InvalidMetadataError(
+      throw new Error(
         `Metadata for file ${filePath} is missing the property file.fileType`
       );
     }
     if (!metadata.file.originalPath) {
-      throw new InvalidMetadataError(
+      throw new Error(
         `Metadata for file ${filePath} is missing the property file.originalPath`
       );
     }
     if (metadata.file.originalPath !== filePath) {
-      throw new InvalidMetadataError(
+      throw new Error(
         `Metadata for file ${filePath} has property file.originalPath set to ${filePath} which doesn't match ${filePath}`
       );
     }
@@ -369,7 +376,7 @@ export default class FileManagementSystem {
       worker.onerror = (e: ErrorEvent) => {
         console.error(`Error while copying file ${source}`, e);
         delete this.jobIdToWorkerMap[jobId];
-        reject(new CopyError(e.message));
+        reject(new Error(e.message));
       };
 
       // Send the source file and formatted destination to the worker

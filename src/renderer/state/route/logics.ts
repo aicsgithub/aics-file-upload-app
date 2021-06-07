@@ -12,19 +12,17 @@ import {
   MINUTE_AS_MS,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import {
-  Annotation,
-  FSSResponseFile,
-  LabKeyFileMetadata,
-} from "../../services/aicsfiles/types";
+import { FSSResponseFile } from "../../services/fss-client";
 import { JSSJobStatus } from "../../services/job-status-client/types";
-import LabkeyClient, { LK_SCHEMA } from "../../services/labkey-client";
+import LabkeyClient from "../../services/labkey-client";
 import {
   ColumnType,
+  LabKeyFileMetadata,
+  LK_SCHEMA,
   Lookup,
   ScalarType,
 } from "../../services/labkey-client/types";
-import MMSClient from "../../services/mms-client";
+import MMSClient, { AnnotationValue } from "../../services/mms-client";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { Duration } from "../../types";
 import {
@@ -257,7 +255,7 @@ function convertUploadRequestsToUploadStateBranch(
   const uploadMetadata = files.reduce((uploadSoFar, file) => {
     templateId = file.customMetadata.templateId || templateId;
     return file.customMetadata.annotations.reduce(
-      (keyToMetadataSoFar: UploadStateBranch, annotation: Annotation) => {
+      (keyToMetadataSoFar: UploadStateBranch, annotation: AnnotationValue) => {
         const key = getUploadRowKey({
           file: file.file.originalPath,
           ...annotation,

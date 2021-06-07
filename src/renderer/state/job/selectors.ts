@@ -1,7 +1,6 @@
 import { orderBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
 import {
   FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
@@ -16,6 +15,8 @@ import {
   UploadProgressInfo,
   UploadSummaryTableRow,
 } from "../types";
+
+import { UploadServiceFields } from "./types";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
@@ -146,15 +147,7 @@ export const getJobsForTable = createSelector(
 export const getIsSafeToExit = createSelector(
   [getUploadJobs],
   (uploadJobs: JSSJob<UploadServiceFields>[]): boolean => {
-    return !uploadJobs.some(
-      (job) =>
-        IN_PROGRESS_STATUSES.includes(job.status) &&
-        [
-          StepName.AddMetadata.toString(),
-          StepName.CopyFiles.toString(),
-          StepName.CopyFilesChild.toString(),
-          StepName.Waiting.toString(),
-        ].includes(job.currentStage || "")
-    );
+    // TODO: Filter out jobs that FSS is currently doing i.e. done with client side
+    return !uploadJobs.some((job) => IN_PROGRESS_STATUSES.includes(job.status));
   }
 );

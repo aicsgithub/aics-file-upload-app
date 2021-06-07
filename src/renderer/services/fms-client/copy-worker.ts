@@ -4,10 +4,8 @@ import { basename, resolve as resolvePath } from "path";
 
 import { Cancelable, throttle } from "lodash";
 
-import {
-  UPLOAD_WORKER_ON_PROGRESS,
-  UPLOAD_WORKER_SUCCEEDED,
-} from "../aicsfiles/constants";
+export const UPLOAD_WORKER_SUCCEEDED = "worker-success";
+export const UPLOAD_WORKER_ON_PROGRESS = "upload-progress";
 
 // Milliseconds to wait between progress updates
 const THROTTLE_MS = 20000;

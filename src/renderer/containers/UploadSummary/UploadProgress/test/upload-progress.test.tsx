@@ -49,27 +49,7 @@ describe("<UploadProgress/>", () => {
       );
       expect(wrapper.isEmptyRender()).to.be.true;
     });
-    it("Returns <>Replaced</> if job was replaced", () => {
-      const wrapper = shallow(
-        <UploadProgress
-          row={{
-            ...row,
-            serviceFields: {
-              files: [],
-              lastModified: {},
-              md5: {},
-              replacementJobId: "abc",
-              type: "upload",
-              uploadDirectory: "/tmp",
-            },
-            status: JSSJobStatus.FAILED,
-          }}
-        />
-      );
-      const replacedInfo = wrapper.find(".replaced");
-      expect(replacedInfo.exists(".replaced")).to.be.true;
-      expect(replacedInfo.text()).to.equal("Replaced with jobId abc");
-    });
+
     it("Returns null if row is missing progress info", () => {
       const wrapper = shallow(<UploadProgress row={row} />);
       expect(wrapper.isEmptyRender()).to.be.true;

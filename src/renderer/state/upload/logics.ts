@@ -20,7 +20,6 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { UploadServiceFields } from "../../services/aicsfiles/types";
 import FileManagementSystem from "../../services/fms-client";
 import { JSSJob } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
@@ -34,6 +33,7 @@ import {
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
+import { UploadServiceFields } from "../job/types";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -97,7 +97,6 @@ import {
 } from "./constants";
 import {
   getCanSaveUploadDraft,
-  getEditFileMetadataRequests,
   getFileIdsToDelete,
   getUpload,
   getUploadFileNames,
@@ -198,16 +197,14 @@ const initiateUploadLogic = createLogic({
     let initiateUploadResults;
     try {
       initiateUploadResults = await Promise.all(
-        Object.entries(getUploadRequests(getState())).map(
-          async ([filePath, metadata]) => {
-            const startUploadResponse = await fms.startUpload(
-              filePath,
-              metadata,
-              { groupId }
-            );
-            return { filePath, metadata, startUploadResponse };
-          }
-        )
+        getUploadRequests(getState()).map(async (request) => {
+          const response = await fms.startUpload(
+            request.file.originalPath,
+            request,
+            { groupId }
+          );
+          return { request, response };
+        })
       );
     } catch (e) {
       // If we are unable to validate metadata or get the directory to copy
@@ -229,21 +226,18 @@ const initiateUploadLogic = createLogic({
 
     await Promise.all(
       initiateUploadResults.map(async (result) => {
-        const jobName = basename(result.filePath);
+        const jobName = basename(result.request.file.originalPath);
         try {
           await fms.uploadFile(
-            result.startUploadResponse.jobId,
-            result.filePath,
-            result.metadata,
-            result.startUploadResponse.uploadDirectory,
+            result.response.jobId,
+            result.request.file.originalPath,
+            result.request,
+            result.response.uploadDirectory,
             handleUploadProgress(
-              [result.filePath],
+              [result.request.file.originalPath],
               (progress: UploadProgressInfo) =>
                 dispatch(
-                  updateUploadProgressInfo(
-                    result.startUploadResponse.jobId,
-                    progress
-                  )
+                  updateUploadProgressInfo(result.response.jobId, progress)
                 )
             )
           );
@@ -869,11 +863,11 @@ const submitFileMetadataUpdateLogic = createLogic({
       );
     }
 
-    const editFileMetadataRequests = getEditFileMetadataRequests(getState());
+    const editFileMetadataRequests = getUploadRequests(getState());
     try {
       await Promise.all(
-        editFileMetadataRequests.map(({ fileId, request }) =>
-          mmsClient.editFileMetadata(fileId, request)
+        editFileMetadataRequests.map((request) =>
+          mmsClient.editFileMetadata(request.file.fileId, request)
         )
       );
     } catch (e) {

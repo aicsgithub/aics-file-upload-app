@@ -1,5 +1,5 @@
-import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
+import { UploadServiceFields } from "../job/types";
 import { Page, UploadStateBranch } from "../types";
 
 export interface AppPageConfig {

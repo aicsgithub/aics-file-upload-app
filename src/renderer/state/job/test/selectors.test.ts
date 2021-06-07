@@ -1,6 +1,5 @@
 import { expect } from "chai";
 
-import { StepName } from "../../../services/aicsfiles/types";
 import {
   JSSJob,
   JSSJobStatus,
@@ -103,79 +102,15 @@ describe("Job selectors", () => {
       expect(isSafeToExit).to.be.true;
     });
 
-    it("returns false if an upload job's current stage is at the add metadata step and is in progress", () => {
+    it("returns false if an upload job is in progress", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
           ...mockState.job,
-          uploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              currentStage: StepName.AddMetadata.toString(),
-            },
-          ],
+          uploadJobs: [mockWorkingUploadJob],
         },
       });
       expect(isSafeToExit).to.be.false;
-    });
-
-    it("returns false if an upload job's current stage is at the copy files step and is in progress", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          uploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              currentStage: StepName.CopyFiles.toString(),
-            },
-          ],
-        },
-      });
-      expect(isSafeToExit).to.be.false;
-    });
-
-    it("returns false if an upload job's current stage is at the copy files child step and is in progress", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          uploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              currentStage: StepName.CopyFilesChild.toString(),
-            },
-          ],
-        },
-      });
-      expect(isSafeToExit).to.be.false;
-    });
-
-    it("returns false if an upload job's current stage is at the waiting for file copy step and is in progress", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          uploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              currentStage: StepName.Waiting.toString(),
-            },
-          ],
-        },
-      });
-      expect(isSafeToExit).to.be.false;
-    });
-
-    it("returns true if an upload job's current stage is not equal to any of the steps performed by this app", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          uploadJobs: [{ ...mockWorkingUploadJob, currentStage: "etl" }],
-        },
-      });
-      expect(isSafeToExit).to.be.true;
     });
 
     it("returns true if there are no upload jobs", () => {

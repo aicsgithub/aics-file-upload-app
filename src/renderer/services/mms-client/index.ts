@@ -1,10 +1,9 @@
 import { decamelizeKeys } from "humps";
 
-import { UploadRequest } from "../../state/types";
+import { ImageModelBase, UploadRequest } from "../../state/types";
 import { LocalStorage } from "../../types";
-import { FileMetadata } from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
-import { Annotation } from "../labkey-client/types";
+import { Annotation, LabKeyFileMetadata } from "../labkey-client/types";
 import { AicsSuccessResponse, HttpClient } from "../types";
 
 import {
@@ -14,6 +13,19 @@ import {
   Template,
   WellResponse,
 } from "./types";
+
+export interface AnnotationValue extends ImageModelBase {
+  annotationId: number;
+  values: any[];
+}
+
+interface FileMetadata extends LabKeyFileMetadata {
+  annotations: AnnotationValue[];
+  originalPath?: string;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
+  templateId?: number;
+}
 
 const mmsURL = "/metadata-management-service";
 

@@ -1,11 +1,7 @@
 import { expect } from "chai";
 import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
-import { FileManagementSystem } from "../../../services/aicsfiles";
-import {
-  StepName,
-  UploadServiceFields,
-} from "../../../services/aicsfiles/types";
+import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
 import { setErrorAlert, setInfoAlert } from "../../feedback/actions";
@@ -26,6 +22,7 @@ import { State } from "../../types";
 import { uploadFailed, uploadSucceeded } from "../../upload/actions";
 import { receiveJobs, receiveJobUpdate } from "../actions";
 import { handleAbandonedJobsLogic } from "../logics";
+import { UploadServiceFields } from "../types";
 
 describe("Job logics", () => {
   const sandbox = createSandbox();
@@ -50,7 +47,6 @@ describe("Job logics", () => {
     beforeEach(() => {
       waitingAbandonedJob = {
         ...mockWaitingUploadJob,
-        currentStage: StepName.Waiting,
         jobId: "abandoned_job_id",
         jobName: "abandoned_job",
         childIds: ["child_job_id"],
