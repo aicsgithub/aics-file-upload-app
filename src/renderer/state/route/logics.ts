@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import { platform } from "os";
 
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, groupBy, isEmpty } from "lodash";
+import { castArray, difference, groupBy, isEmpty, uniq } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -78,17 +78,13 @@ import {
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import {
-  openEditFileMetadataTabSucceeded,
-  resetUpload,
-  selectPage,
-} from "./actions";
+import { openJobAsUploadSucceeded, resetUpload, selectPage } from "./actions";
 import {
   CLOSE_UPLOAD,
-  OPEN_EDIT_FILE_METADATA_TAB,
+  OPEN_JOB_AS_UPLOAD,
   START_NEW_UPLOAD,
 } from "./constants";
-import { OpenEditFileMetadataTabAction, Upload } from "./types";
+import { OpenJobAsUploadAction, Upload } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
 const getFileMenu = (menu: Menu): MenuItem | undefined =>
@@ -241,7 +237,6 @@ const getPlateRelatedActions = async (
   Transforms file metadata given into a table like format easier for displaying to users or exporting to character
   separated value sets.
 */
-// TODO omit  ["annotations", "labkeyurlModifiedBy", "labkeyurlThumbnailId"]
 function convertUploadRequestsToUploadStateBranch(
   files: UploadRequest[],
   state: State
@@ -338,10 +333,10 @@ function convertUploadRequestsToUploadStateBranch(
             positionIndex: annotation.positionIndex,
             scene: annotation.scene,
             subImageName: annotation.subImageName,
-            [annotationDefinition.name]: [
+            [annotationDefinition.name]: uniq([
               ...(keyToMetadataSoFar[key]?.[annotationDefinition.name] || []),
               ...values,
-            ],
+            ]),
           },
         };
       },
@@ -353,7 +348,6 @@ function convertUploadRequestsToUploadStateBranch(
     throw new Error("Could not find the template used in the upload");
   }
 
-  console.log(uploadMetadata);
   return { templateId, uploadMetadata };
 }
 
@@ -370,7 +364,7 @@ const RELEVANT_FILE_COLUMNS = [
   "ModifiedBy",
 ];
 
-const openEditFileMetadataTabLogic = createLogic({
+const openJobAsUploadLogic = createLogic({
   process: async (
     {
       action,
@@ -380,53 +374,55 @@ const openEditFileMetadataTabLogic = createLogic({
       labkeyClient,
       logger,
       mmsClient,
-    }: ReduxLogicProcessDependenciesWithAction<OpenEditFileMetadataTabAction>,
+    }: ReduxLogicProcessDependenciesWithAction<OpenJobAsUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const state = getState();
-    // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
-    dispatch(
-      batchActions(
-        handleStartingNewUploadJob(logger, state, getApplicationMenu)
-      )
-    );
-
-    // Second, we fetch the file metadata
-    let files = action.payload.serviceFields?.files;
-    if (!files) {
-      files = await Promise.all(
-        ctx.fileIds.map(async (fileId: string) => {
-          const [labkeyFileMetadata, customMetadata] = await Promise.all([
-            labkeyClient.selectFirst<LabKeyFileMetadata>(
-              LK_SCHEMA.FMS,
-              "File",
-              RELEVANT_FILE_COLUMNS,
-              [LabkeyClient.createFilter("FileId", fileId)]
-            ),
-            mmsClient.getFileMetadata(fileId),
-          ]);
-          return {
-            ...labkeyFileMetadata,
-            customMetadata,
-          };
-        })
+    try {
+      // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
+      dispatch(
+        batchActions(
+          handleStartingNewUploadJob(logger, state, getApplicationMenu)
+        )
       );
-    }
-    const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
 
-    const actions: AnyAction[] = [];
-    // if we have a well, we can get the barcode and other plate info. This will be necessary
-    // to display the well editor
-    const wellAnnotationName = WELL_ANNOTATION_NAME;
-    let wellIds: any = newUpload.uploadMetadata[wellAnnotationName];
-    if (!wellIds) {
-      actions.push(setHasNoPlateToUpload(true));
-    } else {
-      wellIds = castArray(wellIds).map((w: string | number) =>
-        parseInt(w + "", 10)
-      );
-      try {
+      // Second, we fetch the file metadata
+      let files = action.payload.serviceFields?.files;
+      if (!files || ctx.fileIds) {
+        files = await Promise.all(
+          ctx.fileIds.map(async (fileId: string) => {
+            const [labkeyFileMetadata, customMetadata] = await Promise.all([
+              labkeyClient.selectFirst<LabKeyFileMetadata>(
+                LK_SCHEMA.FMS,
+                "File",
+                RELEVANT_FILE_COLUMNS,
+                [LabkeyClient.createFilter("FileId", fileId)]
+              ),
+              mmsClient.getFileMetadata(fileId),
+            ]);
+            return {
+              ...labkeyFileMetadata,
+              customMetadata,
+              file: { originalPath: labkeyFileMetadata.localFilePath },
+            };
+          })
+        );
+      }
+      const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
+
+      const actions: AnyAction[] = [];
+      // if we have a well, we can get the barcode and other plate info. This will be necessary
+      // to display the well editor
+      let wellIds: any = Object.values(newUpload.uploadMetadata)[0]?.[
+        WELL_ANNOTATION_NAME
+      ];
+      if (!wellIds) {
+        actions.push(setHasNoPlateToUpload(true));
+      } else {
+        wellIds = castArray(wellIds).map((w: string | number) =>
+          parseInt(w + "", 10)
+        );
         const plateRelatedActions = await getPlateRelatedActions(
           wellIds,
           labkeyClient,
@@ -434,28 +430,15 @@ const openEditFileMetadataTabLogic = createLogic({
           dispatch
         );
         actions.push(...plateRelatedActions);
-      } catch (e) {
-        const error = `Could not get plate information from upload: ${e.message}`;
-        logger.error(error);
-        dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
-        done();
-        return;
       }
-    }
 
-    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
-    if (!booleanAnnotationTypeId) {
-      dispatch(
-        requestFailed(
-          "Boolean annotation type id not found. Contact Software.",
-          AsyncRequest.GET_FILE_METADATA_FOR_JOB
-        )
-      );
-      done();
-      return;
-    }
+      const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+      if (!booleanAnnotationTypeId) {
+        throw new Error(
+          "Boolean annotation type id not found. Contact Software."
+        );
+      }
 
-    try {
       const { template, uploads } = await getApplyTemplateInfo(
         newUpload.templateId,
         mmsClient,
@@ -468,7 +451,7 @@ const openEditFileMetadataTabLogic = createLogic({
         batchActions([
           ...actions,
           updateUploadsAction,
-          openEditFileMetadataTabSucceeded(updateUploadsAction.payload.uploads),
+          openJobAsUploadSucceeded(updateUploadsAction.payload.uploads),
         ])
       );
     } catch (e) {
@@ -481,11 +464,9 @@ const openEditFileMetadataTabLogic = createLogic({
     }
     done();
   },
-  type: OPEN_EDIT_FILE_METADATA_TAB,
+  type: OPEN_JOB_AS_UPLOAD,
   validate: async (
-    deps: ReduxLogicTransformDependenciesWithAction<
-      OpenEditFileMetadataTabAction
-    >,
+    deps: ReduxLogicTransformDependenciesWithAction<OpenJobAsUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -533,4 +514,4 @@ const openEditFileMetadataTabLogic = createLogic({
   },
 });
 
-export default [openEditFileMetadataTabLogic, resetUploadLogic];
+export default [openJobAsUploadLogic, resetUploadLogic];
