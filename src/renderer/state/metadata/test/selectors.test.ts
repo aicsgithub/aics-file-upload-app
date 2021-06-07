@@ -159,6 +159,7 @@ describe("Metadata selectors", () => {
       description: "",
       exposeToFileUploadApp: true,
       name: "B",
+      "annotationTypeId/Name": ColumnType.TEXT,
     };
     const mockAnnotation2 = {
       ...mockAnnotation,

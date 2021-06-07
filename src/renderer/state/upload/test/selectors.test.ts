@@ -6,7 +6,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../../constants";
-import { UploadMetadata, Uploads } from "../../../services/aicsfiles/types";
+import { Uploads } from "../../../services/aicsfiles/types";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
 import { Duration } from "../../../types";
 import {
@@ -36,8 +36,7 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
-import { UploadMetadata as UploadMetadataRow } from "../../types";
+import { FileModel, State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanUndoUpload,
@@ -45,7 +44,7 @@ import {
   getFileToAnnotationHasValueMap,
   getUploadFileNames,
   getUploadKeyToAnnotationErrorMap,
-  getUploadPayload,
+  getUploadRequests,
   getUploadWithCalculatedData,
 } from "../selectors";
 import { getUploadAsTableRows, getUploadValidationErrors } from "../selectors";
@@ -66,7 +65,7 @@ const orderAnnotationValueRequests = (
 // utility function to allow us to deeply compare expected and actual output without worrying about order
 const standardizeUploads = (uploads: Uploads): Uploads => {
   const result: Uploads = {};
-  forEach(uploads, (upload: UploadMetadata, file: string) => {
+  forEach(uploads, (upload, file) => {
     result[file] = {
       ...upload,
       customMetadata: {
@@ -110,10 +109,10 @@ describe("Upload selectors", () => {
     });
   });
 
-  describe("getUploadPayload", () => {
+  describe("getUploadRequests", () => {
     it("Does not include annotations that are not on the template", () => {
       const file = "/path/to/image.tiff";
-      const payload = getUploadPayload({
+      const payload = getUploadRequests({
         ...nonEmptyStateForInitiatingUpload,
         template: {
           ...mockState.template,
@@ -190,7 +189,7 @@ describe("Upload selectors", () => {
           microscopy: {},
         },
       };
-      const actual = getUploadPayload(state);
+      const actual = getUploadRequests(state);
       expect(actual).to.deep.equal(expectedPayload);
     });
     it("Converts upload state branch into correct payload for aicsfiles", () => {
@@ -597,7 +596,7 @@ describe("Upload selectors", () => {
         },
       };
 
-      const payload: Uploads = getUploadPayload(state);
+      const payload: Uploads = getUploadRequests(state);
       expect(standardizeUploads(payload)).to.deep.equal(
         standardizeUploads(expected)
       );
@@ -627,7 +626,7 @@ describe("Upload selectors", () => {
         }),
       };
 
-      const payload = getUploadPayload(state);
+      const payload = getUploadRequests(state);
 
       expect(
         payload[filePath].customMetadata.annotations[0].values[0]
@@ -658,7 +657,7 @@ describe("Upload selectors", () => {
         }),
       };
 
-      const payload = getUploadPayload(state);
+      const payload = getUploadRequests(state);
 
       expect(
         payload[filePath].customMetadata.annotations[0].values[0]
@@ -750,7 +749,7 @@ describe("Upload selectors", () => {
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file1",
         key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
@@ -764,7 +763,7 @@ describe("Upload selectors", () => {
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file2",
         key: getUploadRowKey({ file: "/path/to/file2" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
@@ -778,7 +777,7 @@ describe("Upload selectors", () => {
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file3",
         key: getUploadRowKey({ file: "/path/to/file3" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
@@ -830,7 +829,7 @@ describe("Upload selectors", () => {
           positionIndex: undefined,
           channelId: "Raw 405nm",
         }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndex: undefined,
         positionIndexes: [],
         scenes: [],
@@ -844,7 +843,7 @@ describe("Upload selectors", () => {
         [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndex: 1,
         positionIndexes: [],
         scenes: [],
@@ -1033,7 +1032,7 @@ describe("Upload selectors", () => {
 
   describe("getUploadKeyToAnnotationErrorMap", () => {
     const uploadRowKey = getUploadRowKey({ file: "/path/to/file1" });
-    let goodUploadRow: UploadMetadataRow;
+    let goodUploadRow: FileModel;
     const getValidations = (
       annotationToTest: TemplateAnnotation,
       value: any

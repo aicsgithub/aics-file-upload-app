@@ -10,18 +10,14 @@ import {
 import {
   alphaOrderComparator,
   convertToArray,
-  convertUploadPayloadToImageModelMetadata,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   getPlateInfo,
   getPowerOf1000,
   makePosixPathCompatibleWithPlatform,
-  retrieveFileMetadata,
   splitTrimAndFilter,
   titleCase,
 } from "../";
-import { FileManagementSystem } from "../../services/aicsfiles";
-import { ImageModelMetadata } from "../../services/aicsfiles/types";
 import MMSClient from "../../services/mms-client";
 import {
   GetPlateResponse,
@@ -36,28 +32,21 @@ import {
 import {
   mockAuditInfo,
   mockBooleanAnnotation,
-  mockChannel,
-  mockFavoriteColorAnnotation,
   mockFavoriteColorTemplateAnnotation,
   mockMMSTemplate,
-  mockNotesAnnotation,
   mockNumberAnnotation,
-  mockWellAnnotation,
 } from "../../state/test/mocks";
 import {
   ReduxLogicTransformDependencies,
   UploadStateBranch,
 } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
-import { FileType } from "../../state/upload/types";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
   const sandbox = createSandbox();
-  let fms: SinonStubbedInstance<FileManagementSystem>;
   let mmsClient: SinonStubbedInstance<MMSClient>;
   beforeEach(() => {
-    fms = createStubInstance(FileManagementSystem);
     mmsClient = createStubInstance(MMSClient);
   });
 
@@ -253,27 +242,6 @@ describe("General utilities", () => {
       });
     });
   });
-  describe("retrieveFileMetadata", () => {
-    it("returns result of fms.transformFileMetadataIntoTable", async () => {
-      const beforePivot = {
-        annotations: [],
-        fileId: "abc123",
-        filename: "bar",
-        fileSize: 0,
-        fileType: "image",
-        modified: "",
-        modifiedBy: "foo",
-      };
-      const expected = [] as ImageModelMetadata[];
-      fms.getCustomMetadataForFile.resolves(beforePivot);
-      fms.transformFileMetadataIntoTable.resolves(expected);
-      const result = await retrieveFileMetadata(
-        ["abc123"],
-        (fms as any) as FileManagementSystem
-      );
-      expect(result).to.equal(expected);
-    });
-  });
   describe("getApplyTemplateInfo", () => {
     let uploads: UploadStateBranch;
     let previouslyAppliedTemplate: Template;
@@ -353,67 +321,6 @@ describe("General utilities", () => {
           wellIds: [1],
         },
       });
-    });
-  });
-  describe("convertUploadPayloadToImageModelMetadata", () => {
-    it("returns result of fms.transformFileMetadataIntoTable", async () => {
-      const expected: ImageModelMetadata[] = [];
-      fms.transformFileMetadataIntoTable.resolves(expected);
-      const result = await convertUploadPayloadToImageModelMetadata(
-        [
-          {
-            customMetadata: {
-              annotations: [
-                {
-                  annotationId: mockFavoriteColorAnnotation.annotationId,
-                  channelId: undefined,
-                  positionIndex: undefined,
-                  scene: undefined,
-                  subImageName: undefined,
-                  values: ["blue"],
-                },
-                {
-                  annotationId: mockFavoriteColorAnnotation.annotationId,
-                  channelId: mockChannel.channelId,
-                  positionIndex: 1,
-                  scene: undefined,
-                  subImageName: undefined,
-                  values: ["yellow"],
-                },
-                {
-                  annotationId: mockWellAnnotation.annotationId,
-                  channelId: mockChannel.channelId,
-                  positionIndex: 1,
-                  scene: undefined,
-                  subImageName: undefined,
-                  values: ["6"],
-                },
-                {
-                  annotationId: mockNotesAnnotation.annotationId,
-                  channelId: mockChannel.channelId,
-                  positionIndex: 1,
-                  scene: undefined,
-                  subImageName: undefined,
-                  values: ["Seeing some interesting things here!"],
-                },
-              ],
-              templateId: mockMMSTemplate.templateId,
-            },
-            file: {
-              disposition: "tape",
-              fileType: FileType.IMAGE,
-              originalPath: "/path/to.dot/image.tiff",
-              shouldBeInArchive: true,
-              shouldBeInLocal: false,
-            },
-            microscopy: {
-              wellIds: [6],
-            },
-          },
-        ],
-        (fms as any) as FileManagementSystem
-      );
-      expect(result).to.equal(expected);
     });
   });
   describe("ensureDraftGetsSaved", () => {

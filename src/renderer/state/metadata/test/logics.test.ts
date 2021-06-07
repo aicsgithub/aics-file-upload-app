@@ -14,6 +14,7 @@ import LabkeyClient from "../../../services/labkey-client";
 import {
   LabkeyPlateResponse,
   LabkeyTemplate,
+  ScalarType,
 } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
@@ -219,6 +220,7 @@ describe("Metadata logics", () => {
             lookupId: 1,
             schemaName: "microscopy",
             tableName: "well",
+            "scalarTypeId/Name": ScalarType.INT,
           },
         ],
       },

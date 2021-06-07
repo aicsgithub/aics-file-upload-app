@@ -46,10 +46,6 @@ describe("Job logics", () => {
   describe("handleAbandonedJobsLogic", () => {
     let logicDeps: ReduxLogicDependencies;
     let waitingAbandonedJob: JSSJob<UploadServiceFields>;
-    let copyFilesAbandonedJob: JSSJob<UploadServiceFields>;
-    let copyFileAbandonedJob: JSSJob<UploadServiceFields>;
-    let addMetadataAbandonedJob: JSSJob<UploadServiceFields>;
-    let inProgressNotAbandonedJob: JSSJob<UploadServiceFields>;
 
     beforeEach(() => {
       waitingAbandonedJob = {
@@ -70,28 +66,6 @@ describe("Job logics", () => {
           type: "upload",
           uploadDirectory: "/test",
         },
-      };
-      copyFilesAbandonedJob = {
-        ...waitingAbandonedJob,
-        currentStage: StepName.CopyFiles,
-        jobId: "abandoned_job_id2",
-        jobName: "abandoned_job2",
-      };
-      copyFileAbandonedJob = {
-        ...waitingAbandonedJob,
-        currentStage: StepName.CopyFilesChild,
-        jobId: "abandoned_job_id3",
-        jobName: "abandoned_job3",
-      };
-      addMetadataAbandonedJob = {
-        ...waitingAbandonedJob,
-        currentStage: StepName.AddMetadata,
-        jobId: "abandoned_job_id4",
-        jobName: "abandoned_job4",
-      };
-      inProgressNotAbandonedJob = {
-        ...mockWorkingUploadJob,
-        currentStage: "etl",
       };
     });
 
@@ -123,23 +97,7 @@ describe("Job logics", () => {
       } = createMockReduxStore(mockState, logicDeps, [
         handleAbandonedJobsLogic,
       ]);
-      const action = receiveJobs([
-        mockFailedUploadJob,
-        waitingAbandonedJob,
-        addMetadataAbandonedJob,
-        inProgressNotAbandonedJob,
-        copyFileAbandonedJob,
-        copyFilesAbandonedJob,
-      ]);
-      fms.failUpload
-        .onFirstCall()
-        .resolves([waitingAbandonedJob])
-        .onSecondCall()
-        .resolves([addMetadataAbandonedJob])
-        .onThirdCall()
-        .resolves([copyFileAbandonedJob])
-        .onCall(3)
-        .resolves([copyFilesAbandonedJob]);
+      const action = receiveJobs([mockFailedUploadJob, waitingAbandonedJob]);
 
       store.dispatch(action);
       await logicMiddleware.whenComplete();
@@ -147,15 +105,6 @@ describe("Job logics", () => {
         action,
         setInfoAlert(
           `Upload "${waitingAbandonedJob.jobName}" was abandoned and will now be retried.`
-        ),
-        setInfoAlert(
-          `Upload "${addMetadataAbandonedJob.jobName}" was abandoned and will now be retried.`
-        ),
-        setInfoAlert(
-          `Upload "${copyFileAbandonedJob.jobName}" was abandoned and will now be retried.`
-        ),
-        setInfoAlert(
-          `Upload "${copyFilesAbandonedJob.jobName}" was abandoned and will now be retried.`
         ),
       ]);
     });
@@ -168,8 +117,6 @@ describe("Job logics", () => {
       } = createMockReduxStore(mockState, logicDeps, [
         handleAbandonedJobsLogic,
       ]);
-
-      fms.failUpload.onFirstCall().resolves([waitingAbandonedJob]);
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
 
@@ -190,8 +137,8 @@ describe("Job logics", () => {
       } = createMockReduxStore(mockState, logicDeps, [
         handleAbandonedJobsLogic,
       ]);
-
-      fms.failUpload.onFirstCall().rejects(new Error("some error"));
+      const errorMessage = "retry failure!";
+      fms.retryUpload.onFirstCall().rejects(new Error(errorMessage));
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
 
@@ -201,7 +148,9 @@ describe("Job logics", () => {
         setInfoAlert(
           `Upload "${waitingAbandonedJob.jobName}" was abandoned and will now be retried.`
         ),
-        setErrorAlert("Could not retry abandoned jobs: some error"),
+        setErrorAlert(
+          `Retry for upload "${waitingAbandonedJob.jobName}" failed: ${errorMessage}`
+        ),
       ]);
     });
 
@@ -214,7 +163,6 @@ describe("Job logics", () => {
         handleAbandonedJobsLogic,
       ]);
 
-      fms.failUpload.onFirstCall().resolves([waitingAbandonedJob]);
       fms.retryUpload.rejects(new Error("Error in worker"));
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
