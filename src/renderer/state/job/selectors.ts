@@ -6,38 +6,15 @@ import {
   IN_PROGRESS_STATUSES,
   JSSJob,
   SUCCESSFUL_STATUS,
+  UploadStage,
 } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
-import { convertToArray } from "../../util";
-import {
-  JobFilter,
-  JobStateBranch,
-  State,
-  UploadProgressInfo,
-  UploadSummaryTableRow,
-} from "../types";
+import { JobFilter, State, UploadSummaryTableRow } from "../types";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
 
-// "Local" selectors: selecting off of job state branch as input
-export type JobIdToJobMap<T> = Map<string, JSSJob<T>>;
-const getUploadJobsFromLocalState = (state: JobStateBranch) => state.uploadJobs;
-export const getJobIdToUploadJobMap = createSelector(
-  [getUploadJobsFromLocalState],
-  (jobs: JSSJob<UploadServiceFields>[]): JobIdToJobMap<UploadServiceFields> => {
-    const map = new Map<string, JSSJob<UploadServiceFields>>();
-    for (const job of jobs) {
-      map.set(job.jobId, job);
-    }
-    return map;
-  }
-);
-
-// "Global" selectors
-export const getJobIdToUploadJobMapGlobal = (state: State) =>
-  getJobIdToUploadJobMap(state.job);
 function getStatusesFromFilter(jobFilter: JobFilter): string[] {
   switch (jobFilter) {
     case JobFilter.Successful:
@@ -75,78 +52,50 @@ export const getUploadGroupToUploads = createSelector(
 );
 
 export const getJobsForTable = createSelector(
-  [
-    getFilteredJobs,
-    getCopyProgress,
-    getJobIdToUploadJobMapGlobal,
-    getUploadGroupToUploads,
-  ],
-  (
-    uploadJobs: JSSJob<UploadServiceFields>[],
-    copyProgress: { [jobId: string]: UploadProgressInfo },
-    jobIdToUploadJobMap: Map<string, JSSJob<UploadServiceFields>>,
-    groupIdToJobs: { [groupId: string]: JSSJob<UploadServiceFields>[] }
-  ): UploadSummaryTableRow[] => {
-    const jobIdsToFilterOut = new Set(
-      uploadJobs.flatMap((job) => job?.serviceFields?.replacementJobIds || [])
-    );
+  [getFilteredJobs, getCopyProgress, getUploadGroupToUploads],
+  (uploadJobs, copyProgress, groupIdToJobs): UploadSummaryTableRow[] => {
+    const replacedJobIdSet = uploadJobs.reduce((setSoFar, job) => {
+      if (job.serviceFields?.originalJobId) {
+        setSoFar.add(job.serviceFields.originalJobId);
+      }
+      return setSoFar;
+    }, new Set());
 
     return orderBy(uploadJobs, ["modified"], ["desc"])
-      .filter(({ jobId }) => !jobIdsToFilterOut.has(jobId))
-      .map((job) => {
-        const replacementJobIds = convertToArray(
-          job?.serviceFields?.replacementJobIds
-        );
-        let representativeJob = job;
-        for (const jobId of replacementJobIds) {
-          const replacementJob = jobIdToUploadJobMap.get(jobId);
-          if (replacementJob) {
-            if (
-              new Date(replacementJob.created) >
-              new Date(representativeJob.created)
-            ) {
-              representativeJob = replacementJob;
-            }
-          }
-        }
-
-        const originalModified = new Date(job.modified);
-        const representativeModified = new Date(representativeJob.modified);
-        let serviceFields = representativeJob.serviceFields;
-        if (serviceFields?.groupId) {
-          serviceFields = {
-            ...serviceFields,
-            files: groupIdToJobs[serviceFields.groupId].flatMap(
-              (j) => j?.serviceFields?.files || []
-            ),
-            result: groupIdToJobs[serviceFields.groupId].flatMap(
-              (j) => j?.serviceFields?.result || []
-            ),
-          };
-        }
-        return {
-          ...representativeJob,
-          serviceFields,
-          created: new Date(job.created),
-          key: representativeJob.jobId,
-          modified:
-            originalModified < representativeModified
-              ? representativeModified
-              : originalModified,
-          progress: copyProgress[job.jobId],
-          status: representativeJob.status,
-        };
-      });
+      .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
+      .map((job) => ({
+        ...job,
+        key: job.jobId,
+        status: job.status,
+        created: new Date(job.created),
+        modified: new Date(job.modified),
+        progress: copyProgress[job.jobId],
+        serviceFields: {
+          ...job.serviceFields,
+          files: job.serviceFields?.groupId
+            ? groupIdToJobs[job.serviceFields.groupId].flatMap(
+                (j) => j?.serviceFields?.files || []
+              )
+            : job.serviceFields?.files || [],
+          result: job.serviceFields?.groupId
+            ? groupIdToJobs[job.serviceFields.groupId].flatMap(
+                (j) => j?.serviceFields?.result || []
+              )
+            : job.serviceFields?.result || [],
+        },
+      })) as UploadSummaryTableRow[];
   }
 );
 
-// The app is only safe to exit after the add metadata step has been completed
-// The add metadata step represents sending a request to FSS's /uploadComplete endpoint which delegates
-// The last steps of the upload to FSS
+// The app is only safe to exit after the client side of the upload completes
+// this is signaled by the "currentStage" of the job being after the
+// "Waiting for file copy" stage set by FSS when the upload is initiated.
 export const getIsSafeToExit = createSelector(
   [getUploadJobs],
-  (uploadJobs: JSSJob<UploadServiceFields>[]): boolean => {
-    // TODO: Filter out jobs that FSS is currently doing i.e. done with client side
-    return !uploadJobs.some((job) => IN_PROGRESS_STATUSES.includes(job.status));
-  }
+  (uploadJobs: JSSJob<UploadServiceFields>[]): boolean =>
+    !uploadJobs.some(
+      (job) =>
+        job.currentStage === UploadStage.WAITING_FOR_CLIENT_COPY &&
+        IN_PROGRESS_STATUSES.includes(job.status)
+    )
 );

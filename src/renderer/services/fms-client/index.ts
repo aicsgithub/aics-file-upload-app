@@ -17,7 +17,7 @@ import {
   UploadMetadataResponse,
 } from "../fss-client";
 import JobStatusClient from "../job-status-client";
-import { JSSJob, JSSJobStatus } from "../job-status-client/types";
+import { JSSJob, JSSJobStatus, UploadStage } from "../job-status-client/types";
 import { UploadRequest, UploadServiceFields } from "../types";
 
 import {
@@ -135,7 +135,6 @@ export default class FileManagementSystem {
     uploadDirectory: string,
     copyProgressCb: CopyProgressCallBack = noop
   ): Promise<UploadMetadataResponse> {
-    console.time("upload");
     try {
       // Remove unwanted files from upload directory. Otherwise, FSS complains with a 417 response.
       const unexpectedFiles = await fs.promises.readdir(uploadDirectory);
@@ -178,10 +177,15 @@ export default class FileManagementSystem {
         shouldBeInLocal: metadata.file.shouldBeInLocal,
       };
       const response = await this.fss.uploadComplete(jobId, [file]);
-      console.timeEnd("upload");
+
+      // Update Job stage to reflect completion of client copy
+      // in the event FSS is too busy to process the upload immediately
+      // i.e. leaving the stage otherwise stagnant & false
+      await this.jss.updateJob(jobId, {
+        currentStage: UploadStage.WAITING_FOR_FSS_PROCESSING,
+      });
       return response;
     } catch (e) {
-      console.timeEnd("upload");
       await this.jss.updateJob(jobId, {
         status: JSSJobStatus.FAILED,
         serviceFields: {
@@ -198,7 +202,7 @@ export default class FileManagementSystem {
    */
   public async retryUpload(
     jobId: string,
-    copyProgressCb: CopyProgressCallBack = noop
+    copyProgressCb: (jobId: string) => CopyProgressCallBack
   ): Promise<UploadMetadataResponse[]> {
     console.info(`Retrying upload for jobId=${jobId}.`);
 
@@ -246,7 +250,7 @@ export default class FileManagementSystem {
                 file.file.originalPath,
                 file,
                 newUploadResponse.uploadDirectory,
-                copyProgressCb
+                copyProgressCb(newUploadResponse.jobId)
               );
             } catch (error) {
               await this.jss.updateJob(newUploadResponse.jobId, {
@@ -377,6 +381,7 @@ export default class FileManagementSystem {
       };
 
       // Send the source file and formatted destination to the worker
+      // see `copy-worker.ts` for the message handler
       worker.postMessage([source, targetFolder]);
     });
   }

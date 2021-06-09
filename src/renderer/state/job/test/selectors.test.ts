@@ -3,6 +3,7 @@ import { expect } from "chai";
 import {
   JSSJob,
   JSSJobStatus,
+  UploadStage,
 } from "../../../services/job-status-client/types";
 import {
   mockFailedUploadJob,
@@ -15,7 +16,6 @@ import { JobFilter, State } from "../../types";
 import {
   getFilteredJobs,
   getIsSafeToExit,
-  getJobIdToUploadJobMap,
   getJobsForTable,
   getUploadGroupToUploads,
 } from "../selectors";
@@ -56,43 +56,49 @@ describe("Job selectors", () => {
       });
       expect(foundWorkingJob).to.be.true;
     });
-    it("hides any jobs that are duplicates of the original and displays latest upload job", () => {
-      const mockReplacementJob1 = {
+
+    it("hides any jobs that are duplicates of the original", () => {
+      // Arrange
+      const mockReplacedJob1: JSSJob = {
         ...mockFailedUploadJob,
         created: new Date("Oct 2, 2020 03:24:00"),
         jobId: "replacement1",
       };
-      const mockReplacementJob2 = {
+      const mockReplacedJob2: JSSJob = {
         ...mockFailedUploadJob,
         created: new Date("Oct 3, 2020 03:24:00"),
         jobId: "replacement2",
         status: JSSJobStatus.RETRYING,
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          originalJobId: mockReplacedJob1.jobId,
+        },
       };
+      const expectedJob: JSSJob = {
+        ...mockFailedUploadJob,
+        created: new Date("Oct 1, 2020 03:24:00"),
+        serviceFields: {
+          files: [],
+          lastModified: {},
+          md5: {},
+          originalJobId: mockReplacedJob2.jobId,
+          type: "upload",
+          uploadDirectory: "/foo",
+        },
+      };
+
+      // Act
       const rows = getJobsForTable({
         ...mockState,
         job: {
           ...mockState.job,
-          uploadJobs: [
-            {
-              ...mockFailedUploadJob,
-              created: new Date("Oct 1, 2020 03:24:00"),
-              serviceFields: {
-                files: [],
-                lastModified: {},
-                md5: {},
-                replacementJobIds: ["replacement1", "replacement2"],
-                type: "upload",
-                uploadDirectory: "/foo",
-              },
-            },
-            mockReplacementJob1,
-            mockReplacementJob2,
-          ],
+          uploadJobs: [expectedJob, mockReplacedJob1, mockReplacedJob2],
         },
       });
-      expect(rows.length).to.equal(1);
-      expect(rows[0].status).to.equal(JSSJobStatus.RETRYING);
-      expect(rows[0].serviceFields).to.equal(mockReplacementJob2.serviceFields);
+
+      // Assert
+      expect(rows).to.be.lengthOf(1);
+      expect(rows[0].jobId).to.equal(expectedJob.jobId);
     });
   });
 
@@ -102,12 +108,17 @@ describe("Job selectors", () => {
       expect(isSafeToExit).to.be.true;
     });
 
-    it("returns false if an upload job is in progress", () => {
+    it("returns false if an upload job is in progress and in client upload stage", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
           ...mockState.job,
-          uploadJobs: [mockWorkingUploadJob],
+          uploadJobs: [
+            {
+              ...mockWorkingUploadJob,
+              currentStage: UploadStage.WAITING_FOR_CLIENT_COPY,
+            },
+          ],
         },
       });
       expect(isSafeToExit).to.be.false;
@@ -253,21 +264,6 @@ describe("Job selectors", () => {
         },
       });
       expect(jobs).to.deep.equal(state.job.uploadJobs);
-    });
-  });
-  describe("getJobIdToUploadJobMap", () => {
-    it("converts a list of jobs to a map of jobId's to jobs", () => {
-      const map = getJobIdToUploadJobMap({
-        ...mockState.job,
-        uploadJobs: [mockWorkingUploadJob, mockSuccessfulUploadJob],
-      });
-      expect(map.size).to.equal(2);
-      expect(map.get(mockWorkingUploadJob.jobId)).to.equal(
-        mockWorkingUploadJob
-      );
-      expect(map.get(mockSuccessfulUploadJob.jobId)).to.equal(
-        mockSuccessfulUploadJob
-      );
     });
   });
 });

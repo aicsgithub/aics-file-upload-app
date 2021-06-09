@@ -33,16 +33,6 @@ describe("job reducer", () => {
       );
       expect(result.uploadJobs[0]).to.equal(mockWorkingUploadJob);
     });
-    it("returns original state if serviceFields.type != 'upload' and != 'add_metadata'", () => {
-      const result = reducer(
-        initialState,
-        receiveJobInsert({
-          ...mockWorkingAddMetadataJob,
-          serviceFields: { type: "copy" },
-        })
-      );
-      expect(result).to.equal(initialState);
-    });
   });
   describe("receiveJobUpdate", () => {
     it("replaces job with matching jobId in uploadJobs if serviceFields.type = 'upload", () => {
@@ -59,6 +49,7 @@ describe("job reducer", () => {
       );
       expect(result.uploadJobs[0]).to.equal(updatedJob);
     });
+
     it("returns original state if job with matching jobId is not found", () => {
       const state = {
         ...initialState,
@@ -68,7 +59,7 @@ describe("job reducer", () => {
         state,
         receiveJobUpdate(mockWorkingAddMetadataJob)
       );
-      expect(result).to.equal(state);
+      expect(result).to.deep.equal(state);
     });
   });
   describe("selectJobFilter", () => {

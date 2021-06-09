@@ -12,7 +12,6 @@ import {
   ReduxLogicDependencies,
 } from "../../test/configure-mock-store";
 import {
-  mockFailedAddMetadataJob,
   mockFailedUploadJob,
   mockState,
   mockSuccessfulUploadJob,
@@ -187,19 +186,6 @@ describe("Job logics", () => {
       };
     });
 
-    it("dispatches no additional actions if the job is not an upload job", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithNonEmptyUploadJobs
-      );
-
-      store.dispatch(receiveJobUpdate(mockFailedAddMetadataJob));
-
-      await logicMiddleware.whenComplete();
-
-      expect(actions.list).to.deep.equal([
-        receiveJobUpdate(mockFailedAddMetadataJob),
-      ]);
-    });
     it("dispatches no additional actions if the job is in progress", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithNonEmptyUploadJobs
@@ -213,34 +199,7 @@ describe("Job logics", () => {
         receiveJobUpdate(mockWorkingUploadJob),
       ]);
     });
-    it("dispatches no additional actions if the job is not tracked in state", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithNonEmptyUploadJobs
-      );
-      const action = receiveJobUpdate({
-        ...mockWorkingUploadJob,
-        jobId: "bert",
-      });
 
-      store.dispatch(action);
-
-      await logicMiddleware.whenComplete();
-
-      expect(actions.list).to.deep.equal([action]);
-    });
-    it("dispatches no additional actions if the job status did not change", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithNonEmptyUploadJobs
-      );
-
-      store.dispatch(receiveJobUpdate(mockWorkingUploadJob));
-
-      await logicMiddleware.whenComplete();
-
-      expect(actions.list).to.deep.equal([
-        receiveJobUpdate(mockWorkingUploadJob),
-      ]);
-    });
     it("dispatches uploadSucceeded if the job is an upload job that succeeded and previously was in progress", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithNonEmptyUploadJobs,

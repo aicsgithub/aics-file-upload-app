@@ -65,19 +65,21 @@ async function copyFiles(
 // Performs actual copy as a web worker (used in fms.copyFile)
 const ctx: Worker = self as any;
 ctx.onmessage = async (e: MessageEvent) => {
-  const [originalPath, targetFolder] = e.data;
+  if (Array.isArray(e.data) && e.data.length === 2) {
+    const [originalPath, targetFolder] = e.data;
 
-  try {
-    const onProgress = throttle((progress: number) => {
-      ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${progress}`);
-    }, THROTTLE_MS);
-    const md5 = await copyFiles(originalPath, targetFolder, onProgress);
-    ctx.postMessage(`${UPLOAD_WORKER_SUCCEEDED}:${md5}`);
-  } catch (e) {
-    ctx.postMessage(`Copy failed: ${e.message}`);
-    // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror
-    setTimeout(() => {
-      throw e;
-    }, 500);
+    try {
+      const onProgress = throttle((progress: number) => {
+        ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${progress}`);
+      }, THROTTLE_MS);
+      const md5 = await copyFiles(originalPath, targetFolder, onProgress);
+      ctx.postMessage(`${UPLOAD_WORKER_SUCCEEDED}:${md5}`);
+    } catch (e) {
+      ctx.postMessage(`Copy failed: ${e.message}`);
+      // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror
+      setTimeout(() => {
+        throw e;
+      }, 500);
+    }
   }
 };

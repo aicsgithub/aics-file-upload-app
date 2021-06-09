@@ -307,10 +307,9 @@ const retryUploadLogic = createLogic({
     const fileNames =
       job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
     try {
-      await fms.retryUpload(
-        job.jobId,
+      await fms.retryUpload(job.jobId, (jobId) =>
         handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
-          dispatch(updateUploadProgressInfo(job.jobId, progress))
+          dispatch(updateUploadProgressInfo(jobId, progress))
         )
       );
       done();

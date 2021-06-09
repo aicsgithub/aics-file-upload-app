@@ -2,7 +2,11 @@ import { StateWithHistory } from "redux-undo";
 
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+import {
+  JSSJob,
+  JSSJobStatus,
+  UploadStage,
+} from "../../services/job-status-client/types";
 import {
   Annotation,
   AnnotationLookup,
@@ -455,6 +459,7 @@ export const mockWorkingUploadJob: JSSJob<UploadServiceFields> = {
 
 export const mockWaitingUploadJob: JSSJob = {
   ...mockWorkingUploadJob,
+  currentStage: UploadStage.WAITING_FOR_CLIENT_COPY,
   status: JSSJobStatus.WAITING,
 };
 

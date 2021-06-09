@@ -12,7 +12,6 @@ import {
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
 } from "./constants";
-import { getJobIdToUploadJobMap } from "./selectors";
 import {
   ReceiveJobsAction,
   ReceiveJobInsertAction,
@@ -46,20 +45,15 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
       action.type === RECEIVE_JOB_INSERT,
     perform: (
       state: JobStateBranch,
-      { payload: updatedJob }: ReceiveJobInsertAction
+      { payload: newJob }: ReceiveJobInsertAction
     ): JobStateBranch => {
-      const jobType = updatedJob.serviceFields?.type;
-      if (jobType === "upload") {
-        return {
-          ...state,
-          uploadJobs: [
-            updatedJob as JSSJob<UploadServiceFields>,
-            ...state.uploadJobs,
-          ],
-        };
-      }
-
-      return state;
+      return {
+        ...state,
+        uploadJobs: [
+          newJob as JSSJob<UploadServiceFields>,
+          ...state.uploadJobs,
+        ],
+      };
     },
   },
   [RECEIVE_JOB_UPDATE]: {
@@ -69,23 +63,14 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
       state: JobStateBranch,
       { payload: updatedJob }: ReceiveJobUpdateAction
     ): JobStateBranch => {
-      const jobType = updatedJob.serviceFields?.type;
-      const jobIdToUploadJobMap: Map<
-        string,
-        JSSJob<UploadServiceFields>
-      > = getJobIdToUploadJobMap(state);
-      if (jobType === "upload" && jobIdToUploadJobMap.has(updatedJob.jobId)) {
-        // Replace job with changed job
-        return {
-          ...state,
-          uploadJobs: state.uploadJobs.map((job) =>
-            job.jobId === updatedJob.jobId
-              ? (updatedJob as JSSJob<UploadServiceFields>)
-              : job
-          ),
-        };
-      }
-      return state;
+      return {
+        ...state,
+        uploadJobs: state.uploadJobs.map((job) =>
+          job.jobId === updatedJob.jobId
+            ? (updatedJob as JSSJob<UploadServiceFields>)
+            : job
+        ),
+      };
     },
   },
   [SELECT_JOB_FILTER]: {
