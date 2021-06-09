@@ -39,15 +39,6 @@ export default function JobOverviewDisplay({ className, job }: Props) {
           style={{ marginBottom: "0.5em" }}
         />
       )}
-      {job.serviceFields?.replacementJobId && (
-        <Alert
-          message="Warning"
-          type="warning"
-          description={`This upload was replaced by job id ${job.serviceFields.replacementJobId}`}
-          showIcon={true}
-          style={{ marginBottom: "0.5em" }}
-        />
-      )}
       <div className={classNames(styles.descriptionContainer, className)}>
         <LabeledInput label="Job ID">{jobId}</LabeledInput>
         <LabeledInput label="Uploaded">
