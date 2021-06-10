@@ -4,7 +4,6 @@ import * as moment from "moment";
 import {
   createSandbox,
   createStubInstance,
-  match,
   SinonStubbedInstance,
   stub,
 } from "sinon";
@@ -22,7 +21,6 @@ import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
-import { resetUpload } from "../../route/actions";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -45,7 +43,7 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, FileModel, HTTP_STATUS, Page, State } from "../../types";
+import { AsyncRequest, FileModel, Page, State } from "../../types";
 import {
   addUploadFiles,
   applyTemplate,
@@ -53,7 +51,6 @@ import {
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
-  editFileMetadataSucceeded,
   initiateUpload,
   initiateUploadFailed,
   openUploadDraft,
@@ -1578,27 +1575,6 @@ describe("Upload logics", () => {
       mmsClient.editFileMetadata.restore();
     });
 
-    it("sets error alert if no selectedJob", () => {
-      const { actions, store } = createMockReduxStore();
-      store.dispatch(submitFileMetadataUpdate());
-      expect(actions.includesMatch(setErrorAlert("Nothing found to update"))).to
-        .be.true;
-    });
-    it("sets error alert if no applied template", () => {
-      const { actions, store } = createMockReduxStore({
-        ...mockStateForEditingMetadata,
-        template: {
-          ...mockTemplateStateBranch,
-          appliedTemplate: undefined,
-        },
-      });
-      store.dispatch(submitFileMetadataUpdate());
-      expect(
-        actions.includesMatch(
-          setErrorAlert("Cannot submit update: no template has been applied.")
-        )
-      ).to.be.true;
-    });
     it("adds jobName to payload if current job is defined", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateForEditingMetadata
@@ -1613,90 +1589,6 @@ describe("Upload logics", () => {
           payload: "file1, file2, file3",
         })
       );
-    });
-    it("deletes any file that is found on the selectedJob but not in uploads", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateForEditingMetadata
-      );
-
-      store.dispatch(submitFileMetadataUpdate());
-      await logicMiddleware.whenComplete();
-
-      expect(mmsClient.deleteFileMetadata.calledWith("dog", true)).to.be.true;
-      expect(mmsClient.deleteFileMetadata.calledWith("cat", true)).to.be.false;
-      expect(
-        jssClient.updateJob.calledWith(
-          mockSuccessfulUploadJob.jobId,
-          match({ serviceFields: { deletedFileIds: ["dog"] } })
-        )
-      ).to.be.true;
-      expect(mmsClient.editFileMetadata.calledWith("cat", match.object)).to.be
-        .true;
-      expect(mmsClient.editFileMetadata.calledWith("dog", match.object)).to.be
-        .false;
-      expect(actions.includesMatch(editFileMetadataSucceeded(jobName))).to.be
-        .true;
-      expect(actions.includesMatch(resetUpload())).to.be.true;
-    });
-    it("ignores 404s when deleting files", async () => {
-      mmsClient.deleteFileMetadata.rejects({
-        status: HTTP_STATUS.NOT_FOUND,
-      });
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateForEditingMetadata
-      );
-
-      store.dispatch(submitFileMetadataUpdate());
-      await logicMiddleware.whenComplete();
-
-      expect(mmsClient.deleteFileMetadata.called).to.be.true;
-      expect(jssClient.updateJob.called).to.be.true;
-      expect(mmsClient.editFileMetadata.called).to.be.true;
-      expect(actions.includesMatch(editFileMetadataSucceeded(jobName))).to.be
-        .true;
-    });
-    it("dispatches editFileMetadataFailed when deleting file fails (non-404)", async () => {
-      mmsClient.deleteFileMetadata.rejects({
-        response: {
-          data: {
-            error: "foo",
-          },
-          status: HTTP_STATUS.BAD_REQUEST,
-        },
-      });
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateForEditingMetadata
-      );
-
-      store.dispatch(submitFileMetadataUpdate());
-      await logicMiddleware.whenComplete();
-
-      expect(mmsClient.deleteFileMetadata.called).to.be.true;
-      expect(jssClient.updateJob.called).to.be.false;
-      expect(mmsClient.editFileMetadata.called).to.be.false;
-      expect(
-        actions.includesMatch(
-          editFileMetadataFailed("Could not delete file dog: foo", jobName)
-        )
-      ).to.be.true;
-    });
-    it("dispatches editFileMetadataFailed when updating job fails", async () => {
-      jssClient.updateJob.rejects(new Error("foo"));
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateForEditingMetadata
-      );
-
-      store.dispatch(submitFileMetadataUpdate());
-      await logicMiddleware.whenComplete();
-
-      expect(
-        actions.includesMatch(
-          editFileMetadataFailed(
-            "Could not update file, has been deleted: foo",
-            jobName
-          )
-        )
-      ).to.be.true;
     });
     it("dispatches editFileMetadataFailed when edit file metadata request fails", async () => {
       mmsClient.editFileMetadata.rejects({

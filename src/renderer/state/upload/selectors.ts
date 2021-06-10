@@ -29,10 +29,9 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
-import { UploadRequest, UploadServiceFields } from "../../services/types";
+import { UploadRequest } from "../../services/types";
 import { Duration } from "../../types";
 import { getWellLabelAndImagingSessionName, titleCase } from "../../util";
 import {
@@ -50,7 +49,6 @@ import {
 import {
   getAllPlates,
   getSelectedBarcode,
-  getSelectedJob,
   getWellIdToWellMap,
 } from "../selection/selectors";
 import { getCompleteAppliedTemplate } from "../template/selectors";
@@ -673,28 +671,5 @@ export const getCanSaveUploadDraft = createSelector(
       return !isEmpty(upload);
     }
     return !isEqual(originalUpload, upload);
-  }
-);
-
-export const getFileIdsFromUploads = createSelector(
-  [getUpload],
-  (upload: UploadStateBranch) => {
-    return values(upload).map((u) => u.fileId);
-  }
-);
-
-// returns files that were on the selected job that are no longer there
-export const getFileIdsToDelete = createSelector(
-  [getFileIdsFromUploads, getSelectedJob],
-  (
-    uploadFileIds: string[],
-    selectedJob?: JSSJob<UploadServiceFields>
-  ): string[] => {
-    if (!selectedJob) {
-      return [];
-    }
-    const selectedJobFileIds: string[] =
-      selectedJob.serviceFields?.result?.map(({ fileId }) => fileId) || [];
-    return difference(selectedJobFileIds, uploadFileIds);
   }
 );

@@ -27,7 +27,6 @@ import {
   mockNumberAnnotation,
   mockSelection,
   mockState,
-  mockSuccessfulUploadJob,
   mockTemplateStateBranch,
   mockTemplateStateBranchWithAppliedTemplate,
   mockTemplateWithManyValues,
@@ -40,7 +39,6 @@ import { FileModel, State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanUndoUpload,
-  getFileIdsToDelete,
   getFileToAnnotationHasValueMap,
   getUploadFileNames,
   getUploadKeyToAnnotationErrorMap,
@@ -1141,26 +1139,6 @@ describe("Upload selectors", () => {
             "BAD did not match expected type: Date or DateTime",
         },
       });
-    });
-  });
-
-  describe("getFileIdsToDelete", () => {
-    it("returns files that don't exist in uploads that exist on selectedJob", () => {
-      const fileIds = getFileIdsToDelete({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          job: mockSuccessfulUploadJob,
-        }),
-        upload: getMockStateWithHistory({
-          someKey: {
-            file: "/path/to/file",
-            fileId: "cat",
-            wellIds: [],
-          },
-        }),
-      });
-      expect(fileIds).to.deep.equal(["dog"]);
     });
   });
 

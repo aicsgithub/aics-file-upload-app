@@ -401,6 +401,7 @@ const openJobAsUploadLogic = createLogic({
             ]);
             return {
               ...labkeyFileMetadata,
+              fileId,
               customMetadata,
               file: { originalPath: labkeyFileMetadata.localFilePath },
             };

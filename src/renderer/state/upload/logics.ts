@@ -50,7 +50,6 @@ import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
   AsyncRequest,
-  HTTP_STATUS,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -95,7 +94,6 @@ import {
 } from "./constants";
 import {
   getCanSaveUploadDraft,
-  getFileIdsToDelete,
   getUpload,
   getUploadFileNames,
   getUploadRequests,
@@ -800,56 +798,19 @@ const openUploadLogic = createLogic({
 const submitFileMetadataUpdateLogic = createLogic({
   process: async (
     {
-      ctx,
       getState,
-      jssClient,
       mmsClient,
     }: ReduxLogicProcessDependenciesWithAction<SubmitFileMetadataUpdateAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
-
-    // We delete files in series so that we can ignore the files that have already been deleted
-    for (const fileId of fileIdsToDelete) {
-      try {
-        await mmsClient.deleteFileMetadata(fileId, true);
-      } catch (e) {
-        // ignoring not found to keep this idempotent
-        if (e?.status !== HTTP_STATUS.NOT_FOUND) {
-          dispatch(
-            editFileMetadataFailed(
-              `Could not delete file ${fileId}: ${
-                e?.response?.data?.error || e.message
-              }`,
-              ctx.jobName
-            )
-          );
-          done();
-          return;
-        }
+    let selectedJob;
+    try {
+      selectedJob = getSelectedJob(getState());
+      const editFileMetadataRequests = getUploadRequests(getState());
+      if (!selectedJob) {
+        throw new Error("Could not determine which job is selected for update");
       }
-    }
-
-    try {
-      await jssClient.updateJob(
-        ctx.selectedJobId,
-        { serviceFields: { deletedFileIds: fileIdsToDelete } },
-        true
-      );
-    } catch (e) {
-      dispatch(
-        editFileMetadataFailed(
-          `Could not update file, has been deleted: ${
-            e?.response?.data?.error || e.message
-          }`,
-          ctx.jobName
-        )
-      );
-    }
-
-    const editFileMetadataRequests = getUploadRequests(getState());
-    try {
       await Promise.all(
         editFileMetadataRequests.map((request) =>
           mmsClient.editFileMetadata(request.file.fileId, request)
@@ -858,7 +819,10 @@ const submitFileMetadataUpdateLogic = createLogic({
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
       dispatch(
-        editFileMetadataFailed("Could not edit file: " + message, ctx.jobName)
+        editFileMetadataFailed(
+          "Could not edit file: " + message,
+          selectedJob?.jobName || ""
+        )
       );
       done();
       return;
@@ -866,7 +830,7 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     dispatch(
       batchActions([
-        editFileMetadataSucceeded(ctx.jobName),
+        editFileMetadataSucceeded(selectedJob.jobName || ""),
         closeUpload(),
         resetUpload(),
       ])
@@ -874,34 +838,6 @@ const submitFileMetadataUpdateLogic = createLogic({
     done();
   },
   type: SUBMIT_FILE_METADATA_UPDATE,
-  validate: (
-    {
-      action,
-      ctx,
-      getState,
-    }: ReduxLogicTransformDependenciesWithAction<
-      SubmitFileMetadataUpdateAction
-    >,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const selectedJob = getSelectedJob(getState());
-    if (!selectedJob || !selectedJob.jobName) {
-      reject(setErrorAlert("Nothing found to update"));
-      return;
-    }
-    if (!getAppliedTemplate(getState())) {
-      reject(
-        setErrorAlert("Cannot submit update: no template has been applied.")
-      );
-    }
-    ctx.selectedJobId = selectedJob.jobId;
-    ctx.jobName = selectedJob.jobName;
-    next({
-      ...action,
-      payload: selectedJob.jobName,
-    });
-  },
 });
 
 export default [
