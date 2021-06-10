@@ -225,6 +225,7 @@ export default class LabkeyClient extends HttpCacheClient {
     const query = LabkeyClient.getSelectRowsURL("microscopy", "Plate", [
       `query.barcode~contains=${encodeURIComponent(searchString)}`,
       `query.maxRows=30`,
+      `query.columns=BarCode%2CImagingSessionId%2CImagingSessionId%2FName`,
     ]);
 
     const response: LabkeyResponse<LabkeyPlate> = await this.get(query);
@@ -232,6 +233,7 @@ export default class LabkeyClient extends HttpCacheClient {
     return map(plates, (p) => ({
       barcode: p.BarCode,
       imagingSessionId: p.ImagingSessionId,
+      imagingSession: p["ImagingSessionId/Name"],
     }));
   }
 

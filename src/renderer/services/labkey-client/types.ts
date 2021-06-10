@@ -45,6 +45,7 @@ export interface LabkeyLookup {
 export interface LabkeyPlate {
   BarCode: string;
   ImagingSessionId: number;
+  "ImagingSessionId/Name": string;
 }
 
 export interface LabkeyResponse<T> {
@@ -74,6 +75,7 @@ export interface LabKeyPlateBarcodePrefix {
 export interface LabkeyPlateResponse {
   barcode: string;
   imagingSessionId: number | null;
+  imagingSession: string;
 }
 
 export interface LabkeyChannel {

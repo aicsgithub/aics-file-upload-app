@@ -1,4 +1,3 @@
-import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
@@ -54,13 +53,15 @@ export const getAnnotations = createSelector(
 export const getUniqueBarcodeSearchResults = createSelector(
   [getBarcodeSearchResults],
   (allPlates: LabkeyPlateResponse[]): BarcodeSelectorOption[] => {
-    const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
-    return uniquePlateBarcodes.map((plate) => {
+    return allPlates.map((plate) => {
       const imagingSessionIds = allPlates
         .filter((otherPlate) => otherPlate.barcode === plate.barcode)
         .map((p) => p.imagingSessionId);
+      const barcodeDisplayString = plate.imagingSession
+        ? `${plate.barcode} - ${plate.imagingSession}`
+        : plate.barcode;
       return {
-        barcode: plate.barcode,
+        barcode: barcodeDisplayString,
         imagingSessionIds,
       };
     });
