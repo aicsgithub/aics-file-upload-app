@@ -7,7 +7,6 @@ import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 import * as uuid from "uuid";
 
-import { LabkeyClient } from "..";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../types";
 import FileStorageClient, {
@@ -17,6 +16,7 @@ import FileStorageClient, {
 } from "../fss-client";
 import JobStatusClient from "../job-status-client";
 import { JSSJob, JSSJobStatus, UploadStage } from "../job-status-client/types";
+import LabkeyClient from "../labkey-client";
 import { UploadRequest, UploadServiceFields } from "../types";
 
 import { WORKER_MESSAGE_TYPE } from "./copy-worker";
