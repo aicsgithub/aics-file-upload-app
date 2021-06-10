@@ -231,8 +231,9 @@ const getPlateRelatedActions = async (
 };
 
 /*
-  Transforms file metadata given into a table like format easier for displaying to users or exporting to character
-  separated value sets.
+  Convert from upload requests formatted for FSS transmission into the shape
+  of the upload branch at the time of the initial upload the requests
+  were created from.
 */
 function convertUploadRequestsToUploadStateBranch(
   files: UploadRequest[],

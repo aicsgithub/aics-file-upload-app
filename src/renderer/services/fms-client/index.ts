@@ -10,8 +10,7 @@ import * as uuid from "uuid";
 import { LabkeyClient } from "..";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../types";
-import {
-  FSSClient,
+import FileStorageClient, {
   FSSRequestFile,
   StartUploadResponse,
   UploadMetadataResponse,
@@ -20,10 +19,7 @@ import JobStatusClient from "../job-status-client";
 import { JSSJob, JSSJobStatus, UploadStage } from "../job-status-client/types";
 import { UploadRequest, UploadServiceFields } from "../types";
 
-import {
-  UPLOAD_WORKER_ON_PROGRESS,
-  UPLOAD_WORKER_SUCCEEDED,
-} from "./copy-worker";
+import { WORKER_MESSAGE_TYPE } from "./copy-worker";
 import {
   UnrecoverableJobError,
   UNRECOVERABLE_JOB_ERROR,
@@ -32,7 +28,7 @@ import {
 const fsExists = promisify(fs.exists);
 
 interface FileManagementSystemConfig {
-  fss: FSSClient;
+  fss: FileStorageClient;
   jss: JobStatusClient;
   lk: LabkeyClient;
   storage: LocalStorage;
@@ -53,7 +49,7 @@ type CopyProgressCallBack = (
 */
 export default class FileManagementSystem {
   private static readonly DEFAULT_MOUNT_POINT = "/allen/aics";
-  private readonly fss: FSSClient;
+  private readonly fss: FileStorageClient;
   private readonly jss: JobStatusClient;
   private readonly lk: LabkeyClient;
   private readonly storage: LocalStorage;
@@ -136,18 +132,6 @@ export default class FileManagementSystem {
     copyProgressCb: CopyProgressCallBack = noop
   ): Promise<UploadMetadataResponse> {
     try {
-      // Remove unwanted files from upload directory. Otherwise, FSS complains with a 417 response.
-      const unexpectedFiles = await fs.promises.readdir(uploadDirectory);
-      console.log(
-        "Removing unexpected files from upload directory",
-        unexpectedFiles
-      );
-      await Promise.all(
-        unexpectedFiles.map((file) =>
-          fs.promises.unlink(path.resolve(uploadDirectory, file))
-        )
-      );
-
       // Physically copy the file to the supplied directory, retrieving the MD5
       const md5 = await this.copyFile(
         jobId,
@@ -158,7 +142,7 @@ export default class FileManagementSystem {
       const jobUpdate = {
         serviceFields: { md5: { [hash.MD5(filePath)]: md5 } },
       };
-      this.jss.updateJob(jobId, jobUpdate, true);
+      await this.jss.updateJob(jobId, jobUpdate, true);
 
       // Inform FSS that the client side of the upload has completed
       const file: FSSRequestFile = {
@@ -295,8 +279,8 @@ export default class FileManagementSystem {
    * Cancels the given Job. This will mark the job as a failure and
    * stop the copy portion of the upload if ongoing on the client side.
    * Note: the job is not guaranteed to stop if it has left the
-   * client-side upload portion of the upload and
-   * is being entirely managed by FSS.
+   * client-side portion of the upload and
+   * is now entirely managed by FSS.
    */
   public async cancelUpload(jobId: string): Promise<void> {
     if (this.jobIdToWorkerMap[jobId]) {
@@ -347,7 +331,7 @@ export default class FileManagementSystem {
       worker.onmessage = (e: MessageEvent) => {
         const message = e?.data.toLowerCase() as string;
 
-        if (message.includes(UPLOAD_WORKER_SUCCEEDED)) {
+        if (message.includes(WORKER_MESSAGE_TYPE.SUCCESS)) {
           // https://apple.stackexchange.com/questions/14980/why-are-dot-underscore-files-created-and-how-can-i-avoid-them
           if (process.platform === "darwin") {
             const toRemove = path.resolve(targetFolder, `._${fileName}`);
@@ -361,7 +345,7 @@ export default class FileManagementSystem {
           const md5 = message.split(":")[1];
           delete this.jobIdToWorkerMap[jobId];
           resolve(md5);
-        } else if (message.includes(UPLOAD_WORKER_ON_PROGRESS)) {
+        } else if (message.includes(WORKER_MESSAGE_TYPE.PROGRESS_UPDATE)) {
           const info = e.data.split(":");
           if (info.length === 2) {
             try {

@@ -66,7 +66,6 @@ export const getJobsForTable = createSelector(
       .map((job) => ({
         ...job,
         key: job.jobId,
-        status: job.status,
         created: new Date(job.created),
         modified: new Date(job.modified),
         progress: copyProgress[job.jobId],

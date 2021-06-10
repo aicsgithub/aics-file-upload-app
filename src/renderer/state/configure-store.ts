@@ -21,7 +21,7 @@ import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import ApplicationInfoService from "../services/application-info";
 import FileManagementSystem from "../services/fms-client";
-import { FSSClient } from "../services/fss-client";
+import FileStorageClient from "../services/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -91,7 +91,7 @@ const applicationInfoService = new ApplicationInfoService(
 export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
-    fss: new FSSClient(httpClient, storage, useCache),
+    fss: new FileStorageClient(httpClient, storage, useCache),
     jss: jssClient,
     lk: labkeyClient,
     storage,

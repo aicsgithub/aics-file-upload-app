@@ -4,8 +4,10 @@ import { basename, resolve as resolvePath } from "path";
 
 import { Cancelable, throttle } from "lodash";
 
-export const UPLOAD_WORKER_SUCCEEDED = "worker-success";
-export const UPLOAD_WORKER_ON_PROGRESS = "upload-progress";
+export enum WORKER_MESSAGE_TYPE {
+  PROGRESS_UPDATE = "progress-update",
+  SUCCESS = "copy-success",
+}
 
 // Milliseconds to wait between progress updates
 const THROTTLE_MS = 20000;
@@ -70,10 +72,10 @@ ctx.onmessage = async (e: MessageEvent) => {
 
     try {
       const onProgress = throttle((progress: number) => {
-        ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${progress}`);
+        ctx.postMessage(`${WORKER_MESSAGE_TYPE.PROGRESS_UPDATE}:${progress}`);
       }, THROTTLE_MS);
       const md5 = await copyFiles(originalPath, targetFolder, onProgress);
-      ctx.postMessage(`${UPLOAD_WORKER_SUCCEEDED}:${md5}`);
+      ctx.postMessage(`${WORKER_MESSAGE_TYPE.SUCCESS}:${md5}`);
     } catch (e) {
       ctx.postMessage(`Copy failed: ${e.message}`);
       // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror

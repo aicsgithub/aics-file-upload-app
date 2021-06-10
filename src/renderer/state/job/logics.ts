@@ -34,32 +34,29 @@ export const handleAbandonedJobsLogic = createLogic({
         currentStage === UploadStage.WAITING_FOR_CLIENT_COPY &&
         IN_PROGRESS_STATUSES.includes(status)
     );
-    console.log("abandonedJobs", abandonedJobs);
 
-    if (abandonedJobs.length) {
-      await Promise.all(
-        abandonedJobs.map(async (abandonedJob) => {
-          try {
-            // Alert user to abandoned job
-            const info = `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`;
-            logger.info(info);
-            dispatch(setInfoAlert(info));
+    await Promise.all(
+      abandonedJobs.map(async (abandonedJob) => {
+        try {
+          // Alert user to abandoned job
+          const info = `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`;
+          logger.info(info);
+          dispatch(setInfoAlert(info));
 
-            // Cancel the job before attempting to retry it
-            await fms.cancelUpload(abandonedJob.jobId);
-            await fms.retryUpload(abandonedJob.jobId, (jobId) =>
-              handleUploadProgress([abandonedJob.jobName || ""], (progress) =>
-                dispatch(updateUploadProgressInfo(jobId, progress))
-              )
-            );
-          } catch (e) {
-            const message = `Retry for upload "${abandonedJob.jobName}" failed: ${e.message}`;
-            logger.error(message, e);
-            dispatch(setErrorAlert(message));
-          }
-        })
-      );
-    }
+          // Cancel the job before attempting to retry it
+          await fms.cancelUpload(abandonedJob.jobId);
+          await fms.retryUpload(abandonedJob.jobId, (jobId) =>
+            handleUploadProgress([abandonedJob.jobName || ""], (progress) =>
+              dispatch(updateUploadProgressInfo(jobId, progress))
+            )
+          );
+        } catch (e) {
+          const message = `Retry for upload "${abandonedJob.jobName}" failed: ${e.message}`;
+          logger.error(message, e);
+          dispatch(setErrorAlert(message));
+        }
+      })
+    );
 
     done();
   },

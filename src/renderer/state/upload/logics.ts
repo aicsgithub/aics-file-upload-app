@@ -21,10 +21,9 @@ import {
   WELL_ANNOTATION_NAME,
 } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
-import { JSSJob } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
-import { UploadRequest, UploadServiceFields } from "../../services/types";
+import { UploadRequest } from "../../services/types";
 import {
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
@@ -296,14 +295,14 @@ export const cancelUploadLogic = createLogic({
 const retryUploadLogic = createLogic({
   process: async (
     {
-      ctx,
+      action,
       fms,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<RetryUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const job: JSSJob<UploadServiceFields> = ctx.job;
+    const job = action.payload;
     const fileNames =
       job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
     try {
@@ -312,24 +311,12 @@ const retryUploadLogic = createLogic({
           dispatch(updateUploadProgressInfo(jobId, progress))
         )
       );
-      done();
     } catch (e) {
       const error = `Retry upload ${job.jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${job.jobId} failed`, e);
       dispatch(uploadFailed(error, job.jobName || ""));
-      done();
     }
-  },
-  transform: (
-    {
-      action,
-      getState,
-      ctx,
-    }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
-    next: ReduxLogicNextCb
-  ) => {
-    ctx.job = action.payload || getSelectedJob(getState());
-    next(action);
+    done();
   },
   type: RETRY_UPLOAD,
   warnTimeout: 0,

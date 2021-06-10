@@ -103,11 +103,6 @@ describe("Job selectors", () => {
   });
 
   describe("getIsSafeToExit", () => {
-    it("returns true if no jobs", () => {
-      const isSafeToExit = getIsSafeToExit(mockState);
-      expect(isSafeToExit).to.be.true;
-    });
-
     it("returns false if an upload job is in progress and in client upload stage", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
@@ -124,16 +119,27 @@ describe("Job selectors", () => {
       expect(isSafeToExit).to.be.false;
     });
 
-    it("returns true if there are no upload jobs", () => {
+    it("returns true if no jobs", () => {
+      const isSafeToExit = getIsSafeToExit(mockState);
+      expect(isSafeToExit).to.be.true;
+    });
+
+    it("returns true if an upload job is in progress and not in client upload stage", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
           ...mockState.job,
-          uploadJobs: [],
+          uploadJobs: [
+            {
+              ...mockWorkingUploadJob,
+              currentStage: UploadStage.COMPLETE,
+            },
+          ],
         },
       });
       expect(isSafeToExit).to.be.true;
     });
+
     it("returns true if there are no in progress jobs", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,

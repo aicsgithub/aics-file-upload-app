@@ -50,7 +50,7 @@ export interface UploadMetadataResponse {
 /**
  * Provides interface with FSS endpoints.
  */
-export class FSSClient extends HttpCacheClient {
+export default class FileStorageClient extends HttpCacheClient {
   constructor(
     httpClient: HttpClient,
     localStorage: LocalStorage,
@@ -81,7 +81,7 @@ export class FSSClient extends HttpCacheClient {
     const response = await this.post<AicsSuccessResponse<StartUploadResponse>>(
       `${fssURL}/1.0/file/upload`,
       requestBody,
-      FSSClient.getHttpRequestConfig()
+      FileStorageClient.getHttpRequestConfig()
     );
 
     return response.data[0];
@@ -100,7 +100,7 @@ export class FSSClient extends HttpCacheClient {
     >(
       `${fssURL}/1.0/file/uploadComplete`,
       request,
-      FSSClient.getHttpRequestConfig()
+      FileStorageClient.getHttpRequestConfig()
     );
     return response.data[0];
   }
