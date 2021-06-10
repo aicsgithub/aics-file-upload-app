@@ -32,7 +32,7 @@ import {
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
-import { UploadRequest } from "../../services/types";
+import { UploadRequest, UploadServiceFields } from "../../services/types";
 import { Duration } from "../../types";
 import { getWellLabelAndImagingSessionName, titleCase } from "../../util";
 import {
@@ -686,13 +686,15 @@ export const getFileIdsFromUploads = createSelector(
 // returns files that were on the selected job that are no longer there
 export const getFileIdsToDelete = createSelector(
   [getFileIdsFromUploads, getSelectedJob],
-  (uploadFileIds: string[], selectedJob?: JSSJob): string[] => {
+  (
+    uploadFileIds: string[],
+    selectedJob?: JSSJob<UploadServiceFields>
+  ): string[] => {
     if (!selectedJob) {
       return [];
     }
-    const selectedJobFileIds: string[] = selectedJob.serviceFields.result.map(
-      ({ fileId }: UploadRequest) => fileId
-    );
+    const selectedJobFileIds: string[] =
+      selectedJob.serviceFields?.result?.map(({ fileId }) => fileId) || [];
     return difference(selectedJobFileIds, uploadFileIds);
   }
 );

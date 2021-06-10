@@ -15,6 +15,15 @@ export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
 
+export const getJobIdToUploadJobMap = createSelector(
+  [getUploadJobs],
+  (jobs): Map<string, JSSJob<UploadServiceFields>> =>
+    jobs.reduce((map, job) => {
+      map.set(job.jobId, job);
+      return map;
+    }, new Map<string, JSSJob<UploadServiceFields>>())
+);
+
 function getStatusesFromFilter(jobFilter: JobFilter): string[] {
   switch (jobFilter) {
     case JobFilter.Successful:

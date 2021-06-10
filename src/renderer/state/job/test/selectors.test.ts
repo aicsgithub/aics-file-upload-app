@@ -16,6 +16,7 @@ import { JobFilter, State } from "../../types";
 import {
   getFilteredJobs,
   getIsSafeToExit,
+  getJobIdToUploadJobMap,
   getJobsForTable,
   getUploadGroupToUploads,
 } from "../selectors";
@@ -270,6 +271,24 @@ describe("Job selectors", () => {
         },
       });
       expect(jobs).to.deep.equal(state.job.uploadJobs);
+    });
+  });
+  describe("getJobIdToUploadJobMap", () => {
+    it("converts a list of jobs to a map of jobId's to jobs", () => {
+      const map = getJobIdToUploadJobMap({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [mockWorkingUploadJob, mockSuccessfulUploadJob],
+        },
+      });
+      expect(map.size).to.equal(2);
+      expect(map.get(mockWorkingUploadJob.jobId)).to.equal(
+        mockWorkingUploadJob
+      );
+      expect(map.get(mockSuccessfulUploadJob.jobId)).to.equal(
+        mockSuccessfulUploadJob
+      );
     });
   });
 });
