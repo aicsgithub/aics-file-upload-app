@@ -43,16 +43,20 @@ class ImagingSessionSelector extends React.Component<
     }
 
     return (
-      <LabeledInput label="Imaging Session" className={className}>
+      <LabeledInput label="Imaging Session:" className={className}>
         <Radio.Group
           buttonStyle="solid"
           value={selectedImagingSessionId || 0}
           onChange={this.selectImagingSession}
+          style={{ paddingLeft: "10px" }}
         >
           {imagingSessionIds.map((id) => (
-            <Radio.Button value={id || 0} key={id || 0}>
-              {this.getImagingSessionName(id)}
-            </Radio.Button>
+            <>
+              <Radio.Button value={id || 0} key={id || 0}>
+                {this.getImagingSessionName(id)}
+              </Radio.Button>
+              <br />
+            </>
           ))}
         </Radio.Group>
       </LabeledInput>

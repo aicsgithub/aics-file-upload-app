@@ -56,11 +56,9 @@ export default function WellCell(props: CellProps<UploadJobTableRow>) {
   const content = (
     <div className={styles.container}>
       <div className={styles.row}>
-        <ImagingSessionSelector className={styles.imagingSessionSelector} />
         <div className={styles.btns}>
           <Button
             onClick={onAssociate}
-            size="small"
             type="primary"
             className={styles.associateBtn}
             disabled={isAssociatiateButtonDisabled}
@@ -70,11 +68,13 @@ export default function WellCell(props: CellProps<UploadJobTableRow>) {
           <Button
             onClick={onDissociate}
             disabled={isRemoveButtonDisabled}
-            size="small"
           >
             Remove Association
           </Button>
         </div>
+      </div>
+      <div className={styles.row}>
+        <ImagingSessionSelector className={styles.imagingSessionSelector} />
       </div>
       <div className={styles.plateContainer}>
         <Plate rowData={props.row.original} className={styles.plate} />
