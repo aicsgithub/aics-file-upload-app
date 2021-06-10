@@ -471,7 +471,7 @@ describe("Route logics", () => {
       expect(getUpload(state)).to.deep.equal({
         [getUploadRowKey({ file: fileMetadata.localFilePath || "" })]: {
           file: fileMetadata.localFilePath,
-          fileId: fileMetadata.fileId,
+          fileId: "dog",
           "Favorite Color": ["Blue", "Green"],
           [WELL_ANNOTATION_NAME]: ["A1", "B6"],
           channelId: undefined,
