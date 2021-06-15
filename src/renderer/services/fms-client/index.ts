@@ -184,8 +184,10 @@ export default class FileManagementSystem {
   }
 
   /**
-   * Retry the given Job replacing it with a new fresh upload job
-   * & performing the upload.
+   * Retry the given job from scratch as a new job.
+   * Re-using the same job is not possible as it could lead
+   * to an automatic rejection on the server-side for being
+   * a stale or otherwise unrecoverable job.
    */
   public async retryUpload(
     jobId: string,
