@@ -9,8 +9,16 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { memoize, omit } from "lodash";
-import { castArray, difference, isNil, startCase, trim, uniq } from "lodash";
+import {
+  memoize,
+  omit,
+  castArray,
+  difference,
+  isNil,
+  startCase,
+  trim,
+  uniq,
+} from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
 import { ImagingSession } from "../services/labkey-client/types";
