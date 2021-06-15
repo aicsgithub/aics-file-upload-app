@@ -95,14 +95,6 @@ export interface BaseServiceFields {
 }
 
 export interface UploadServiceFields extends BaseServiceFields {
-  // if user decides to cancel an upload, the app sets this value to true.
-  // This will be true only for uploads after 9/21/20 when this heuristic was created. Otherwise, check the error
-  // field of serviceFields to see if the upload was cancelled.
-  cancelled?: boolean;
-
-  // populated by app when an exception is thrown during an upload
-  error?: string;
-
   // Populated by app if a file from this upload was deleted
   deletedFileIds?: string[];
 
