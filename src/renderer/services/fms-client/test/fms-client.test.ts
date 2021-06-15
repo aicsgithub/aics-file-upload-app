@@ -10,8 +10,8 @@ import {
   createStubInstance,
   stub,
   restore,
+  replace,
   SinonStubbedInstance,
-  createSandbox,
 } from "sinon";
 
 import FileManagementSystem from "../";
@@ -23,7 +23,6 @@ import { JSSJobStatus } from "../../job-status-client/types";
 import { WORKER_MESSAGE_TYPE } from "../copy-worker";
 
 describe("FileManagementSystem", () => {
-  const sandbox = createSandbox();
   let fms: FileManagementSystem;
   let fss: SinonStubbedInstance<FileStorageClient>;
   let jss: SinonStubbedInstance<JobStatusClient>;
@@ -204,7 +203,7 @@ describe("FileManagementSystem", () => {
           data: `${WORKER_MESSAGE_TYPE.SUCCESS}:somemd5`,
         });
       });
-      sandbox.replace(copyWorkerStub, "postMessage", postMessageStub);
+      replace(copyWorkerStub, "postMessage", postMessageStub);
 
       // Act
       const result = await fms.uploadFile(
@@ -237,7 +236,7 @@ describe("FileManagementSystem", () => {
       const postMessageStub = stub().callsFake(() => {
         copyWorkerStub.onerror(new Error(error));
       });
-      sandbox.replace(copyWorkerStub, "postMessage", postMessageStub);
+      replace(copyWorkerStub, "postMessage", postMessageStub);
 
       // Act / Assert
       expect(
