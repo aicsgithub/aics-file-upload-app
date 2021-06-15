@@ -139,6 +139,9 @@ export default class FileManagementSystem {
         uploadDirectory,
         copyProgressCb
       );
+
+      // Update the job with the MD5 to provide a shortcut in case
+      // the user retries the job later on after a failure scenario
       const jobUpdate = {
         serviceFields: { md5: { [hash.MD5(filePath)]: md5 } },
       };
