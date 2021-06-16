@@ -1,13 +1,14 @@
 import { decamelizeKeys } from "humps";
 
 import { LocalStorage } from "../../types";
-import {
-  FileMetadata,
-  UploadMetadata as AicsFilesUploadMetadata,
-} from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
-import { Annotation } from "../labkey-client/types";
-import { AicsSuccessResponse, HttpClient } from "../types";
+import { Annotation, LabKeyFileMetadata } from "../labkey-client/types";
+import {
+  AicsSuccessResponse,
+  HttpClient,
+  ImageModelBase,
+  UploadRequest,
+} from "../types";
 
 import {
   AnnotationMetadataRequest,
@@ -16,6 +17,19 @@ import {
   Template,
   WellResponse,
 } from "./types";
+
+export interface AnnotationValue extends ImageModelBase {
+  annotationId: number;
+  values: any[];
+}
+
+interface FileMetadata extends LabKeyFileMetadata {
+  annotations: AnnotationValue[];
+  originalPath?: string;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
+  templateId?: number;
+}
 
 const mmsURL = "/metadata-management-service";
 
@@ -87,7 +101,7 @@ export default class MMSClient extends HttpCacheClient {
 
   public async editFileMetadata(
     fileId: string,
-    request: AicsFilesUploadMetadata
+    request: UploadRequest
   ): Promise<void> {
     const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
     await this.put(url, decamelizeKeys(request));

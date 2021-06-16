@@ -16,7 +16,7 @@ import { getMassEditRow } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getUploadAsTableRows } from "../../state/upload/selectors";
-import { UploadJobTableRow } from "../../state/upload/types";
+import { UploadTableRow } from "../../state/upload/types";
 import MassEditTable from "../MassEditTable";
 import SubFileSelectionModal from "../SubFileSelectionModal";
 import Table from "../Table";
@@ -35,10 +35,10 @@ interface Props {
 }
 
 // Custom sorting methods for react-table
-const sortTypes: Record<string, SortByFn<UploadJobTableRow>> = {
+const sortTypes: Record<string, SortByFn<UploadTableRow>> = {
   [ARRAY_SORT]: (
-    rowA: Row<UploadJobTableRow>,
-    rowB: Row<UploadJobTableRow>,
+    rowA: Row<UploadTableRow>,
+    rowB: Row<UploadTableRow>,
     columnId: string
   ) => `${rowA.original[columnId]}`.localeCompare(`${rowB.original[columnId]}`),
 };
@@ -68,7 +68,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     [columnDefinitions, hasSubmitBeenAttempted]
   );
 
-  const tableInstance: TableInstance<UploadJobTableRow> = useTable(
+  const tableInstance: TableInstance<UploadTableRow> = useTable(
     {
       columns,
       data,

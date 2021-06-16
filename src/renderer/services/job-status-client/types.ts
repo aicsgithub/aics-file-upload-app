@@ -107,6 +107,16 @@ export interface MongoFieldQuery {
   $nin?: any;
 }
 
+export enum UploadStage {
+  // Value taken from FSS. Is set from time of job
+  // creation until processing begins after /uploadComplete
+  WAITING_FOR_CLIENT_COPY = "Waiting for file copy",
+  // Value created by this client.
+  WAITING_FOR_FSS_PROCESSING = "Waiting for FSS",
+  // Value taken from FSS.
+  COMPLETE = "COMPLETE",
+}
+
 export enum JSSJobStatus {
   UNRECOVERABLE = "UNRECOVERABLE",
   FAILED = "FAILED",

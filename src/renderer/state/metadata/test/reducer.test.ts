@@ -1,8 +1,8 @@
 import { expect } from "chai";
 
 import {
-  openEditFileMetadataTab,
-  openEditFileMetadataTabSucceeded,
+  openJobAsUpload,
+  openJobAsUploadSucceeded,
   resetUpload,
 } from "../../route/actions";
 import {
@@ -95,23 +95,23 @@ describe("metadata reducer", () => {
       expect(result.originalUpload).to.be.undefined;
     });
   });
-  describe("openEditFileMetadataTab", () => {
+  describe("openJobAsUpload", () => {
     it("clears currentUploadFilePath", () => {
       const result = reducer(
         {
           ...initialState,
           currentUploadFilePath: "/foo.json",
         },
-        openEditFileMetadataTab(mockSuccessfulUploadJob)
+        openJobAsUpload(mockSuccessfulUploadJob)
       );
       expect(result.currentUploadFilePath).to.be.undefined;
     });
   });
-  describe("openEditFileMetadataTabSucceeded", () => {
+  describe("openJobAsUploadSucceeded", () => {
     it("sets originalUpload", () => {
       const result = reducer(
         initialState,
-        openEditFileMetadataTabSucceeded(mockWellUpload)
+        openJobAsUploadSucceeded(mockWellUpload)
       );
       expect(result.originalUpload).to.equal(mockWellUpload);
     });

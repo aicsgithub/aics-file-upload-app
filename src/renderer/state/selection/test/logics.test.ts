@@ -397,7 +397,7 @@ describe("Selection logics", () => {
       // Arrange
       const massEditRow = {
         color: ["blue", "green"],
-        [NOTES_ANNOTATION_NAME]: "hello",
+        [NOTES_ANNOTATION_NAME]: ["hello"],
       };
       const rowsSelectedForMassEdit = ["1", "100", "2"];
       const { actions, logicMiddleware, store } = createMockReduxStore({

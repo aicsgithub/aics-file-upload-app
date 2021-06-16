@@ -4,7 +4,6 @@ import { createSelector } from "reselect";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {
@@ -13,6 +12,7 @@ import {
   SolutionLot,
   WellResponse,
 } from "../../services/mms-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { getWellLabel, getWellLabelAndImagingSessionName } from "../../util";
 import { ROW_COUNT_COLUMN } from "../constants";
 import { getImagingSessions, getUnits } from "../metadata/selectors";

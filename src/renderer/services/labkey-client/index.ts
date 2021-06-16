@@ -2,7 +2,6 @@ import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
 import { LocalStorage } from "../../types";
-import { Filter, FilterType, LabKeyResponse } from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
 import { HttpClient } from "../types";
 
@@ -13,6 +12,8 @@ import {
   AnnotationType,
   BarcodePrefix,
   Channel,
+  Filter,
+  FilterType,
   ImagingSession,
   LabkeyAnnotation,
   LabkeyAnnotationLookup,
@@ -24,18 +25,15 @@ import {
   LabkeyPlate,
   LabKeyPlateBarcodePrefix,
   LabkeyPlateResponse,
+  LabKeyResponse,
   LabkeyResponse,
   LabkeyTemplate,
   LabkeyUnit,
+  LK_SCHEMA,
   Lookup,
   Unit,
 } from "./types";
 
-const LK_FILEMETADATA_SCHEMA = "filemetadata";
-const LK_FMS_SCHEMA = "fms";
-const LK_MICROSCOPY_SCHEMA = "microscopy";
-const LK_PROCESSING_SCHEMA = "processing";
-const LK_UPLOADER_SCHEMA = "uploader";
 const BASE_URL = "/labkey";
 const IN_SEPARATOR = "%3B";
 
@@ -99,7 +97,7 @@ export default class LabkeyClient extends HttpCacheClient {
     annotationId: number
   ): Promise<boolean> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "CustomAnnotationJunction",
       [`query.AnnotationId~eq=${annotationId}`, `query.maxRows=1`]
     );
@@ -112,7 +110,7 @@ export default class LabkeyClient extends HttpCacheClient {
    */
   public async getAnnotationTypes(): Promise<AnnotationType[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "AnnotationType"
     );
     const { rows } = await this.get(query);
@@ -125,31 +123,30 @@ export default class LabkeyClient extends HttpCacheClient {
    * Gets all annotations
    */
   public async getAnnotations(): Promise<Annotation[]> {
+    const columns = [
+      "AnnotationId",
+      "AnnotationTypeId",
+      "Description",
+      "ExposeToFileUploadApp",
+      "AnnotationTypeId/Name",
+      "Name",
+      "CreatedBy",
+      "Created",
+      "ModifiedBy",
+      "Modified",
+    ];
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
-      "Annotation"
+      LK_SCHEMA.FILE_METADATA,
+      "Annotation",
+      [`query.columns=${columns}`]
     );
     const { rows } = await this.get(query);
-    return rows.map((r: LabkeyAnnotation) =>
-      camelizeKeys(
-        pick(r, [
-          "AnnotationId",
-          "AnnotationTypeId",
-          "Description",
-          "ExposeToFileUploadApp",
-          "Name",
-          "CreatedBy",
-          "Created",
-          "ModifiedBy",
-          "Modified",
-        ])
-      )
-    );
+    return rows.map((r: LabkeyAnnotation) => camelizeKeys(pick(r, columns)));
   }
 
   public async getAnnotationLookups(): Promise<AnnotationLookup[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "AnnotationLookup"
     );
     const { rows } = await this.get(query);
@@ -160,7 +157,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getAnnotationOptions(): Promise<AnnotationOption[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
+      LK_SCHEMA.FILE_METADATA,
       "AnnotationOption"
     );
     const { rows } = await this.get(query);
@@ -240,7 +237,7 @@ export default class LabkeyClient extends HttpCacheClient {
    */
   public async getImagingSessions(): Promise<ImagingSession[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
+      LK_SCHEMA.MICROSCOPY,
       "ImagingSession"
     );
     const response = await this.get(query);
@@ -256,7 +253,7 @@ export default class LabkeyClient extends HttpCacheClient {
    */
   public async getBarcodePrefixes(): Promise<BarcodePrefix[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
+      LK_SCHEMA.MICROSCOPY,
       "PlateBarcodePrefix"
     );
     const response = await this.get(query);
@@ -268,26 +265,25 @@ export default class LabkeyClient extends HttpCacheClient {
   }
 
   public async getLookups(): Promise<Lookup[]> {
+    const columns = [
+      "LookupId",
+      "ColumnName",
+      "DescriptionColumn",
+      "SchemaName",
+      "TableName",
+      "ScalarTypeId/Name",
+    ];
     const query = LabkeyClient.getSelectRowsURL(
-      LK_FILEMETADATA_SCHEMA,
-      "Lookup"
+      LK_SCHEMA.FILE_METADATA,
+      "Lookup",
+      [`query.columns=${columns}`]
     );
     const { rows } = await this.get(query);
-    return rows.map((r: LabkeyLookup) =>
-      camelizeKeys(
-        pick(r, [
-          "LookupId",
-          "ColumnName",
-          "DescriptionColumn",
-          "SchemaName",
-          "TableName",
-        ])
-      )
-    );
+    return rows.map((r: LabkeyLookup) => camelizeKeys(pick(r, columns)));
   }
 
   public async getTemplates(): Promise<LabkeyTemplate[]> {
-    const query = LabkeyClient.getSelectRowsURL(LK_UPLOADER_SCHEMA, "Template");
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.UPLOADER, "Template");
     const response = await this.get(query);
     return response.rows;
   }
@@ -296,7 +292,7 @@ export default class LabkeyClient extends HttpCacheClient {
    * Retrieves all units
    */
   public async getUnits(): Promise<Unit[]> {
-    const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Units");
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Units");
     const response = await this.get(query);
     return response.rows.map((unit: LabkeyUnit) => ({
       description: unit.Description,
@@ -322,7 +318,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getChannels(): Promise<Channel[]> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_PROCESSING_SCHEMA,
+      LK_SCHEMA.PROCESSING,
       "ContentType"
     );
     const response = await this.get(query);
@@ -334,7 +330,7 @@ export default class LabkeyClient extends HttpCacheClient {
 
   public async getTemplateHasBeenUsed(templateId: number): Promise<boolean> {
     const query = LabkeyClient.getSelectRowsURL(
-      LK_UPLOADER_SCHEMA,
+      LK_SCHEMA.UPLOADER,
       "FileTemplateJunction",
       [`query.TemplateId~eq=${templateId}`]
     );
@@ -345,7 +341,7 @@ export default class LabkeyClient extends HttpCacheClient {
   public async getPlateBarcodeAndAllImagingSessionIdsFromWellId(
     wellId: number
   ): Promise<string> {
-    const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Well", [
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Well", [
       `query.wellid~eq=${wellId}`,
     ]);
     const response = await this.get(query);
@@ -354,7 +350,7 @@ export default class LabkeyClient extends HttpCacheClient {
       throw new Error("could not find plate from wellId");
     }
     const plateQuery = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
+      LK_SCHEMA.MICROSCOPY,
       "Plate",
       [`query.plateid~eq=${plateId}`]
     );
@@ -365,7 +361,7 @@ export default class LabkeyClient extends HttpCacheClient {
   public async getImagingSessionIdsForBarcode(
     barcode: string
   ): Promise<Array<number | null>> {
-    const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate", [
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Plate", [
       `query.barcode~eq=${encodeURIComponent(barcode)}`,
     ]);
     const response = await this.get(query);
@@ -381,7 +377,7 @@ export default class LabkeyClient extends HttpCacheClient {
     md5: string,
     name: string
   ): Promise<boolean> {
-    const query = LabkeyClient.getSelectRowsURL(LK_FMS_SCHEMA, "File", [
+    const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.FMS, "File", [
       `query.FileName~eq=${name}`,
       `query.MD5~eq=${md5}`,
     ]);

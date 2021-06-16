@@ -8,10 +8,10 @@ import {
   getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import { MassEditRow, State } from "../../state/types";
-import { UploadJobTableRow } from "../../state/upload/types";
+import { UploadTableRow } from "../../state/upload/types";
 
 interface Props {
-  rowData: UploadJobTableRow | MassEditRow;
+  rowData: UploadTableRow | MassEditRow;
 }
 
 function mapStateToProps(state: State, { rowData }: Props) {

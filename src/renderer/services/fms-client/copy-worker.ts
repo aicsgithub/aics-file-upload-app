@@ -2,24 +2,25 @@ import { createHash } from "crypto";
 import { createReadStream, createWriteStream } from "fs";
 import { basename, resolve as resolvePath } from "path";
 
-import { noop, throttle } from "lodash";
+import { Cancelable, throttle } from "lodash";
 
+export enum WORKER_MESSAGE_TYPE {
+  PROGRESS_UPDATE = "progress-update",
+  SUCCESS = "copy-success",
+}
+
+// Milliseconds to wait between progress updates
 const THROTTLE_MS = 20000;
 
 /**
- * Copies source file to destination folder in chunks, reports incremental progress, and returns md5
- * @param source filepath
- * @param dest folder to copy to
- * @param onProgress optional callback that gets called every ~20 seconds.
- * @param throttleMs minimum milliseconds between each onProgress call
+ * Copies source file to destination folder in chunks,
+ * reports incremental progress, and returns md5.
  */
-const copyAndGetMD5 = (
+async function copyFiles(
   source: string,
   dest: string,
-  onProgress: (progress: number) => void = noop,
-  throttleMs: number = THROTTLE_MS
-): Promise<string> => {
-  const onProgressThrottled = throttle(onProgress, throttleMs);
+  onProgress: ((progress: number) => void) & Cancelable
+): Promise<string> {
   return new Promise((resolve, reject) => {
     try {
       // Adapted from these sources:
@@ -28,28 +29,30 @@ const copyAndGetMD5 = (
       const hash = createHash("md5");
       const readable = createReadStream(source);
       const writeable = createWriteStream(resolvePath(dest, basename(source)));
+
       let bytesCopied = 0;
       readable.on("data", (chunk) => {
         bytesCopied += chunk.length;
-        onProgressThrottled(bytesCopied);
+        onProgress(bytesCopied);
         hash.update(chunk, "utf8");
       });
 
       readable.on("end", () => {
         // Ensure that final call to `onProgress` happens
-        onProgressThrottled.flush();
+        onProgress.flush();
         resolve(hash.digest("hex"));
       });
 
+      // Send source bytes to destination through pipe
       readable.pipe(writeable);
 
+      // Error cases
       readable.on("error", (e) => {
         reject(e);
       });
       writeable.on("error", (e) => {
         reject(e);
       });
-
       writeable.on("unpipe", (src) => {
         if (src !== readable) {
           reject(new Error(`Copy of file ${source} has been interrupted`));
@@ -59,5 +62,25 @@ const copyAndGetMD5 = (
       reject(e);
     }
   });
+}
+
+// Performs actual copy as a web worker (used in fms.copyFile)
+const ctx: Worker = self as any;
+ctx.onmessage = async (e: MessageEvent) => {
+  if (Array.isArray(e.data) && e.data.length === 2) {
+    const [originalPath, targetFolder] = e.data;
+
+    try {
+      const onProgress = throttle((progress: number) => {
+        ctx.postMessage(`${WORKER_MESSAGE_TYPE.PROGRESS_UPDATE}:${progress}`);
+      }, THROTTLE_MS);
+      const md5 = await copyFiles(originalPath, targetFolder, onProgress);
+      ctx.postMessage(`${WORKER_MESSAGE_TYPE.SUCCESS}:${md5}`);
+    } catch (e) {
+      // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror
+      setTimeout(() => {
+        throw e;
+      }, 0);
+    }
+  }
 };
-export default copyAndGetMD5;

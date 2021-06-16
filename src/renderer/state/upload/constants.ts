@@ -2,10 +2,8 @@ import { isNil } from "lodash";
 import * as moment from "moment";
 
 import { LONG_DATETIME_FORMAT } from "../../constants";
-import { UploadMetadata, UploadRowId } from "../types";
+import { FileModel, FileModelId } from "../types";
 import { makeConstant } from "../util";
-
-import { UploadJobTableRow } from "./types";
 
 const BRANCH_NAME = "upload";
 
@@ -55,10 +53,6 @@ export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
   BRANCH_NAME,
   "submit-file-metadata-update"
 );
-export const UPDATE_AND_RETRY_UPLOAD = makeConstant(
-  BRANCH_NAME,
-  "update-and-retry-upload"
-);
 export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
 export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
@@ -82,7 +76,7 @@ export const getUploadRowKey = ({
   channelId,
   scene,
   subImageName,
-}: UploadRowId): string => {
+}: FileModelId): string => {
   let key = file;
   if (!isNil(positionIndex)) {
     key += `positionIndex:${positionIndex}`;
@@ -103,30 +97,16 @@ export const getUploadRowKey = ({
   return key;
 };
 
-export const getUploadRowKeyFromUploadTableRow = (
-  upload: UploadJobTableRow
-): string => {
-  const { channelId, file, positionIndex, scene, subImageName } = upload;
-  return getUploadRowKey({
-    channelId,
-    file,
-    positionIndex,
-    scene,
-    subImageName,
-  });
-};
-
 export const isSubImageRow = ({
   positionIndex,
   scene,
   subImageName,
-}: UploadMetadata) =>
-  !isNil(positionIndex) || !isNil(scene) || !isNil(subImageName);
-export const isSubImageOnlyRow = (metadata: UploadMetadata) =>
+}: FileModel) => !isNil(positionIndex) || !isNil(scene) || !isNil(subImageName);
+export const isSubImageOnlyRow = (metadata: FileModel) =>
   isSubImageRow(metadata) && isNil(metadata.channelId);
-export const isChannelOnlyRow = (metadata: UploadMetadata) =>
+export const isChannelOnlyRow = (metadata: FileModel) =>
   !isNil(metadata.channelId) && !isSubImageRow(metadata);
-export const isFileRow = (metadata: UploadMetadata) =>
+export const isFileRow = (metadata: FileModel) =>
   !isChannelOnlyRow(metadata) && !isSubImageRow(metadata);
 
 export const DRAFT_KEY = "draft";

@@ -13,13 +13,13 @@ import DragAndDrop from "../../components/DragAndDrop";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   BarcodePrefix,
   LabkeyTemplate,
 } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { setAlert } from "../../state/feedback/actions";
 import {
   getIsLoading,
@@ -63,7 +63,6 @@ import {
   initiateUpload,
   removeUploads,
   submitFileMetadataUpdate,
-  updateAndRetryUpload,
 } from "../../state/upload/actions";
 import {
   getFileToAnnotationHasValueMap,
@@ -75,8 +74,7 @@ import {
   InitiateUploadAction,
   RemoveUploadsAction,
   SubmitFileMetadataUpdateAction,
-  UpdateAndRetryUploadAction,
-  UploadJobTableRow,
+  UploadTableRow,
 } from "../../state/upload/types";
 import BarcodeSearch from "../BarcodeSearch";
 import CustomDataTable from "../CustomDataTable";
@@ -139,11 +137,10 @@ interface Props {
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
   templateIsLoading: boolean;
   templates: LabkeyTemplate[];
-  updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
   updateSettings: ActionCreator<UpdateSettingsAction>;
   uploadError?: string;
   uploadInProgress: boolean;
-  uploads: UploadJobTableRow[];
+  uploads: UploadTableRow[];
   validationErrors: string[];
 }
 
@@ -433,7 +430,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       hasNoPlateToUpload,
       selectedJob,
       submitFileMetadataUpdate,
-      updateAndRetryUpload,
       initiateUpload,
     } = this.props;
 
@@ -443,13 +439,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors.length === 0 &&
       (selectedBarcode || hasNoPlateToUpload)
     ) {
-      if (selectedJob) {
-        if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
-          submitFileMetadataUpdate();
-        }
-        if (selectedJob.status === JSSJobStatus.FAILED) {
-          updateAndRetryUpload();
-        }
+      if (selectedJob && selectedJob.status === JSSJobStatus.SUCCEEDED) {
+        submitFileMetadataUpdate();
       } else {
         initiateUpload();
       }
@@ -497,7 +488,6 @@ const dispatchToPropsMap = {
   setAlert,
   setHasNoPlateToUpload,
   submitFileMetadataUpdate,
-  updateAndRetryUpload,
   updateSettings,
 };
 

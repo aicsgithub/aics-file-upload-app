@@ -26,13 +26,13 @@ import {
   RequestMetadataAction,
 } from "../metadata/types";
 import {
-  OPEN_EDIT_FILE_METADATA_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  OPEN_JOB_AS_UPLOAD,
+  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
   RESET_UPLOAD,
 } from "../route/constants";
 import {
-  OpenEditFileMetadataTabAction,
-  OpenEditFileMetadataTabSucceededAction,
+  OpenJobAsUploadAction,
+  OpenJobAsUploadSucceededAction,
   ResetUploadAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
@@ -78,7 +78,6 @@ import {
   INITIATE_UPLOAD_SUCCEEDED,
   RETRY_UPLOAD,
   SUBMIT_FILE_METADATA_UPDATE,
-  UPDATE_AND_RETRY_UPLOAD,
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
 } from "../upload/constants";
@@ -92,9 +91,8 @@ import {
   InitiateUploadAction,
   InitiateUploadFailedAction,
   InitiateUploadSucceededAction,
-  RetryUploadAction,
   SubmitFileMetadataUpdateAction,
-  UpdateAndRetryUploadAction,
+  RetryUploadAction,
   UploadFailedAction,
   UploadSucceededAction,
 } from "../upload/types";
@@ -385,9 +383,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB]: {
-    accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB,
+  [OPEN_JOB_AS_UPLOAD]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
+      action.type === OPEN_JOB_AS_UPLOAD,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: uniq([
@@ -627,11 +625,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
-    accepts: (
-      action: AnyAction
-    ): action is OpenEditFileMetadataTabSucceededAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  [OPEN_JOB_AS_UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is OpenJobAsUploadSucceededAction =>
+      action.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: removeRequestFromInProgress(
@@ -773,20 +769,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
         AsyncRequest.SAVE_TEMPLATE
       ),
       visibleModals: without(state.visibleModals, "templateEditor"),
-    }),
-  },
-  [UPDATE_AND_RETRY_UPLOAD]: {
-    accepts: (action: AnyAction): action is UpdateAndRetryUploadAction =>
-      action.type === UPDATE_AND_RETRY_UPLOAD,
-    perform: (
-      state: FeedbackStateBranch,
-      action: UpdateAndRetryUploadAction
-    ) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        `${AsyncRequest.UPLOAD}-${action.payload}`
-      ),
     }),
   },
   [CLOSE_NOTIFICATION_CENTER]: {

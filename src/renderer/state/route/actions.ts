@@ -3,8 +3,8 @@ import { Page, UploadStateBranch } from "../types";
 
 import {
   CLOSE_UPLOAD,
-  OPEN_EDIT_FILE_METADATA_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  OPEN_JOB_AS_UPLOAD,
+  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
   RESET_UPLOAD,
   SELECT_PAGE,
   SELECT_VIEW,
@@ -12,8 +12,8 @@ import {
 } from "./constants";
 import {
   CloseUploadAction,
-  OpenEditFileMetadataTabAction,
-  OpenEditFileMetadataTabSucceededAction,
+  OpenJobAsUploadAction,
+  OpenJobAsUploadSucceededAction,
   ResetUploadAction,
   SelectPageAction,
   SelectViewAction,
@@ -54,22 +54,20 @@ export function selectView(view: Page): SelectViewAction {
   };
 }
 
-export function openEditFileMetadataTab(
-  job: JSSJob
-): OpenEditFileMetadataTabAction {
+export function openJobAsUpload(job: JSSJob): OpenJobAsUploadAction {
   return {
     payload: job,
-    type: OPEN_EDIT_FILE_METADATA_TAB,
+    type: OPEN_JOB_AS_UPLOAD,
   };
 }
 
-export function openEditFileMetadataTabSucceeded(
+export function openJobAsUploadSucceeded(
   originalUpload: UploadStateBranch
-): OpenEditFileMetadataTabSucceededAction {
+): OpenJobAsUploadSucceededAction {
   return {
     payload: {
       originalUpload,
     },
-    type: OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+    type: OPEN_JOB_AS_UPLOAD_SUCCEEDED,
   };
 }

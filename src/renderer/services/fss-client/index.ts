@@ -3,19 +3,17 @@ import * as path from "path";
 
 import axios, { AxiosRequestConfig } from "axios";
 import * as humps from "humps";
-import { values, castArray } from "lodash";
+import { castArray } from "lodash";
 import * as hash from "object-hash";
 
-import { LocalStorage } from "../../../types";
-import HttpCacheClient from "../../http-cache-client";
-import { JSSJob } from "../../job-status-client/types";
-import { AicsSuccessResponse, HttpClient } from "../../types";
+import { LocalStorage } from "../../types";
+import HttpCacheClient from "../http-cache-client";
+import { JSSJob } from "../job-status-client/types";
 import {
-  SourceFiles,
-  StartUploadResponse,
-  UploadMetadata,
-  UploadMetadataRequest,
-  UploadMetadataResponse,
+  AicsSuccessResponse,
+  FSSResponseFile,
+  HttpClient,
+  UploadRequest,
   UploadServiceFields,
 } from "../types";
 
@@ -23,10 +21,36 @@ const UPLOAD_TYPE = "upload";
 
 const fssURL = "/fss";
 
+// Request Types
+export interface FSSRequestFile {
+  fileName: string;
+  md5hex: string;
+  fileType: string;
+  metadata: UploadRequest;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
+}
+
+interface UploadMetadataRequest {
+  jobId: string;
+  files: FSSRequestFile[];
+}
+
+// Response Types
+export interface StartUploadResponse {
+  jobId: string;
+  uploadDirectory: string;
+}
+
+export interface UploadMetadataResponse {
+  jobId: string;
+  files: FSSResponseFile[];
+}
+
 /**
  * Provides interface with FSS endpoints.
  */
-export class FSSClient extends HttpCacheClient {
+export default class FileStorageClient extends HttpCacheClient {
   constructor(
     httpClient: HttpClient,
     localStorage: LocalStorage,
@@ -39,7 +63,7 @@ export class FSSClient extends HttpCacheClient {
 
   public async startUpload(
     filePath: string,
-    metadata: UploadMetadata,
+    metadata: UploadRequest,
     serviceFields: Partial<UploadServiceFields>
   ): Promise<StartUploadResponse> {
     const fileName = path.basename(filePath);
@@ -57,7 +81,7 @@ export class FSSClient extends HttpCacheClient {
     const response = await this.post<AicsSuccessResponse<StartUploadResponse>>(
       `${fssURL}/1.0/file/upload`,
       requestBody,
-      FSSClient.getHttpRequestConfig()
+      FileStorageClient.getHttpRequestConfig()
     );
 
     return response.data[0];
@@ -65,10 +89,10 @@ export class FSSClient extends HttpCacheClient {
 
   public async uploadComplete(
     jobId: string,
-    sourceFiles: SourceFiles
+    files: FSSRequestFile[]
   ): Promise<UploadMetadataResponse> {
     const request: UploadMetadataRequest = {
-      files: values(sourceFiles),
+      files,
       jobId,
     };
     const response = await this.post<
@@ -76,7 +100,7 @@ export class FSSClient extends HttpCacheClient {
     >(
       `${fssURL}/1.0/file/uploadComplete`,
       request,
-      FSSClient.getHttpRequestConfig()
+      FileStorageClient.getHttpRequestConfig()
     );
     return response.data[0];
   }

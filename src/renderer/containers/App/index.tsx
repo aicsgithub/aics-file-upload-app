@@ -13,8 +13,8 @@ import {
   SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../../../shared/constants";
 import StatusBar from "../../components/StatusBar";
-import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
+import { BaseServiceFields } from "../../services/types";
 import {
   addRequestToInProgress,
   checkForUpdate,

@@ -9,11 +9,12 @@ import {
 } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { FileManagementSystem } from "../../../services/aicsfiles";
+import FileManagementSystem from "../../../services/fms-client";
 import LabkeyClient from "../../../services/labkey-client";
 import {
   LabkeyPlateResponse,
   LabkeyTemplate,
+  ScalarType,
 } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
@@ -219,6 +220,7 @@ describe("Metadata logics", () => {
             lookupId: 1,
             schemaName: "microscopy",
             tableName: "well",
+            "scalarTypeId/Name": ScalarType.INT,
           },
         ],
       },

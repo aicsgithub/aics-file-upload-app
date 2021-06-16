@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { resetUpload, openEditFileMetadataTab } from "../../route/actions";
+import { resetUpload, openJobAsUpload } from "../../route/actions";
 import {
   getMockStateWithHistory,
   mockPlate,
@@ -93,11 +93,11 @@ describe("selection reducer", () => {
       expect(result.present.wells).to.equal(mockWells);
     });
   });
-  describe("openEditFileMetadataTab", () => {
+  describe("openJobAsUpload", () => {
     it("sets selected job", () => {
       const result = reducer(
         getMockStateWithHistory(initialState),
-        openEditFileMetadataTab(mockSuccessfulUploadJob)
+        openJobAsUpload(mockSuccessfulUploadJob)
       );
       expect(result.present.job).to.equal(mockSuccessfulUploadJob);
     });

@@ -1,13 +1,13 @@
 import { expect } from "chai";
-import { forEach, orderBy } from "lodash";
+import { orderBy } from "lodash";
 
 import {
   CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../../constants";
-import { UploadMetadata, Uploads } from "../../../services/aicsfiles/types";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
+import { UploadRequest } from "../../../services/types";
 import { Duration } from "../../../types";
 import {
   getMockStateWithHistory,
@@ -27,7 +27,6 @@ import {
   mockNumberAnnotation,
   mockSelection,
   mockState,
-  mockSuccessfulUploadJob,
   mockTemplateStateBranch,
   mockTemplateStateBranchWithAppliedTemplate,
   mockTemplateWithManyValues,
@@ -36,16 +35,14 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
-import { UploadMetadata as UploadMetadataRow } from "../../types";
+import { FileModel, State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanUndoUpload,
-  getFileIdsToDelete,
   getFileToAnnotationHasValueMap,
   getUploadFileNames,
   getUploadKeyToAnnotationErrorMap,
-  getUploadPayload,
+  getUploadRequests,
   getUploadWithCalculatedData,
 } from "../selectors";
 import { getUploadAsTableRows, getUploadValidationErrors } from "../selectors";
@@ -64,21 +61,16 @@ const orderAnnotationValueRequests = (
 };
 
 // utility function to allow us to deeply compare expected and actual output without worrying about order
-const standardizeUploads = (uploads: Uploads): Uploads => {
-  const result: Uploads = {};
-  forEach(uploads, (upload: UploadMetadata, file: string) => {
-    result[file] = {
-      ...upload,
-      customMetadata: {
-        ...upload.customMetadata,
-        annotations: orderAnnotationValueRequests(
-          upload.customMetadata.annotations
-        ),
-      },
-    };
-  });
-  return result;
-};
+const standardizeUploads = (uploadRequests: UploadRequest[]): UploadRequest[] =>
+  uploadRequests.map((request) => ({
+    ...request,
+    customMetadata: {
+      ...request.customMetadata,
+      annotations: orderAnnotationValueRequests(
+        request.customMetadata.annotations
+      ),
+    },
+  }));
 
 describe("Upload selectors", () => {
   describe("getCanUndoUpload", () => {
@@ -110,10 +102,10 @@ describe("Upload selectors", () => {
     });
   });
 
-  describe("getUploadPayload", () => {
+  describe("getUploadRequests", () => {
     it("Does not include annotations that are not on the template", () => {
       const file = "/path/to/image.tiff";
-      const payload = getUploadPayload({
+      const payload = getUploadRequests({
         ...nonEmptyStateForInitiatingUpload,
         template: {
           ...mockState.template,
@@ -137,10 +129,8 @@ describe("Upload selectors", () => {
           },
         }),
       });
-      const unexpectedAnnotation = payload[
-        file
-      ]?.customMetadata.annotations.find((a: { values: string[] }) =>
-        a.values.includes("Hello World")
+      const unexpectedAnnotation = payload[0]?.customMetadata.annotations.find(
+        (a: { values: string[] }) => a.values.includes("Hello World")
       );
       expect(unexpectedAnnotation).to.be.undefined;
     });
@@ -165,8 +155,8 @@ describe("Upload selectors", () => {
           },
         }),
       };
-      const expectedPayload = {
-        "/path/to.dot/image.tiff": {
+      const expectedPayload = [
+        {
           customMetadata: {
             annotations: [
               {
@@ -189,11 +179,11 @@ describe("Upload selectors", () => {
           },
           microscopy: {},
         },
-      };
-      const actual = getUploadPayload(state);
+      ];
+      const actual = getUploadRequests(state);
       expect(actual).to.deep.equal(expectedPayload);
     });
-    it("Converts upload state branch into correct payload for aicsfiles", () => {
+    it("Converts upload state branch into correct payload for FSS", () => {
       const state: State = {
         ...nonEmptyStateForInitiatingUpload,
         upload: getMockStateWithHistory({
@@ -281,8 +271,8 @@ describe("Upload selectors", () => {
           },
         }),
       };
-      const expected: Uploads = {
-        "/path/to.dot/image.tiff": {
+      const expected: UploadRequest[] = [
+        {
           customMetadata: {
             annotations: [
               {
@@ -331,7 +321,7 @@ describe("Upload selectors", () => {
             wellIds: [6],
           },
         },
-        "/path/to/image.czi": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -364,7 +354,7 @@ describe("Upload selectors", () => {
             wellIds: [1],
           },
         },
-        "/path/to/image.ome.tiff": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -397,7 +387,7 @@ describe("Upload selectors", () => {
             wellIds: [2],
           },
         },
-        "/path/to/image.png": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -430,7 +420,7 @@ describe("Upload selectors", () => {
             wellIds: [3],
           },
         },
-        "/path/to/image.tiff": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -463,7 +453,7 @@ describe("Upload selectors", () => {
             wellIds: [4],
           },
         },
-        "/path/to/multi-well.txt": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -496,7 +486,7 @@ describe("Upload selectors", () => {
             wellIds: [5, 6, 7],
           },
         },
-        "/path/to/no-extension": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -529,7 +519,7 @@ describe("Upload selectors", () => {
             wellIds: [7],
           },
         },
-        "/path/to/not-image.csv": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -562,7 +552,7 @@ describe("Upload selectors", () => {
             wellIds: [8],
           },
         },
-        "/path/to/not-image.txt": {
+        {
           customMetadata: {
             annotations: [
               {
@@ -595,10 +585,10 @@ describe("Upload selectors", () => {
             wellIds: [5],
           },
         },
-      };
+      ];
 
-      const payload: Uploads = getUploadPayload(state);
-      expect(standardizeUploads(payload)).to.deep.equal(
+      const payload = getUploadRequests(state);
+      expect(standardizeUploads(payload)).to.have.deep.members(
         standardizeUploads(expected)
       );
     });
@@ -627,11 +617,11 @@ describe("Upload selectors", () => {
         }),
       };
 
-      const payload = getUploadPayload(state);
+      const payload = getUploadRequests(state);
 
-      expect(
-        payload[filePath].customMetadata.annotations[0].values[0]
-      ).to.equal("356521111");
+      expect(payload[0].customMetadata.annotations[0].values[0]).to.equal(
+        "356521111"
+      );
     });
 
     it("Converts durations into milliseconds when only some units present", () => {
@@ -658,11 +648,11 @@ describe("Upload selectors", () => {
         }),
       };
 
-      const payload = getUploadPayload(state);
+      const payload = getUploadRequests(state);
 
-      expect(
-        payload[filePath].customMetadata.annotations[0].values[0]
-      ).to.equal("121111");
+      expect(payload[0].customMetadata.annotations[0].values[0]).to.equal(
+        "121111"
+      );
     });
   });
 
@@ -750,7 +740,7 @@ describe("Upload selectors", () => {
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file1",
         key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
@@ -764,7 +754,7 @@ describe("Upload selectors", () => {
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file2",
         key: getUploadRowKey({ file: "/path/to/file2" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
@@ -778,7 +768,7 @@ describe("Upload selectors", () => {
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file3",
         key: getUploadRowKey({ file: "/path/to/file3" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
@@ -830,7 +820,7 @@ describe("Upload selectors", () => {
           positionIndex: undefined,
           channelId: "Raw 405nm",
         }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndex: undefined,
         positionIndexes: [],
         scenes: [],
@@ -844,7 +834,7 @@ describe("Upload selectors", () => {
         [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
-        [NOTES_ANNOTATION_NAME]: undefined,
+        [NOTES_ANNOTATION_NAME]: [],
         positionIndex: 1,
         positionIndexes: [],
         scenes: [],
@@ -1033,7 +1023,7 @@ describe("Upload selectors", () => {
 
   describe("getUploadKeyToAnnotationErrorMap", () => {
     const uploadRowKey = getUploadRowKey({ file: "/path/to/file1" });
-    let goodUploadRow: UploadMetadataRow;
+    let goodUploadRow: FileModel;
     const getValidations = (
       annotationToTest: TemplateAnnotation,
       value: any
@@ -1149,26 +1139,6 @@ describe("Upload selectors", () => {
             "BAD did not match expected type: Date or DateTime",
         },
       });
-    });
-  });
-
-  describe("getFileIdsToDelete", () => {
-    it("returns files that don't exist in uploads that exist on selectedJob", () => {
-      const fileIds = getFileIdsToDelete({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          job: mockSuccessfulUploadJob,
-        }),
-        upload: getMockStateWithHistory({
-          someKey: {
-            file: "/path/to/file",
-            fileId: "cat",
-            wellIds: [],
-          },
-        }),
-      });
-      expect(fileIds).to.deep.equal(["dog"]);
     });
   });
 

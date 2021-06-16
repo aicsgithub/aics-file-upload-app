@@ -2,38 +2,48 @@ import { existsSync } from "fs";
 import { platform } from "os";
 
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, isEmpty } from "lodash";
+import { castArray, difference, groupBy, isEmpty, uniq } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { WELL_ANNOTATION_NAME } from "../../constants";
 import {
-  FSSResponseFile,
-  ImageModelMetadata,
-} from "../../services/aicsfiles/types";
+  DAY_AS_MS,
+  HOUR_AS_MS,
+  MINUTE_AS_MS,
+  WELL_ANNOTATION_NAME,
+} from "../../constants";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
-import MMSClient from "../../services/mms-client";
 import {
-  convertUploadPayloadToImageModelMetadata,
+  ColumnType,
+  LabKeyFileMetadata,
+  LK_SCHEMA,
+  Lookup,
+  ScalarType,
+} from "../../services/labkey-client/types";
+import MMSClient, { AnnotationValue } from "../../services/mms-client";
+import { FSSResponseFile, UploadRequest } from "../../services/types";
+import { getUploadRowKey } from "../../state/upload/constants";
+import { Duration } from "../../types";
+import {
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   getPlateInfo,
   makePosixPathCompatibleWithPlatform,
-  retrieveFileMetadata,
 } from "../../util";
 import { requestFailed } from "../actions";
 import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
-import { getWithRetry } from "../feedback/util";
 import {
+  getAnnotationLookups,
+  getAnnotations,
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
+  getLookups,
   getSelectionHistory,
   getUploadHistory,
-  getWellAnnotation,
 } from "../metadata/selectors";
 import {
   clearSelectionHistory,
@@ -61,23 +71,17 @@ import {
   clearUploadDraft,
   clearUploadHistory,
   jumpToPastUpload,
-  updateUploads,
 } from "../upload/actions";
-import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import {
-  openEditFileMetadataTabSucceeded,
-  resetUpload,
-  selectPage,
-} from "./actions";
+import { openJobAsUploadSucceeded, resetUpload, selectPage } from "./actions";
 import {
   CLOSE_UPLOAD,
-  OPEN_EDIT_FILE_METADATA_TAB,
+  OPEN_JOB_AS_UPLOAD,
   START_NEW_UPLOAD,
 } from "./constants";
-import { OpenEditFileMetadataTabAction } from "./types";
+import { OpenJobAsUploadAction, Upload } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
 const getFileMenu = (menu: Menu): MenuItem | undefined =>
@@ -193,40 +197,6 @@ const resetUploadLogic = createLogic({
   },
 });
 
-const convertImageModelMetadataToUploadStateBranch = (
-  metadata: ImageModelMetadata[]
-): UploadStateBranch => {
-  return metadata.reduce(
-    (accum: UploadStateBranch, curr: ImageModelMetadata) => {
-      const {
-        archiveFilePath,
-        channelId,
-        localFilePath,
-        originalPath,
-        positionIndex,
-        scene,
-        subImageName,
-      } = curr;
-      const file = originalPath || localFilePath || archiveFilePath || "";
-      const key: string = getUploadRowKey({
-        channelId,
-        file,
-        positionIndex,
-        scene,
-        subImageName,
-      });
-      return {
-        ...accum,
-        [key]: {
-          ...curr,
-          file,
-        },
-      };
-    },
-    {} as UploadStateBranch
-  );
-};
-
 const getPlateRelatedActions = async (
   wellIds: number[],
   labkeyClient: LabkeyClient,
@@ -260,147 +230,242 @@ const getPlateRelatedActions = async (
   return actions;
 };
 
-const openEditFileMetadataTabLogic = createLogic({
+/*
+  Convert from upload requests formatted for FSS transmission into the shape
+  of the upload branch at the time of the initial upload the requests
+  were created from.
+*/
+function convertUploadRequestsToUploadStateBranch(
+  files: UploadRequest[],
+  state: State
+): Upload {
+  const annotations = getAnnotations(state);
+  const lookups = getLookups(state);
+  const annotationLookups = getAnnotationLookups(state);
+  const annotationIdToAnnotationMap = groupBy(annotations, "annotationId");
+  const annotationIdToLookupMap = annotationLookups.reduce(
+    (mapSoFar, curr) => ({
+      [curr.annotationId]: lookups.find((l) => l.lookupId === curr.lookupId),
+      ...mapSoFar,
+    }),
+    {} as { [annotationId: number]: Lookup | undefined }
+  );
+
+  let templateId: number | undefined = undefined;
+  const uploadMetadata = files.reduce((uploadSoFar, file) => {
+    templateId = file.customMetadata.templateId || templateId;
+    return file.customMetadata.annotations.reduce(
+      (keyToMetadataSoFar: UploadStateBranch, annotation: AnnotationValue) => {
+        const key = getUploadRowKey({
+          file: file.file.originalPath,
+          ...annotation,
+        });
+        const annotationDefinition =
+          annotationIdToAnnotationMap[annotation.annotationId]?.[0];
+        if (!annotationDefinition) {
+          throw new Error(
+            `Unable to find matching Annotation for Annotation ID: ${annotation.annotationId}`
+          );
+        }
+
+        let values: any[] = annotation.values;
+        switch (annotationDefinition["annotationTypeId/Name"]) {
+          case ColumnType.BOOLEAN:
+            values = values.map((v) => Boolean(v));
+            break;
+          case ColumnType.DATE:
+          case ColumnType.DATETIME:
+            values = values.map((v) => new Date(`${v}`));
+            break;
+          case ColumnType.LOOKUP:
+            if (
+              annotationIdToLookupMap[annotation.annotationId]?.[
+                "scalarTypeId/Name"
+              ] === ScalarType.INT
+            ) {
+              values = values.map((v) => parseInt(v, 10));
+            }
+            break;
+          case ColumnType.NUMBER:
+            values = values.map((v) => {
+              try {
+                return parseFloat(v);
+              } catch (e) {
+                return v;
+              }
+            });
+            break;
+          case ColumnType.DURATION:
+            values = values.map(
+              (v: string): Duration => {
+                let remainingMs = parseInt(v);
+
+                function calculateUnit(unitAsMs: number, useFloor = true) {
+                  const numUnit = useFloor
+                    ? Math.floor(remainingMs / unitAsMs)
+                    : remainingMs / unitAsMs;
+                  if (numUnit > 0) {
+                    remainingMs -= numUnit * unitAsMs;
+                  }
+                  return numUnit;
+                }
+
+                const days = calculateUnit(DAY_AS_MS);
+                const hours = calculateUnit(HOUR_AS_MS);
+                const minutes = calculateUnit(MINUTE_AS_MS);
+                const seconds = calculateUnit(1000, false);
+
+                return { days, hours, minutes, seconds };
+              }
+            );
+        }
+
+        return {
+          ...keyToMetadataSoFar,
+          [key]: {
+            ...(keyToMetadataSoFar[key] || {}),
+            file: file.file.originalPath,
+            fileId: file.fileId,
+            channelId: annotation.channelId,
+            fovId: annotation.fovId,
+            positionIndex: annotation.positionIndex,
+            scene: annotation.scene,
+            subImageName: annotation.subImageName,
+            [annotationDefinition.name]: uniq([
+              ...(keyToMetadataSoFar[key]?.[annotationDefinition.name] || []),
+              ...values,
+            ]),
+          },
+        };
+      },
+      uploadSoFar
+    );
+  }, {} as UploadStateBranch);
+
+  if (!templateId) {
+    throw new Error("Could not find the template used in the upload");
+  }
+
+  return { templateId, uploadMetadata };
+}
+
+const RELEVANT_FILE_COLUMNS = [
+  "FileName",
+  "FileSize",
+  "FileType",
+  "ThumbnailId",
+  "ThumbnailLocalFilePath",
+  "ArchiveFilePath",
+  "LocalFilePath",
+  "PublicFilePath",
+  "Modified",
+  "ModifiedBy",
+];
+
+const openJobAsUploadLogic = createLogic({
   process: async (
     {
       action,
       ctx,
-      fms,
       getApplicationMenu,
       getState,
       labkeyClient,
       logger,
       mmsClient,
-    }: ReduxLogicProcessDependenciesWithAction<OpenEditFileMetadataTabAction>,
+    }: ReduxLogicProcessDependenciesWithAction<OpenJobAsUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const state = getState();
-    // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
-    dispatch(
-      batchActions(
-        handleStartingNewUploadJob(logger, state, getApplicationMenu)
-      )
-    );
-
-    // Second, we fetch the file metadata
-    let fileMetadataForJob: ImageModelMetadata[];
-    if (ctx.fileIds) {
-      // acquired during validate phase
-      const { fileIds } = ctx;
-      const request = () => retrieveFileMetadata(fileIds, fms);
-      try {
-        fileMetadataForJob = await getWithRetry(request, dispatch);
-      } catch (e) {
-        const error = `Could not retrieve file metadata for fileIds=${fileIds.join(
-          ", "
-        )}: ${e.message}`;
-        logger.error(error);
-        dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
-        done();
-        return;
-      }
-    } else if (action.payload.serviceFields?.files) {
-      fileMetadataForJob = await convertUploadPayloadToImageModelMetadata(
-        action.payload.serviceFields?.files,
-        fms
-      );
-    } else {
+    try {
+      // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
       dispatch(
-        requestFailed(
-          "job is missing information",
-          AsyncRequest.GET_FILE_METADATA_FOR_JOB
+        batchActions(
+          handleStartingNewUploadJob(logger, state, getApplicationMenu)
         )
       );
-      done();
-      return;
-    }
 
-    let updateUploadsAction: AnyAction = updateUploads({}, true);
-    const actions: AnyAction[] = [];
-    const newUpload = convertImageModelMetadataToUploadStateBranch(
-      fileMetadataForJob
-    );
-    if (fileMetadataForJob && fileMetadataForJob[0]) {
+      // Second, we fetch the file metadata
+      let files = action.payload.serviceFields?.files;
+      if (!files || ctx.fileIds) {
+        files = await Promise.all(
+          ctx.fileIds.map(async (fileId: string) => {
+            const [labkeyFileMetadata, customMetadata] = await Promise.all([
+              labkeyClient.selectFirst<LabKeyFileMetadata>(
+                LK_SCHEMA.FMS,
+                "File",
+                RELEVANT_FILE_COLUMNS,
+                [LabkeyClient.createFilter("FileId", fileId)]
+              ),
+              mmsClient.getFileMetadata(fileId),
+            ]);
+            return {
+              ...labkeyFileMetadata,
+              fileId,
+              customMetadata,
+              file: { originalPath: labkeyFileMetadata.localFilePath },
+            };
+          })
+        );
+      }
+      const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
+
+      const actions: AnyAction[] = [];
       // if we have a well, we can get the barcode and other plate info. This will be necessary
       // to display the well editor
-      const wellAnnotationName =
-        getWellAnnotation(getState())?.name || WELL_ANNOTATION_NAME;
-      let wellIds: any = fileMetadataForJob[0][wellAnnotationName];
-      if (wellIds) {
+      let wellIds: any = Object.values(newUpload.uploadMetadata)[0]?.[
+        WELL_ANNOTATION_NAME
+      ];
+      if (!wellIds) {
+        actions.push(setHasNoPlateToUpload(true));
+      } else {
         wellIds = castArray(wellIds).map((w: string | number) =>
           parseInt(w + "", 10)
         );
-        try {
-          const plateRelatedActions = await getPlateRelatedActions(
-            wellIds,
-            labkeyClient,
-            mmsClient,
-            dispatch
-          );
-          actions.push(...plateRelatedActions);
-        } catch (e) {
-          const error = `Could not get plate information from upload: ${e.message}`;
-          logger.error(error);
-          dispatch(
-            requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB)
-          );
-          done();
-          return;
-        }
-      } else {
-        actions.push(setHasNoPlateToUpload(true));
+        const plateRelatedActions = await getPlateRelatedActions(
+          wellIds,
+          labkeyClient,
+          mmsClient,
+          dispatch
+        );
+        actions.push(...plateRelatedActions);
       }
 
-      // Currently we only allow applying one template at a time
-      if (fileMetadataForJob[0].templateId) {
-        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
-        if (!booleanAnnotationTypeId) {
-          dispatch(
-            requestFailed(
-              "Boolean annotation type id not found. Contact Software.",
-              AsyncRequest.GET_FILE_METADATA_FOR_JOB
-            )
-          );
-          done();
-          return;
-        }
-        try {
-          const { template, uploads } = await getApplyTemplateInfo(
-            fileMetadataForJob[0].templateId,
-            mmsClient,
-            dispatch,
-            booleanAnnotationTypeId,
-            newUpload
-          );
-          updateUploadsAction = setAppliedTemplate(template, uploads);
-        } catch (e) {
-          dispatch(
-            requestFailed(
-              "Could not open upload editor: " + e.message,
-              AsyncRequest.GET_FILE_METADATA_FOR_JOB
-            )
-          );
-        }
-      } else {
-        updateUploadsAction = updateUploads(newUpload, true);
+      const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+      if (!booleanAnnotationTypeId) {
+        throw new Error(
+          "Boolean annotation type id not found. Contact Software."
+        );
       }
+
+      const { template, uploads } = await getApplyTemplateInfo(
+        newUpload.templateId,
+        mmsClient,
+        dispatch,
+        booleanAnnotationTypeId,
+        newUpload.uploadMetadata
+      );
+      const updateUploadsAction = setAppliedTemplate(template, uploads);
+      dispatch(
+        batchActions([
+          ...actions,
+          updateUploadsAction,
+          openJobAsUploadSucceeded(updateUploadsAction.payload.uploads),
+        ])
+      );
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          "Could not open upload editor: " + e.message,
+          AsyncRequest.GET_FILE_METADATA_FOR_JOB
+        )
+      );
     }
-
-    dispatch(
-      batchActions([
-        ...actions,
-        updateUploadsAction,
-        openEditFileMetadataTabSucceeded(updateUploadsAction.payload.uploads),
-      ])
-    );
     done();
   },
-  type: OPEN_EDIT_FILE_METADATA_TAB,
+  type: OPEN_JOB_AS_UPLOAD,
   validate: async (
-    deps: ReduxLogicTransformDependenciesWithAction<
-      OpenEditFileMetadataTabAction
-    >,
+    deps: ReduxLogicTransformDependenciesWithAction<OpenJobAsUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -448,4 +513,4 @@ const openEditFileMetadataTabLogic = createLogic({
   },
 });
 
-export default [openEditFileMetadataTabLogic, resetUploadLogic];
+export default [openJobAsUploadLogic, resetUploadLogic];

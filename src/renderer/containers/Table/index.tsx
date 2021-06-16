@@ -1,7 +1,7 @@
 import React from "react";
 import { HeaderGroup, TableInstance } from "react-table";
 
-import { UploadJobTableRow } from "../../state/upload/types";
+import { UploadTableRow } from "../../state/upload/types";
 
 const styles = require("./styles.pcss");
 
@@ -13,7 +13,7 @@ const styles = require("./styles.pcss");
   by the defaultColumn properties supplied to react-table.
 */
 export default function Table(props: {
-  tableInstance: TableInstance<UploadJobTableRow>;
+  tableInstance: TableInstance<UploadTableRow>;
 }) {
   const { tableInstance } = props;
   return (
@@ -29,7 +29,7 @@ export default function Table(props: {
               key={headerGroup.getHeaderGroupProps().key}
             >
               {headerGroup.headers.map(
-                (column: HeaderGroup<UploadJobTableRow>) => (
+                (column: HeaderGroup<UploadTableRow>) => (
                   <th
                     {...column.getHeaderProps()}
                     className={styles.tableHeader}

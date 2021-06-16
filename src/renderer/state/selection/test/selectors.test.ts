@@ -1,7 +1,6 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { mockJob } from "../../../services/aicsfiles/test/mocks";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
   CellPopulation,
@@ -12,6 +11,7 @@ import {
 import { ROW_COUNT_COLUMN } from "../../constants";
 import {
   getMockStateWithHistory,
+  mockJob,
   mockPlate,
   mockSelectedWells,
   mockSelection,

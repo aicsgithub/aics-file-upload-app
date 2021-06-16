@@ -1,13 +1,10 @@
 import { expect } from "chai";
 import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
-import { FileManagementSystem } from "../../../services/aicsfiles";
-import {
-  StepName,
-  UploadServiceFields,
-} from "../../../services/aicsfiles/types";
+import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
+import { UploadServiceFields } from "../../../services/types";
 import { setErrorAlert, setInfoAlert } from "../../feedback/actions";
 import {
   createMockReduxStore,
@@ -15,7 +12,6 @@ import {
   ReduxLogicDependencies,
 } from "../../test/configure-mock-store";
 import {
-  mockFailedAddMetadataJob,
   mockFailedUploadJob,
   mockState,
   mockSuccessfulUploadJob,
@@ -46,15 +42,10 @@ describe("Job logics", () => {
   describe("handleAbandonedJobsLogic", () => {
     let logicDeps: ReduxLogicDependencies;
     let waitingAbandonedJob: JSSJob<UploadServiceFields>;
-    let copyFilesAbandonedJob: JSSJob<UploadServiceFields>;
-    let copyFileAbandonedJob: JSSJob<UploadServiceFields>;
-    let addMetadataAbandonedJob: JSSJob<UploadServiceFields>;
-    let inProgressNotAbandonedJob: JSSJob<UploadServiceFields>;
 
     beforeEach(() => {
       waitingAbandonedJob = {
         ...mockWaitingUploadJob,
-        currentStage: StepName.Waiting,
         jobId: "abandoned_job_id",
         jobName: "abandoned_job",
         childIds: ["child_job_id"],
@@ -70,28 +61,6 @@ describe("Job logics", () => {
           type: "upload",
           uploadDirectory: "/test",
         },
-      };
-      copyFilesAbandonedJob = {
-        ...waitingAbandonedJob,
-        currentStage: StepName.CopyFiles,
-        jobId: "abandoned_job_id2",
-        jobName: "abandoned_job2",
-      };
-      copyFileAbandonedJob = {
-        ...waitingAbandonedJob,
-        currentStage: StepName.CopyFilesChild,
-        jobId: "abandoned_job_id3",
-        jobName: "abandoned_job3",
-      };
-      addMetadataAbandonedJob = {
-        ...waitingAbandonedJob,
-        currentStage: StepName.AddMetadata,
-        jobId: "abandoned_job_id4",
-        jobName: "abandoned_job4",
-      };
-      inProgressNotAbandonedJob = {
-        ...mockWorkingUploadJob,
-        currentStage: "etl",
       };
     });
 
@@ -123,23 +92,7 @@ describe("Job logics", () => {
       } = createMockReduxStore(mockState, logicDeps, [
         handleAbandonedJobsLogic,
       ]);
-      const action = receiveJobs([
-        mockFailedUploadJob,
-        waitingAbandonedJob,
-        addMetadataAbandonedJob,
-        inProgressNotAbandonedJob,
-        copyFileAbandonedJob,
-        copyFilesAbandonedJob,
-      ]);
-      fms.failUpload
-        .onFirstCall()
-        .resolves([waitingAbandonedJob])
-        .onSecondCall()
-        .resolves([addMetadataAbandonedJob])
-        .onThirdCall()
-        .resolves([copyFileAbandonedJob])
-        .onCall(3)
-        .resolves([copyFilesAbandonedJob]);
+      const action = receiveJobs([mockFailedUploadJob, waitingAbandonedJob]);
 
       store.dispatch(action);
       await logicMiddleware.whenComplete();
@@ -147,15 +100,6 @@ describe("Job logics", () => {
         action,
         setInfoAlert(
           `Upload "${waitingAbandonedJob.jobName}" was abandoned and will now be retried.`
-        ),
-        setInfoAlert(
-          `Upload "${addMetadataAbandonedJob.jobName}" was abandoned and will now be retried.`
-        ),
-        setInfoAlert(
-          `Upload "${copyFileAbandonedJob.jobName}" was abandoned and will now be retried.`
-        ),
-        setInfoAlert(
-          `Upload "${copyFilesAbandonedJob.jobName}" was abandoned and will now be retried.`
         ),
       ]);
     });
@@ -168,8 +112,6 @@ describe("Job logics", () => {
       } = createMockReduxStore(mockState, logicDeps, [
         handleAbandonedJobsLogic,
       ]);
-
-      fms.failUpload.onFirstCall().resolves([waitingAbandonedJob]);
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
 
@@ -190,8 +132,8 @@ describe("Job logics", () => {
       } = createMockReduxStore(mockState, logicDeps, [
         handleAbandonedJobsLogic,
       ]);
-
-      fms.failUpload.onFirstCall().rejects(new Error("some error"));
+      const errorMessage = "retry failure!";
+      fms.retryUpload.onFirstCall().rejects(new Error(errorMessage));
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
 
@@ -201,7 +143,9 @@ describe("Job logics", () => {
         setInfoAlert(
           `Upload "${waitingAbandonedJob.jobName}" was abandoned and will now be retried.`
         ),
-        setErrorAlert("Could not retry abandoned jobs: some error"),
+        setErrorAlert(
+          `Retry for upload "${waitingAbandonedJob.jobName}" failed: ${errorMessage}`
+        ),
       ]);
     });
 
@@ -214,7 +158,6 @@ describe("Job logics", () => {
         handleAbandonedJobsLogic,
       ]);
 
-      fms.failUpload.onFirstCall().resolves([waitingAbandonedJob]);
       fms.retryUpload.rejects(new Error("Error in worker"));
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
@@ -243,19 +186,6 @@ describe("Job logics", () => {
       };
     });
 
-    it("dispatches no additional actions if the job is not an upload job", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithNonEmptyUploadJobs
-      );
-
-      store.dispatch(receiveJobUpdate(mockFailedAddMetadataJob));
-
-      await logicMiddleware.whenComplete();
-
-      expect(actions.list).to.deep.equal([
-        receiveJobUpdate(mockFailedAddMetadataJob),
-      ]);
-    });
     it("dispatches no additional actions if the job is in progress", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithNonEmptyUploadJobs
@@ -269,34 +199,7 @@ describe("Job logics", () => {
         receiveJobUpdate(mockWorkingUploadJob),
       ]);
     });
-    it("dispatches no additional actions if the job is not tracked in state", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithNonEmptyUploadJobs
-      );
-      const action = receiveJobUpdate({
-        ...mockWorkingUploadJob,
-        jobId: "bert",
-      });
 
-      store.dispatch(action);
-
-      await logicMiddleware.whenComplete();
-
-      expect(actions.list).to.deep.equal([action]);
-    });
-    it("dispatches no additional actions if the job status did not change", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithNonEmptyUploadJobs
-      );
-
-      store.dispatch(receiveJobUpdate(mockWorkingUploadJob));
-
-      await logicMiddleware.whenComplete();
-
-      expect(actions.list).to.deep.equal([
-        receiveJobUpdate(mockWorkingUploadJob),
-      ]);
-    });
     it("dispatches uploadSucceeded if the job is an upload job that succeeded and previously was in progress", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithNonEmptyUploadJobs,

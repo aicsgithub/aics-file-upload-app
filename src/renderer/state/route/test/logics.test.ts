@@ -9,8 +9,7 @@ import {
 } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { FileManagementSystem } from "../../../services/aicsfiles";
-import { ImageModelMetadata } from "../../../services/aicsfiles/types";
+import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import LabkeyClient from "../../../services/labkey-client";
@@ -39,17 +38,19 @@ import {
   mockAnnotationTypes,
   mockAuditInfo,
   mockFailedUploadJob,
+  mockFavoriteColorAnnotation,
   mockMMSTemplate,
   mockState,
   mockSuccessfulUploadJob,
+  mockWellAnnotation,
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { closeUpload, openEditFileMetadataTab } from "../actions";
-import { OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED } from "../constants";
+import { closeUpload, openJobAsUpload } from "../actions";
+import { OPEN_JOB_AS_UPLOAD_SUCCEEDED } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
 import Menu = Electron.Menu;
@@ -207,21 +208,16 @@ describe("Route logics", () => {
       );
     });
   });
-  describe("openEditFileMetadataTabLogic", () => {
-    const fileMetadata: ImageModelMetadata[] = [
-      {
-        [WELL_ANNOTATION_NAME]: [100],
-        fileId: "abc123",
-        fileSize: 100,
-        fileType: "image",
-        filename: "my file",
-        localFilePath: "/localFilePath",
-        modified: "",
-        modifiedBy: "foo",
-        template: "my template",
-        templateId: 1,
-      },
-    ];
+  describe("openJobAsUploadLogic", () => {
+    const fileMetadata = {
+      fileId: "abcdefg",
+      filename: "name",
+      fileSize: 1,
+      fileType: "image",
+      localFilePath: "/localFilePath",
+      modified: "",
+      modifiedBy: "foo",
+    };
 
     const stubMethods = ({
       showMessageBox,
@@ -248,16 +244,21 @@ describe("Route logics", () => {
         "writeFile",
         writeFile || stub().resolves()
       );
-      fms.getCustomMetadataForFile.resolves({
-        annotations: [],
-        fileId: "abcdefg",
-        filename: "name",
-        fileSize: 1,
-        fileType: "image",
-        modified: "",
-        modifiedBy: "foo",
+      labkeyClient.selectFirst.resolves(fileMetadata);
+      mmsClient.getFileMetadata.resolves({
+        ...fileMetadata,
+        templateId: 1,
+        annotations: [
+          {
+            annotationId: mockFavoriteColorAnnotation.annotationId,
+            values: ["Blue", "Green"],
+          },
+          {
+            annotationId: mockWellAnnotation.annotationId,
+            values: ["A1", "B6"],
+          },
+        ],
       });
-      fms.transformFileMetadataIntoTable.resolves(fileMetadata);
       labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId.resolves(
         "abc"
       );
@@ -315,15 +316,12 @@ describe("Route logics", () => {
         nonEmptyStateForInitiatingUpload
       );
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch({ type: "ignore" })).to.be.true;
-      expect(
-        actions.list.find(
-          (a) => a.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED
-        )
-      ).to.be.undefined;
+      expect(actions.list.find((a) => a.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED))
+        .to.be.undefined;
       expect(actions.list.find((a) => a.type === REQUEST_FAILED)).to.be
         .undefined;
     });
@@ -342,7 +340,7 @@ describe("Route logics", () => {
         nonEmptyStateForInitiatingUpload
       );
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(showSaveDialog.called).to.be.true;
@@ -366,7 +364,7 @@ describe("Route logics", () => {
         }),
       });
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(showSaveDialog.called).to.be.true;
@@ -378,7 +376,7 @@ describe("Route logics", () => {
       );
 
       store.dispatch(
-        openEditFileMetadataTab({
+        openJobAsUpload({
           ...mockSuccessfulUploadJob,
           status: JSSJobStatus.FAILED,
         })
@@ -405,7 +403,7 @@ describe("Route logics", () => {
       expect(getAlert(store.getState())).to.be.undefined;
 
       // apply
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       // after
@@ -422,7 +420,7 @@ describe("Route logics", () => {
       expect(getAlert(store.getState())).to.be.undefined;
 
       store.dispatch(
-        openEditFileMetadataTab({
+        openJobAsUpload({
           ...mockSuccessfulUploadJob,
           serviceFields: {
             ...mockSuccessfulUploadJob.serviceFields,
@@ -444,23 +442,11 @@ describe("Route logics", () => {
         mockStateWithMetadata
       );
 
-      store.dispatch(openEditFileMetadataTab(mockFailedUploadJob));
+      store.dispatch(openJobAsUpload(mockFailedUploadJob));
       await logicMiddleware.whenComplete();
 
-      expect(
-        fms.transformFileMetadataIntoTable.calledWithMatch({
-          "/some/filepath": {
-            annotations:
-              mockFailedUploadJob.serviceFields?.files[0].annotations,
-            originalPath: "/some/filepath",
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
-            templateId: 1,
-          },
-        })
-      );
       expect(actions.list.map(({ type }) => type)).includes(
-        OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED
+        OPEN_JOB_AS_UPLOAD_SUCCEEDED
       );
     });
     it("handles case where upload tab is not open yet", async () => {
@@ -476,71 +462,73 @@ describe("Route logics", () => {
       expect(getUpload(state)).to.be.empty;
       expect(getAppliedTemplate(state)).to.be.undefined;
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       state = store.getState();
       expect(getPage(state)).to.equal(Page.AddCustomData);
       expect(getView(state)).to.equal(Page.AddCustomData);
       expect(getUpload(state)).to.deep.equal({
-        [getUploadRowKey({ file: "/localFilePath" })]: {
-          ...fileMetadata[0],
-          "Favorite Color": [],
-          file: "/localFilePath",
+        [getUploadRowKey({ file: fileMetadata.localFilePath || "" })]: {
+          file: fileMetadata.localFilePath,
+          fileId: "dog",
+          "Favorite Color": ["Blue", "Green"],
+          [WELL_ANNOTATION_NAME]: ["A1", "B6"],
+          channelId: undefined,
+          fovId: undefined,
+          positionIndex: undefined,
+          scene: undefined,
+          subImageName: undefined,
         },
       });
       expect(getAppliedTemplate(state)).to.not.be.undefined;
     });
     it("dispatches requestFailed if boolean annotation type id is not defined", async () => {
       stubMethods({});
+      mmsClient.getFileMetadata.resolves({
+        ...fileMetadata,
+        templateId: 1,
+        annotations: [],
+      });
       const { actions, logicMiddleware, store } = createMockReduxStore();
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(
         actions.includesMatch(
           requestFailed(
-            "Boolean annotation type id not found. Contact Software.",
+            `Could not open upload editor: Boolean annotation type id not found. Contact Software.`,
             AsyncRequest.GET_FILE_METADATA_FOR_JOB
           )
         )
       ).to.be.true;
     });
     it("dispatches requestFailed given not OK response when getting file metadata", async () => {
-      fms.getCustomMetadataForFile.rejects(new Error("error!"));
+      const errorMessage = "lk failure";
+      labkeyClient.selectFirst.rejects(new Error(errorMessage));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState
       );
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(
         actions.includesMatch(
           requestFailed(
-            "Could not retrieve file metadata for fileIds=cat, dog: error!",
+            `Could not open upload editor: ${errorMessage}`,
             AsyncRequest.GET_FILE_METADATA_FOR_JOB
           )
         )
       ).to.be.true;
     });
     it("does not dispatch setPlate action if file metadata does not contain well annotation", async () => {
-      fms.transformFileMetadataIntoTable.resolves([
-        {
-          filename: "foo",
-          fileId: "abc",
-          fileSize: 100,
-          fileType: "image",
-          modified: "foo",
-          modifiedBy: "bar",
-        },
-      ]);
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(getSelectedPlate(store.getState())).to.be.undefined;
@@ -548,44 +536,44 @@ describe("Route logics", () => {
     });
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
       stubMethods({});
-      mmsClient.getPlate.rejects(new Error("foo"));
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-      expect(
-        actions.includesMatch(
-          requestFailed(
-            "Could not get plate information from upload: foo",
-            AsyncRequest.GET_FILE_METADATA_FOR_JOB
-          )
-        )
-      ).to.be.false;
-
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
-      await logicMiddleware.whenComplete();
-
-      expect(
-        actions.includesMatch(
-          requestFailed(
-            "Could not get plate information from upload: foo",
-            AsyncRequest.GET_FILE_METADATA_FOR_JOB
-          )
-        )
-      ).to.be.true;
-    });
-    it("dispatches requestFailed if getting template fails", async () => {
-      stubMethods({});
-      mmsClient.getTemplate.rejects(new Error("foo"));
+      const errorMessage = "foo";
+      mmsClient.getPlate.rejects(new Error(errorMessage));
+      mmsClient.getFileMetadata.resolves({
+        ...fileMetadata,
+        templateId: 1,
+        annotations: [
+          { ...mockFavoriteColorAnnotation, values: ["Blue", "Green"] },
+          { ...mockWellAnnotation, values: ["A1", "B6"] },
+        ],
+      });
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
       const expectedAction = requestFailed(
-        "Could not open upload editor: foo",
+        `Could not open upload editor: ${errorMessage}`,
         AsyncRequest.GET_FILE_METADATA_FOR_JOB
       );
       expect(actions.includesMatch(expectedAction)).to.be.false;
 
-      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      await logicMiddleware.whenComplete();
+
+      expect(actions.includesMatch(expectedAction)).to.be.true;
+    });
+    it("dispatches requestFailed if getting template fails", async () => {
+      stubMethods({});
+      const errorMessage = "foo";
+      mmsClient.getTemplate.rejects(new Error(errorMessage));
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+      const expectedAction = requestFailed(
+        `Could not open upload editor: ${errorMessage}`,
+        AsyncRequest.GET_FILE_METADATA_FOR_JOB
+      );
+      expect(actions.includesMatch(expectedAction)).to.be.false;
+
+      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch(expectedAction)).to.be.true;

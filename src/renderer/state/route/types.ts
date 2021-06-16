@@ -1,5 +1,5 @@
-import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { Page, UploadStateBranch } from "../types";
 
 export interface AppPageConfig {
@@ -28,14 +28,19 @@ export interface SelectViewAction {
   type: string;
 }
 
-export interface OpenEditFileMetadataTabAction {
+export interface OpenJobAsUploadAction {
   payload: JSSJob<UploadServiceFields>; // upload job associated with file metadata
   type: string;
 }
 
-export interface OpenEditFileMetadataTabSucceededAction {
+export interface OpenJobAsUploadSucceededAction {
   payload: {
     originalUpload: UploadStateBranch;
   };
   type: string;
+}
+
+export interface Upload {
+  templateId: number;
+  uploadMetadata: UploadStateBranch;
 }

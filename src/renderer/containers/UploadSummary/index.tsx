@@ -12,6 +12,7 @@ import { TIME_DISPLAY_CONFIG } from "../../constants";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,
+  UploadStage,
 } from "../../services/job-status-client/types";
 import {
   getRequestsInProgress,
@@ -20,12 +21,9 @@ import {
 import { selectJobFilter } from "../../state/job/actions";
 import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
 import { SelectJobFilterAction } from "../../state/job/types";
+import { openJobAsUpload, startNewUpload } from "../../state/route/actions";
 import {
-  openEditFileMetadataTab,
-  startNewUpload,
-} from "../../state/route/actions";
-import {
-  OpenEditFileMetadataTabAction,
+  OpenJobAsUploadAction,
   StartNewUploadAction,
 } from "../../state/route/types";
 import {
@@ -51,7 +49,7 @@ interface Props {
   className?: string;
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
-  openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
+  openJobAsUpload: ActionCreator<OpenJobAsUploadAction>;
   requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
   retryUpload: ActionCreator<RetryUploadAction>;
@@ -110,18 +108,19 @@ class UploadSummary extends React.Component<Props, {}> {
                 Retry
               </a>
             )}
-            {IN_PROGRESS_STATUSES.includes(row.status) && (
-              <a
-                className={classNames(styles.action, {
-                  [styles.disabled]: this.props.requestsInProgress.includes(
-                    `${AsyncRequest.CANCEL_UPLOAD}-${row.jobName}`
-                  ),
-                })}
-                onClick={this.cancelJob(row)}
-              >
-                Cancel
-              </a>
-            )}
+            {IN_PROGRESS_STATUSES.includes(row.status) &&
+              row.currentStage === UploadStage.WAITING_FOR_CLIENT_COPY && (
+                <a
+                  className={classNames(styles.action, {
+                    [styles.disabled]: this.props.requestsInProgress.includes(
+                      `${AsyncRequest.CANCEL_UPLOAD}-${row.jobName}`
+                    ),
+                  })}
+                  onClick={this.cancelJob(row)}
+                >
+                  Cancel
+                </a>
+              )}
           </>
         ),
         title: "Action",
@@ -218,7 +217,7 @@ class UploadSummary extends React.Component<Props, {}> {
   };
 
   private viewJob = (row: UploadSummaryTableRow) => () => {
-    this.props.openEditFileMetadataTab(row);
+    this.props.openJobAsUpload(row);
   };
 }
 
@@ -233,7 +232,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   cancelUpload,
-  openEditFileMetadataTab,
+  openJobAsUpload,
   retryUpload,
   selectJobFilter,
   startNewUpload,

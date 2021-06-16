@@ -3,10 +3,10 @@ import { StateWithHistory } from "redux-undo";
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
 import {
-  AddMetadataServiceFields,
-  UploadServiceFields,
-} from "../../services/aicsfiles/types";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+  JSSJob,
+  JSSJobStatus,
+  UploadStage,
+} from "../../services/job-status-client/types";
 import {
   Annotation,
   AnnotationLookup,
@@ -25,6 +25,7 @@ import {
   Template,
   TemplateAnnotation,
 } from "../../services/mms-client/types";
+import { UploadServiceFields } from "../../services/types";
 import {
   feedback,
   job,
@@ -63,6 +64,7 @@ export const mockFavoriteColorAnnotation: Annotation = {
   description: "a description",
   name: "Favorite Color",
   exposeToFileUploadApp: true,
+  "annotationTypeId/Name": ColumnType.DROPDOWN,
 };
 
 export const mockFavoriteColorTemplateAnnotation: TemplateAnnotation = {
@@ -77,6 +79,7 @@ const mockIntervalAnnotation: Annotation = {
   description: "Example duration annotation",
   name: "Interval",
   exposeToFileUploadApp: true,
+  "annotationTypeId/Name": ColumnType.DURATION,
 };
 
 export const mockWellAnnotation: Annotation = {
@@ -86,6 +89,7 @@ export const mockWellAnnotation: Annotation = {
   description: "Well associated with this file",
   exposeToFileUploadApp: true,
   name: WELL_ANNOTATION_NAME,
+  "annotationTypeId/Name": ColumnType.LOOKUP,
 };
 
 export const mockNotesAnnotation: Annotation = {
@@ -95,6 +99,7 @@ export const mockNotesAnnotation: Annotation = {
   description: "Other information",
   exposeToFileUploadApp: true,
   name: NOTES_ANNOTATION_NAME,
+  "annotationTypeId/Name": ColumnType.TEXT,
 };
 
 const mockUnusableStructureAnnotation: Annotation = {
@@ -104,6 +109,7 @@ const mockUnusableStructureAnnotation: Annotation = {
   description: "Other information",
   exposeToFileUploadApp: false,
   name: "Structure",
+  "annotationTypeId/Name": ColumnType.LOOKUP,
 };
 
 export const mockMMSTemplate: Template = {
@@ -203,6 +209,19 @@ export const mockPlate: ImagingSessionIdToPlateMap = {
     plateStatusId: 1,
     seededOn: undefined,
   },
+};
+
+export const mockJob: JSSJob = {
+  created: new Date(),
+  jobId: "1340202",
+  jobName: "Upload Job created by FSS",
+  modified: new Date(),
+  originationHost: "dev-aics-fup-001",
+  service: "aicsfiles-js",
+  serviceFields: null,
+  status: JSSJobStatus.WAITING,
+  updateParent: false,
+  user: "fakeuser",
 };
 
 export const mockSelection: SelectionStateBranch = {
@@ -440,6 +459,7 @@ export const mockWorkingUploadJob: JSSJob<UploadServiceFields> = {
 
 export const mockWaitingUploadJob: JSSJob = {
   ...mockWorkingUploadJob,
+  currentStage: UploadStage.WAITING_FOR_CLIENT_COPY,
   status: JSSJobStatus.WAITING,
 };
 
@@ -479,7 +499,7 @@ export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
   user: "test_user",
 };
 
-const mockAddMetadataJob: JSSJob<AddMetadataServiceFields> = {
+const mockAddMetadataJob: JSSJob = {
   created: new Date(),
   currentStage: "Complete",
   jobId: "addMetadataJobId",
@@ -490,13 +510,6 @@ const mockAddMetadataJob: JSSJob<AddMetadataServiceFields> = {
   },
   status: JSSJobStatus.WAITING,
   user: "test_user",
-};
-
-export const mockSuccessfulAddMetadataJob: JSSJob = {
-  ...mockAddMetadataJob,
-  jobId: "addMetadataJobId2",
-  parentId: "123434234",
-  status: JSSJobStatus.SUCCEEDED,
 };
 
 export const mockWorkingAddMetadataJob: JSSJob = {
@@ -643,6 +656,7 @@ export const mockLookups: Lookup[] = [
     lookupId: 1,
     schemaName: "schema",
     tableName: "tablename",
+    "scalarTypeId/Name": "scalartypename",
   },
 ];
 

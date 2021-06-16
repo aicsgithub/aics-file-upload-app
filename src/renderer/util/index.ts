@@ -9,27 +9,18 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { memoize } from "lodash";
 import {
+  memoize,
+  omit,
   castArray,
   difference,
-  forEach,
   isNil,
-  reduce,
   startCase,
   trim,
   uniq,
 } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
-import { FileManagementSystem } from "../services/aicsfiles";
-import {
-  CustomFileMetadata,
-  FileMetadata,
-  FileToFileMetadata,
-  ImageModelMetadata,
-  UploadMetadata as FMSUploadMetadata,
-} from "../services/aicsfiles/types";
 import { ImagingSession } from "../services/labkey-client/types";
 import MMSClient from "../services/mms-client";
 import {
@@ -47,7 +38,6 @@ import {
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   UploadFile,
-  UploadMetadata,
   UploadStateBranch,
 } from "../state/types";
 
@@ -293,57 +283,6 @@ export const getPlateInfo = async (
   };
 };
 
-/**
- * Helper for logics that need to retrieve file metadata
- * @param {string[]} fileIds
- * @param {FileManagementSystem} fms
- * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
- */
-export const retrieveFileMetadata = async (
-  fileIds: string[],
-  fms: FileManagementSystem
-): Promise<ImageModelMetadata[]> => {
-  const resolvedPromises: FileMetadata[] = await Promise.all(
-    fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
-  );
-  const fileMetadataForFileIds = reduce(
-    resolvedPromises,
-    (
-      filesToFileMetadata: FileToFileMetadata<FileMetadata>,
-      fileMetadata: FileMetadata
-    ) => ({
-      ...filesToFileMetadata,
-      [fileMetadata.fileId]: fileMetadata,
-    }),
-    {}
-  );
-  return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
-};
-
-/***
- * Takes the input for starting an upload with FMS and converts it back to a format more
- * similar to the upload state branch
- * @param files the request used to start an upload through FSS
- * @param fms
- * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
- */
-export const convertUploadPayloadToImageModelMetadata = async (
-  files: FMSUploadMetadata[],
-  fms: FileManagementSystem
-): Promise<ImageModelMetadata[]> => {
-  const fileMetadataForFiles: FileToFileMetadata<CustomFileMetadata> = {};
-  for (const file of files) {
-    fileMetadataForFiles[file.file.originalPath] = {
-      annotations: file.customMetadata.annotations,
-      originalPath: file.file.originalPath,
-      shouldBeInArchive: file.file.shouldBeInArchive,
-      shouldBeInLocal: file.file.shouldBeInLocal,
-      templateId: file.customMetadata.templateId,
-    };
-  }
-  return await fms.transformFileMetadataIntoTable(fileMetadataForFiles);
-};
-
 export interface ApplyTemplateInfo {
   template: Template;
   uploads: UploadStateBranch;
@@ -384,16 +323,16 @@ export const getApplyTemplateInfo = async (
     annotations,
     booleanAnnotationTypeId
   );
-  const uploads: UploadStateBranch = {};
-  forEach(upload, (metadata: UploadMetadata, key: string) => {
-    annotationsToExclude.forEach(
-      (annotation: string) => delete metadata[annotation]
-    );
-    uploads[key] = {
-      ...additionalAnnotations,
-      ...metadata, // prevent existing annotations from getting overwritten
-    };
-  });
+  const uploads = Object.entries(upload || {}).reduce(
+    (accum, [key, metadata]) => ({
+      ...accum,
+      [key]: {
+        ...additionalAnnotations,
+        ...omit(metadata, annotationsToExclude),
+      },
+    }),
+    {} as UploadStateBranch
+  );
   return { template, uploads };
 };
 

@@ -1,5 +1,5 @@
-import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
+import { BaseServiceFields } from "../../services/types";
 import { JobFilter, UploadProgressInfo } from "../types";
 
 export interface ReceiveJobsAction {
