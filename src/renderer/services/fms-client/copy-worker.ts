@@ -77,11 +77,10 @@ ctx.onmessage = async (e: MessageEvent) => {
       const md5 = await copyFiles(originalPath, targetFolder, onProgress);
       ctx.postMessage(`${WORKER_MESSAGE_TYPE.SUCCESS}:${md5}`);
     } catch (e) {
-      ctx.postMessage(`Copy failed: ${e.message}`);
       // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror
       setTimeout(() => {
         throw e;
-      }, 500);
+      }, 0);
     }
   }
 };
