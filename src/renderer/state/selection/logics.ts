@@ -138,7 +138,7 @@ const selectBarcodeLogic = createLogic({
     const { barcode, imagingSessionIds } = action.payload;
     try {
       const { plate, wells } = await getPlateInfo(
-        barcode,
+        barcode.split("-")[0].trim(),
         imagingSessionIds,
         mmsClient,
         dispatch
