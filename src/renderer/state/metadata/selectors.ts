@@ -1,3 +1,4 @@
+import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
@@ -53,18 +54,34 @@ export const getAnnotations = createSelector(
 export const getUniqueBarcodeSearchResults = createSelector(
   [getBarcodeSearchResults],
   (allPlates: LabkeyPlateResponse[]): BarcodeSelectorOption[] => {
-    return allPlates.map((plate) => {
-      const imagingSessionIds = allPlates
+    let displayList = [];
+    const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
+    uniquePlateBarcodes.forEach((plate) => {
+      const imagingSessions = allPlates
         .filter((otherPlate) => otherPlate.barcode === plate.barcode)
-        .map((p) => p.imagingSessionId);
-      const barcodeDisplayString = plate.imagingSession
-        ? `${plate.barcode} - ${plate.imagingSession}`
-        : plate.barcode;
-      return {
-        barcode: barcodeDisplayString,
-        imagingSessionIds,
-      };
+        .map((p) => ({
+          Id: p.imagingSessionId,
+          Name: p.imagingSession,
+        }));
+      if (imagingSessions.length > 1) {
+        imagingSessions.unshift({ Id: null, Name: "" });
+      }
+      displayList = displayList.concat(
+        imagingSessions.map((session) => {
+          if (session.Name) {
+            return {
+              barcode: `${plate.barcode} - ${session.Name}`,
+              imagingSessionIds: [session.Id],
+            };
+          }
+          return {
+            barcode: plate.barcode,
+            imagingSessionIds: imagingSessions.map((i) => i.Id),
+          };
+        })
+      );
     });
+    return displayList;
   }
 );
 
