@@ -49,8 +49,8 @@ import {
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { closeUpload, openJobAsUpload } from "../actions";
-import { OPEN_JOB_AS_UPLOAD_SUCCEEDED } from "../constants";
+import { closeUpload, viewUploads } from "../actions";
+import { VIEW_UPLOADS_SUCCEEDED } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
 import Menu = Electron.Menu;
@@ -316,12 +316,12 @@ describe("Route logics", () => {
         nonEmptyStateForInitiatingUpload
       );
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch({ type: "ignore" })).to.be.true;
-      expect(actions.list.find((a) => a.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED))
-        .to.be.undefined;
+      expect(actions.list.find((a) => a.type === VIEW_UPLOADS_SUCCEEDED)).to.be
+        .undefined;
       expect(actions.list.find((a) => a.type === REQUEST_FAILED)).to.be
         .undefined;
     });
@@ -340,7 +340,7 @@ describe("Route logics", () => {
         nonEmptyStateForInitiatingUpload
       );
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(showSaveDialog.called).to.be.true;
@@ -364,7 +364,7 @@ describe("Route logics", () => {
         }),
       });
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(showSaveDialog.called).to.be.true;
@@ -376,10 +376,12 @@ describe("Route logics", () => {
       );
 
       store.dispatch(
-        openJobAsUpload({
-          ...mockSuccessfulUploadJob,
-          status: JSSJobStatus.FAILED,
-        })
+        viewUploads([
+          {
+            ...mockSuccessfulUploadJob,
+            status: JSSJobStatus.FAILED,
+          },
+        ])
       );
       await logicMiddleware.whenComplete();
 
@@ -403,7 +405,7 @@ describe("Route logics", () => {
       expect(getAlert(store.getState())).to.be.undefined;
 
       // apply
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       // after
@@ -420,13 +422,15 @@ describe("Route logics", () => {
       expect(getAlert(store.getState())).to.be.undefined;
 
       store.dispatch(
-        openJobAsUpload({
-          ...mockSuccessfulUploadJob,
-          serviceFields: {
-            ...mockSuccessfulUploadJob.serviceFields,
-            deletedFileIds: ["cat", "dog"],
+        viewUploads([
+          {
+            ...mockSuccessfulUploadJob,
+            serviceFields: {
+              ...mockSuccessfulUploadJob.serviceFields,
+              deletedFileIds: ["cat", "dog"],
+            },
           },
-        })
+        ])
       );
       await logicMiddleware.whenComplete();
 
@@ -442,11 +446,11 @@ describe("Route logics", () => {
         mockStateWithMetadata
       );
 
-      store.dispatch(openJobAsUpload(mockFailedUploadJob));
+      store.dispatch(viewUploads([mockFailedUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(actions.list.map(({ type }) => type)).includes(
-        OPEN_JOB_AS_UPLOAD_SUCCEEDED
+        VIEW_UPLOADS_SUCCEEDED
       );
     });
     it("handles case where upload tab is not open yet", async () => {
@@ -462,7 +466,7 @@ describe("Route logics", () => {
       expect(getUpload(state)).to.be.empty;
       expect(getAppliedTemplate(state)).to.be.undefined;
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       state = store.getState();
@@ -492,7 +496,7 @@ describe("Route logics", () => {
       });
       const { actions, logicMiddleware, store } = createMockReduxStore();
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(
@@ -511,7 +515,7 @@ describe("Route logics", () => {
         mockState
       );
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(
@@ -528,7 +532,7 @@ describe("Route logics", () => {
         mockStateWithMetadata
       );
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(getSelectedPlate(store.getState())).to.be.undefined;
@@ -555,7 +559,7 @@ describe("Route logics", () => {
       );
       expect(actions.includesMatch(expectedAction)).to.be.false;
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch(expectedAction)).to.be.true;
@@ -573,7 +577,7 @@ describe("Route logics", () => {
       );
       expect(actions.includesMatch(expectedAction)).to.be.false;
 
-      store.dispatch(openJobAsUpload(mockSuccessfulUploadJob));
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch(expectedAction)).to.be.true;

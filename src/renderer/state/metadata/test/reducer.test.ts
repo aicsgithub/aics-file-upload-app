@@ -1,9 +1,9 @@
 import { expect } from "chai";
 
 import {
-  openJobAsUpload,
-  openJobAsUploadSucceeded,
+  viewUploads,
   resetUpload,
+  viewUploadsSucceeded,
 } from "../../route/actions";
 import {
   mockState,
@@ -95,23 +95,23 @@ describe("metadata reducer", () => {
       expect(result.originalUpload).to.be.undefined;
     });
   });
-  describe("openJobAsUpload", () => {
+  describe("viewUploads", () => {
     it("clears currentUploadFilePath", () => {
       const result = reducer(
         {
           ...initialState,
           currentUploadFilePath: "/foo.json",
         },
-        openJobAsUpload(mockSuccessfulUploadJob)
+        viewUploads([mockSuccessfulUploadJob])
       );
       expect(result.currentUploadFilePath).to.be.undefined;
     });
   });
-  describe("openJobAsUploadSucceeded", () => {
+  describe("viewUploadsSucceeded", () => {
     it("sets originalUpload", () => {
       const result = reducer(
         initialState,
-        openJobAsUploadSucceeded(mockWellUpload)
+        viewUploadsSucceeded(mockWellUpload)
       );
       expect(result.originalUpload).to.equal(mockWellUpload);
     });

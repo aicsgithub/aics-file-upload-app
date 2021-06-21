@@ -75,13 +75,9 @@ import {
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { openJobAsUploadSucceeded, resetUpload, selectPage } from "./actions";
-import {
-  CLOSE_UPLOAD,
-  OPEN_JOB_AS_UPLOAD,
-  START_NEW_UPLOAD,
-} from "./constants";
-import { OpenJobAsUploadAction, Upload } from "./types";
+import { resetUpload, selectPage, viewUploadsSucceeded } from "./actions";
+import { CLOSE_UPLOAD, START_NEW_UPLOAD, VIEW_UPLOADS } from "./constants";
+import { Upload, ViewUploadsAction } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
 const getFileMenu = (menu: Menu): MenuItem | undefined =>
@@ -253,6 +249,19 @@ function convertUploadRequestsToUploadStateBranch(
 
   let templateId: number | undefined = undefined;
   const uploadMetadata = files.reduce((uploadSoFar, file) => {
+    if (!file.customMetadata) {
+      const key = getUploadRowKey({
+        file: file.file.originalPath,
+      });
+      return {
+        ...uploadSoFar,
+        [key]: {
+          file: file.file.originalPath,
+          fileId: file.fileId,
+        },
+      };
+    }
+
     templateId = file.customMetadata.templateId || templateId;
     return file.customMetadata.annotations.reduce(
       (keyToMetadataSoFar: UploadStateBranch, annotation: AnnotationValue) => {
@@ -362,17 +371,16 @@ const RELEVANT_FILE_COLUMNS = [
   "ModifiedBy",
 ];
 
-const openJobAsUploadLogic = createLogic({
+const viewUploadsLogic = createLogic({
   process: async (
     {
-      action,
       ctx,
       getApplicationMenu,
       getState,
       labkeyClient,
       logger,
       mmsClient,
-    }: ReduxLogicProcessDependenciesWithAction<OpenJobAsUploadAction>,
+    }: ReduxLogicProcessDependenciesWithAction<ViewUploadsAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -386,28 +394,7 @@ const openJobAsUploadLogic = createLogic({
       );
 
       // Second, we fetch the file metadata
-      let files = action.payload.serviceFields?.files;
-      if (!files || ctx.fileIds) {
-        files = await Promise.all(
-          ctx.fileIds.map(async (fileId: string) => {
-            const [labkeyFileMetadata, customMetadata] = await Promise.all([
-              labkeyClient.selectFirst<LabKeyFileMetadata>(
-                LK_SCHEMA.FMS,
-                "File",
-                RELEVANT_FILE_COLUMNS,
-                [LabkeyClient.createFilter("FileId", fileId)]
-              ),
-              mmsClient.getFileMetadata(fileId),
-            ]);
-            return {
-              ...labkeyFileMetadata,
-              fileId,
-              customMetadata,
-              file: { originalPath: labkeyFileMetadata.localFilePath },
-            };
-          })
-        );
-      }
+      const { files } = ctx;
       const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
 
       const actions: AnyAction[] = [];
@@ -450,7 +437,7 @@ const openJobAsUploadLogic = createLogic({
         batchActions([
           ...actions,
           updateUploadsAction,
-          openJobAsUploadSucceeded(updateUploadsAction.payload.uploads),
+          viewUploadsSucceeded(updateUploadsAction.payload.uploads),
         ])
       );
     } catch (e) {
@@ -463,9 +450,9 @@ const openJobAsUploadLogic = createLogic({
     }
     done();
   },
-  type: OPEN_JOB_AS_UPLOAD,
+  type: VIEW_UPLOADS,
   validate: async (
-    deps: ReduxLogicTransformDependenciesWithAction<OpenJobAsUploadAction>,
+    deps: ReduxLogicTransformDependenciesWithAction<ViewUploadsAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -485,32 +472,55 @@ const openJobAsUploadLogic = createLogic({
       return;
     }
 
-    // Validate the job passed in as the action payload
-    const { payload: job } = action;
-    if (
-      job.status === JSSJobStatus.SUCCEEDED &&
-      job.serviceFields?.result &&
-      Array.isArray(job?.serviceFields?.result) &&
-      !isEmpty(job?.serviceFields?.result)
-    ) {
-      const originalFileIds = job.serviceFields.result.map(
-        ({ fileId }: FSSResponseFile) => fileId
-      );
-      const deletedFileIds = job.serviceFields.deletedFileIds
-        ? castArray(job.serviceFields.deletedFileIds)
-        : [];
-      ctx.fileIds = difference(originalFileIds, deletedFileIds);
-      if (isEmpty(ctx.fileIds)) {
-        reject(setErrorAlert("All files in this upload have been deleted!"));
-      } else {
-        next(action);
-      }
-    } else if (job.serviceFields?.files && !isEmpty(job.serviceFields?.files)) {
-      next(action);
-    } else {
-      reject(setErrorAlert("upload has missing information"));
-    }
+    // Validate the uploads passed in as the action payload
+    const { payload: uploads } = action;
+    ctx.files = await Promise.all(
+      uploads.map(async (upload) => {
+        if (
+          upload.status === JSSJobStatus.SUCCEEDED &&
+          upload.serviceFields?.result &&
+          Array.isArray(upload?.serviceFields?.result)
+        ) {
+          const originalFileIds = upload.serviceFields.result.map(
+            ({ fileId }: FSSResponseFile) => fileId
+          );
+          const deletedFileIds = upload.serviceFields.deletedFileIds
+            ? castArray(upload.serviceFields.deletedFileIds)
+            : [];
+          const fileIds = difference(originalFileIds, deletedFileIds);
+          return await Promise.all(
+            fileIds.map(async (fileId: string) => {
+              const [labkeyFileMetadata, customMetadata] = await Promise.all([
+                deps.labkeyClient.selectFirst<LabKeyFileMetadata>(
+                  LK_SCHEMA.FMS,
+                  "File",
+                  RELEVANT_FILE_COLUMNS,
+                  [LabkeyClient.createFilter("FileId", fileId)]
+                ),
+                deps.mmsClient.getFileMetadata(fileId),
+              ]);
+              return {
+                ...labkeyFileMetadata,
+                fileId,
+                customMetadata,
+                file: { originalPath: labkeyFileMetadata.localFilePath },
+              };
+            })
+          );
+        } else if (
+          upload.serviceFields?.files &&
+          !isEmpty(upload.serviceFields?.files)
+        ) {
+          return upload.serviceFields?.files;
+        }
+
+        reject(setErrorAlert("upload has missing information"));
+        return [];
+      })
+    );
+
+    next(action);
   },
 });
 
-export default [openJobAsUploadLogic, resetUploadLogic];
+export default [viewUploadsLogic, resetUploadLogic];

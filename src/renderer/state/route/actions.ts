@@ -3,21 +3,21 @@ import { Page, UploadStateBranch } from "../types";
 
 import {
   CLOSE_UPLOAD,
-  OPEN_JOB_AS_UPLOAD,
-  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
   RESET_UPLOAD,
   SELECT_PAGE,
   SELECT_VIEW,
   START_NEW_UPLOAD,
+  VIEW_UPLOADS,
+  VIEW_UPLOADS_SUCCEEDED,
 } from "./constants";
 import {
   CloseUploadAction,
-  OpenJobAsUploadAction,
-  OpenJobAsUploadSucceededAction,
   ResetUploadAction,
   SelectPageAction,
   SelectViewAction,
   StartNewUploadAction,
+  ViewUploadsAction,
+  ViewUploadsSucceededAction,
 } from "./types";
 
 export function closeUpload(): CloseUploadAction {
@@ -54,20 +54,20 @@ export function selectView(view: Page): SelectViewAction {
   };
 }
 
-export function openJobAsUpload(job: JSSJob): OpenJobAsUploadAction {
+export function viewUploads(uploads: JSSJob[]): ViewUploadsAction {
   return {
-    payload: job,
-    type: OPEN_JOB_AS_UPLOAD,
+    payload: uploads,
+    type: VIEW_UPLOADS,
   };
 }
 
-export function openJobAsUploadSucceeded(
-  originalUpload: UploadStateBranch
-): OpenJobAsUploadSucceededAction {
+export function viewUploadsSucceeded(
+  originalUploads: UploadStateBranch
+): ViewUploadsSucceededAction {
   return {
     payload: {
-      originalUpload,
+      originalUploads,
     },
-    type: OPEN_JOB_AS_UPLOAD_SUCCEEDED,
+    type: VIEW_UPLOADS_SUCCEEDED,
   };
 }

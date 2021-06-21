@@ -4,7 +4,7 @@ import { createSelector } from "reselect";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {
   PlateResponse,
@@ -12,7 +12,6 @@ import {
   SolutionLot,
   WellResponse,
 } from "../../services/mms-client/types";
-import { UploadServiceFields } from "../../services/types";
 import { getWellLabel, getWellLabelAndImagingSessionName } from "../../util";
 import { ROW_COUNT_COLUMN } from "../constants";
 import { getImagingSessions, getUnits } from "../metadata/selectors";
@@ -49,7 +48,8 @@ export const getSelectedImagingSessionIds = (state: State) =>
   state.selection.present.imagingSessionIds;
 export const getSubFileSelectionModalFile = (state: State) =>
   state.selection.present.subFileSelectionModalFile;
-export const getSelectedJob = (state: State) => state.selection.present.job;
+export const getSelectedUploads = (state: State) =>
+  state.selection.present.uploads;
 export const getMassEditRow = (state: State) =>
   state.selection.present.massEditRow;
 
@@ -216,11 +216,18 @@ export const getAllPlates = createSelector(
   }
 );
 
-export const getIsSelectedJobInFlight = createSelector(
-  [getSelectedJob],
-  (selectedJob?: JSSJob<UploadServiceFields>): boolean =>
-    !!selectedJob &&
-    ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(selectedJob.status)
+export const getIsExistingUpload = createSelector(
+  [getSelectedUploads],
+  (uploads): boolean => uploads.length !== 0
+);
+
+export const getAreSelectedUploadsInFlight = createSelector(
+  [getSelectedUploads],
+  (selectedUploads): boolean =>
+    selectedUploads.some(
+      (upload) =>
+        ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(upload.status)
+    )
 );
 
 // Maps MassEditRow to shape of data needed by react-table

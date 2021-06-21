@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { shallow } from "enzyme";
 import * as React from "react";
 
-import UploadProgress from "../";
+import UploadProgress from "..";
 import { JSSJobStatus } from "../../../../services/job-status-client/types";
 import { mockWorkingUploadJob } from "../../../../state/test/mocks";
 import { UploadSummaryTableRow } from "../../../../state/types";

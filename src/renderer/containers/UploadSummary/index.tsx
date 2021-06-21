@@ -1,241 +1,139 @@
-import { Button, Col, Empty, Radio, Row, Spin, Table } from "antd";
-import { RadioChangeEvent } from "antd/es/radio";
-import { ColumnProps } from "antd/lib/table";
+import { Button, Tooltip } from "antd";
 import * as classNames from "classnames";
-import { map } from "lodash";
+import { remote } from "electron";
+import { isEmpty } from "lodash";
 import * as React from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { useDispatch, useSelector } from "react-redux";
+import { Dispatch } from "redux";
 
-import StatusCircle from "../../components/StatusCircle";
-import { TIME_DISPLAY_CONFIG } from "../../constants";
 import {
+  FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
-  JSSJobStatus,
-  UploadStage,
 } from "../../services/job-status-client/types";
-import {
-  getRequestsInProgress,
-  getRequestsInProgressContains,
-} from "../../state/feedback/selectors";
-import { selectJobFilter } from "../../state/job/actions";
-import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
-import { SelectJobFilterAction } from "../../state/job/types";
-import { openJobAsUpload, startNewUpload } from "../../state/route/actions";
-import {
-  OpenJobAsUploadAction,
-  StartNewUploadAction,
-} from "../../state/route/types";
-import {
-  AsyncRequest,
-  JobFilter,
-  State,
-  UploadSummaryTableRow,
-} from "../../state/types";
-import { cancelUpload, retryUpload } from "../../state/upload/actions";
-import {
-  CancelUploadAction,
-  RetryUploadAction,
-} from "../../state/upload/types";
+import { getRequestsInProgress } from "../../state/feedback/selectors";
+import { getJobsByTemplateUsage } from "../../state/job/selectors";
+import { startNewUpload, viewUploads } from "../../state/route/actions";
+import { AsyncRequest, UploadSummaryTableRow } from "../../state/types";
+import { cancelUploads, retryUploads } from "../../state/upload/actions";
 
-import UploadProgress from "./UploadProgress";
+import UploadTable from "./UploadTable";
 
 const styles = require("./styles.pcss");
 
-const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
-
 interface Props {
-  cancelUpload: ActionCreator<CancelUploadAction>;
   className?: string;
-  jobFilter: JobFilter;
-  jobs: UploadSummaryTableRow[];
-  openJobAsUpload: ActionCreator<OpenJobAsUploadAction>;
-  requestsInProgress: Array<string | AsyncRequest>;
-  requestingJobs: boolean;
-  retryUpload: ActionCreator<RetryUploadAction>;
-  selectJobFilter: ActionCreator<SelectJobFilterAction>;
-  startNewUpload: ActionCreator<StartNewUploadAction>;
 }
 
-class UploadSummary extends React.Component<Props, {}> {
-  private get columns(): ColumnProps<UploadSummaryTableRow>[] {
-    return [
-      {
-        align: "center",
-        dataIndex: "status",
-        key: "status",
-        render: (status: JSSJobStatus) => <StatusCircle status={status} />,
-        title: "Status",
-        width: "90px",
+function getContextMenuItems(
+  dispatch: Dispatch,
+  selectedUploads: UploadSummaryTableRow[]
+) {
+  return remote.Menu.buildFromTemplate([
+    {
+      label: "View",
+      click: () => {
+        dispatch(viewUploads(selectedUploads));
       },
-      {
-        dataIndex: "jobName",
-        ellipsis: true,
-        key: "fileName",
-        title: "File Name",
-        width: "100%",
-        render: (filename: string, row: UploadSummaryTableRow) => (
-          <>
-            {filename}
-            <UploadProgress row={row} />
-          </>
-        ),
+    },
+    {
+      label: "Retry",
+      enabled: selectedUploads.some((r) => FAILED_STATUSES.includes(r.status)),
+      click: () => {
+        dispatch(retryUploads(selectedUploads));
       },
-      {
-        dataIndex: "modified",
-        key: "modified",
-        render: (modified: Date) =>
-          modified.toLocaleTimeString([], TIME_DISPLAY_CONFIG),
-        title: "Last Updated",
-        width: "300px",
+    },
+    {
+      label: "Cancel",
+      enabled: selectedUploads.some((r) =>
+        IN_PROGRESS_STATUSES.includes(r.status)
+      ),
+      click: () => {
+        dispatch(cancelUploads(selectedUploads));
       },
-      {
-        key: "action",
-        render: (_: any, row: UploadSummaryTableRow) => (
-          <>
-            <a className={styles.action} onClick={this.viewJob(row)}>
-              View
-            </a>
-            {row.status === JSSJobStatus.FAILED && (
-              <a
-                className={classNames(styles.action, {
-                  [styles.disabled]: this.props.requestsInProgress.includes(
-                    `${AsyncRequest.UPLOAD}-${row.jobName}`
-                  ),
-                })}
-                onClick={this.retryJob(row)}
+    },
+  ]);
+}
+
+export default function UploadSummary(props: Props) {
+  const dispatch = useDispatch();
+  const { jobsWithTemplates, jobsWithoutTemplates } = useSelector(
+    getJobsByTemplateUsage
+  );
+  const requestsInProgress = useSelector(getRequestsInProgress);
+  const isRequestingJobs = requestsInProgress.includes(AsyncRequest.GET_JOBS);
+
+  const [selectedUploads, setSelectedUploads] = React.useState<
+    UploadSummaryTableRow[]
+  >([]);
+
+  return (
+    <div className={classNames(styles.container, props.className)}>
+      <div className={styles.header}>
+        <h2>My Uploads</h2>
+        <div className={styles.tableToolBar}>
+          <div>
+            <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
+              <Button
+                className={styles.tableToolBarButton}
+                onClick={() => dispatch(viewUploads(selectedUploads))}
+                disabled={isEmpty(selectedUploads)}
+                icon="file-search"
+              >
+                View
+              </Button>
+            </Tooltip>
+            <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
+              <Button
+                className={styles.tableToolBarButton}
+                onClick={() => dispatch(retryUploads(selectedUploads))}
+                disabled={isEmpty(selectedUploads) || true}
+                icon="redo"
               >
                 Retry
-              </a>
-            )}
-            {IN_PROGRESS_STATUSES.includes(row.status) &&
-              row.currentStage === UploadStage.WAITING_FOR_CLIENT_COPY && (
-                <a
-                  className={classNames(styles.action, {
-                    [styles.disabled]: this.props.requestsInProgress.includes(
-                      `${AsyncRequest.CANCEL_UPLOAD}-${row.jobName}`
-                    ),
-                  })}
-                  onClick={this.cancelJob(row)}
-                >
-                  Cancel
-                </a>
-              )}
-          </>
-        ),
-        title: "Action",
-        width: "200px",
-      },
-    ];
-  }
-
-  constructor(props: Props) {
-    super(props);
-    this.state = {};
-  }
-
-  public render() {
-    const { className, jobFilter, jobs, requestingJobs } = this.props;
-    return (
-      <div className={classNames(styles.container, className)}>
-        <div className={styles.section}>
-          <div className={styles.header}>
-            <Row>
-              <h2>Your Uploads</h2>
-            </Row>
-            <Row type="flex" justify="space-between" align="middle">
-              <Col>
-                <Radio.Group
-                  onChange={this.selectJobFilter}
-                  value={jobFilter}
-                  className={styles.filters}
-                >
-                  {jobStatusOptions.map((option) => (
-                    <Radio.Button key={option} value={option}>
-                      {option}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-              </Col>
-              <Col>
-                <Button
-                  className={styles.createNewUploadButton}
-                  icon="plus"
-                  onClick={this.props.startNewUpload}
-                >
-                  Upload New Files
-                </Button>
-              </Col>
-            </Row>
+              </Button>
+            </Tooltip>
+            <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
+              <Button
+                className={styles.tableToolBarButton}
+                onClick={() => dispatch(cancelUploads(selectedUploads))}
+                disabled={isEmpty(selectedUploads) || true}
+                icon="stop"
+              >
+                Cancel
+              </Button>
+            </Tooltip>
           </div>
-          {jobs.length ? (
-            <Table
-              className={classNames(styles.content, styles.jobTable)}
-              columns={this.columns}
-              dataSource={jobs}
-            />
-          ) : (
-            <div className={classNames(styles.content, styles.empty)}>
-              {requestingJobs ? (
-                <Spin size="large" />
-              ) : (
-                <Empty
-                  description={`No ${
-                    jobFilter === JobFilter.All ? "" : `${jobFilter} `
-                  } Uploads`}
-                />
-              )}
-            </div>
-          )}
+          <Button
+            className={styles.newUploadButton}
+            icon="plus"
+            onClick={() => dispatch(startNewUpload())}
+          >
+            Upload
+          </Button>
         </div>
       </div>
-    );
-  }
-
-  private selectJobFilter = (e: RadioChangeEvent): void => {
-    this.props.selectJobFilter(e.target.value);
-  };
-
-  private retryJob = (row: UploadSummaryTableRow) => () => {
-    if (
-      !this.props.requestsInProgress.includes(
-        `${AsyncRequest.UPLOAD}-${row.jobName}`
-      )
-    ) {
-      this.props.retryUpload(row);
-    }
-  };
-
-  private cancelJob = (row: UploadSummaryTableRow) => () => {
-    if (
-      !this.props.requestsInProgress.includes(
-        `${AsyncRequest.CANCEL_UPLOAD}-${row.jobName}`
-      )
-    ) {
-      this.props.cancelUpload(row);
-    }
-  };
-
-  private viewJob = (row: UploadSummaryTableRow) => () => {
-    this.props.openJobAsUpload(row);
-  };
+      <div className={styles.tableContainer}>
+        <UploadTable
+          isLoading={isRequestingJobs}
+          title="Uploads Without Metadata Templates"
+          uploads={jobsWithoutTemplates}
+          selectedUploads={selectedUploads}
+          setSelectedUploads={setSelectedUploads}
+          onContextMenu={() =>
+            getContextMenuItems(dispatch, selectedUploads).popup()
+          }
+        />
+        <UploadTable
+          isLoading={isRequestingJobs}
+          title="Uploads With Metadata Templates"
+          uploads={jobsWithTemplates}
+          selectedUploads={selectedUploads}
+          setSelectedUploads={setSelectedUploads}
+          onContextMenu={() =>
+            getContextMenuItems(dispatch, selectedUploads).popup()
+          }
+        />
+      </div>
+    </div>
+  );
 }
-
-function mapStateToProps(state: State) {
-  return {
-    jobFilter: getJobFilter(state),
-    jobs: getJobsForTable(state),
-    requestsInProgress: getRequestsInProgress(state),
-    requestingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
-  };
-}
-
-const dispatchToPropsMap = {
-  cancelUpload,
-  openJobAsUpload,
-  retryUpload,
-  selectJobFilter,
-  startNewUpload,
-};
-
-export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);

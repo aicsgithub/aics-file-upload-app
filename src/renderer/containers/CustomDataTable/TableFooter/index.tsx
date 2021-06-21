@@ -5,7 +5,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { openFilesFromDialog } from "../../../state/selection/actions";
-import { getSelectedJob } from "../../../state/selection/selectors";
+import { getIsExistingUpload } from "../../../state/selection/selectors";
 
 const styles = require("./styles.pcss");
 
@@ -20,9 +20,9 @@ const openDialogOptions: OpenDialogOptions = {
 */
 export default function TableFooter() {
   const dispatch = useDispatch();
-  const selectedJob = useSelector(getSelectedJob);
+  const isExistingUpload = useSelector(getIsExistingUpload);
 
-  if (selectedJob) {
+  if (isExistingUpload) {
     return null;
   }
 

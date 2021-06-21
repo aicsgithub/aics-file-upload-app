@@ -28,14 +28,14 @@ export interface SelectViewAction {
   type: string;
 }
 
-export interface OpenJobAsUploadAction {
-  payload: JSSJob<UploadServiceFields>; // upload job associated with file metadata
+export interface ViewUploadsAction {
+  payload: JSSJob<UploadServiceFields>[];
   type: string;
 }
 
-export interface OpenJobAsUploadSucceededAction {
+export interface ViewUploadsSucceededAction {
   payload: {
-    originalUpload: UploadStateBranch;
+    originalUploads: UploadStateBranch;
   };
   type: string;
 }

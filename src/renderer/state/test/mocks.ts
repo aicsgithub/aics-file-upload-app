@@ -232,6 +232,7 @@ export const mockSelection: SelectionStateBranch = {
   plate: mockPlate,
   selectedWells: [],
   user: "fake_user",
+  uploads: [],
   wells: mockWells,
 };
 

@@ -39,7 +39,7 @@ function getStatusesFromFilter(jobFilter: JobFilter): string[] {
 
 export const getFilteredJobs = createSelector(
   [getUploadJobs, getJobFilter],
-  (uploadJobs, jobFilter): JSSJob[] => {
+  (uploadJobs, jobFilter): JSSJob<UploadServiceFields>[] => {
     const statuses = getStatusesFromFilter(jobFilter);
     return uploadJobs.filter((job) => statuses.includes(job.status));
   }
@@ -78,6 +78,8 @@ export const getJobsForTable = createSelector(
         created: new Date(job.created),
         modified: new Date(job.modified),
         progress: copyProgress[job.jobId],
+        fileIds: job.serviceFields?.result?.map((file) => file.fileId),
+        filePaths: job.serviceFields?.result?.map((file) => file.readPath),
         serviceFields: {
           ...job.serviceFields,
           files: job.serviceFields?.groupId
@@ -92,6 +94,27 @@ export const getJobsForTable = createSelector(
             : job.serviceFields?.result || [],
         },
       })) as UploadSummaryTableRow[];
+  }
+);
+
+export const getJobsByTemplateUsage = createSelector(
+  [getJobsForTable],
+  (
+    jobs
+  ): {
+    jobsWithTemplates: UploadSummaryTableRow[];
+    jobsWithoutTemplates: UploadSummaryTableRow[];
+  } => {
+    const jobsWithTemplates: UploadSummaryTableRow[] = [];
+    const jobsWithoutTemplates: UploadSummaryTableRow[] = [];
+    jobs.forEach((job) => {
+      if (job.serviceFields?.files?.[0].customMetadata) {
+        jobsWithTemplates.push(job);
+      } else {
+        jobsWithoutTemplates.push(job);
+      }
+    });
+    return { jobsWithTemplates, jobsWithoutTemplates };
   }
 );
 

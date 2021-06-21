@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { resetUpload, openJobAsUpload } from "../../route/actions";
+import { resetUpload, viewUploads } from "../../route/actions";
 import {
   getMockStateWithHistory,
   mockPlate,
@@ -77,7 +77,7 @@ describe("selection reducer", () => {
       expect(present.plate).to.deep.equal(initialState.plate);
       expect(present.wells).to.deep.equal(initialState.wells);
       expect(present.selectedWells).to.deep.equal(initialState.selectedWells);
-      expect(present.job).to.be.undefined;
+      expect(present.uploads).to.be.empty;
 
       expect(present.user).to.equal(getSelectedUser(nonEmptySelectionsState));
     });
@@ -93,13 +93,13 @@ describe("selection reducer", () => {
       expect(result.present.wells).to.equal(mockWells);
     });
   });
-  describe("openJobAsUpload", () => {
-    it("sets selected job", () => {
+  describe("viewUploads", () => {
+    it("sets selected uploads", () => {
       const result = reducer(
         getMockStateWithHistory(initialState),
-        openJobAsUpload(mockSuccessfulUploadJob)
+        viewUploads([mockSuccessfulUploadJob])
       );
-      expect(result.present.job).to.equal(mockSuccessfulUploadJob);
+      expect(result.present.uploads).to.equal([mockSuccessfulUploadJob]);
     });
   });
 });

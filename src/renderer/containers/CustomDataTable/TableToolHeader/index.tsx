@@ -6,8 +6,8 @@ import { Row } from "react-table";
 
 import { startMassEdit } from "../../../state/selection/actions";
 import {
-  getIsSelectedJobInFlight,
-  getSelectedJob,
+  getIsExistingUpload,
+  getAreSelectedUploadsInFlight,
 } from "../../../state/selection/selectors";
 import { TutorialStep } from "../../../state/types";
 import { jumpToUpload, removeUploads } from "../../../state/upload/actions";
@@ -32,8 +32,8 @@ export default function TableToolHeader(props: Props) {
   const dispatch = useDispatch();
   const canUndo = useSelector(getCanUndoUpload);
   const canRedo = useSelector(getCanRedoUpload);
-  const selectedJob = useSelector(getSelectedJob);
-  const isReadOnly = useSelector(getIsSelectedJobInFlight);
+  const isReadOnly = useSelector(getAreSelectedUploadsInFlight);
+  const isExistingUpload = useSelector(getIsExistingUpload);
   const selectedRowIds = props.selectedRows.map((row) => row.id);
 
   if (isReadOnly) {
@@ -76,7 +76,7 @@ export default function TableToolHeader(props: Props) {
       <Tooltip title="Delete Selected Rows" mouseLeaveDelay={0}>
         <Button
           onClick={() => dispatch(removeUploads(selectedRowIds))}
-          disabled={isEmpty(props.selectedRows) || !!selectedJob}
+          disabled={isEmpty(props.selectedRows) || isExistingUpload}
           icon="delete"
           type="link"
         />

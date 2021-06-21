@@ -7,8 +7,8 @@ import {
 } from "../../metadata/actions";
 import {
   resetUpload,
-  openJobAsUpload,
-  openJobAsUploadSucceeded,
+  viewUploads,
+  viewUploadsSucceeded,
 } from "../../route/actions";
 import {
   openTemplateEditor,
@@ -35,7 +35,7 @@ import {
 import { AlertType, AsyncRequest, FeedbackStateBranch } from "../../types";
 import {
   applyTemplate,
-  cancelUpload,
+  cancelUploads,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
@@ -43,7 +43,7 @@ import {
   initiateUpload,
   initiateUploadFailed,
   initiateUploadSucceeded,
-  retryUpload,
+  retryUploads,
   submitFileMetadataUpdate,
   uploadFailed,
   uploadSucceeded,
@@ -277,11 +277,11 @@ describe("feedback reducer", () => {
       expect(result.uploadError).to.be.undefined;
     });
   });
-  describe("openJobAsUpload", () => {
+  describe("viewUploads", () => {
     it("adds request in progress for GET_FILE_METADATA_FOR_JOB", () => {
       const result = reducer(
         initialState,
-        openJobAsUpload(mockSuccessfulUploadJob)
+        viewUploads([mockSuccessfulUploadJob])
       );
       expect(
         result.requestsInProgress.includes(
@@ -424,10 +424,14 @@ describe("feedback reducer", () => {
     it("adds UPLOAD to requestsInProgress and sets info alert", () => {
       const result = reducer(
         initialState,
-        retryUpload({
-          ...mockFailedUploadJob,
-          key: "something",
-        })
+        retryUploads([
+          {
+            ...mockFailedUploadJob,
+            key: "something",
+            fileIds: [],
+            filePaths: [],
+          },
+        ])
       );
       expect(result.requestsInProgress).includes(
         `${AsyncRequest.UPLOAD}-${mockFailedUploadJob.jobName}`
@@ -438,12 +442,20 @@ describe("feedback reducer", () => {
       });
     });
   });
-  describe("cancelUpload", () => {
+  describe("cancelUploads", () => {
     it("adds CANCEL_UPLOAD-jobName to requestsInProgress and sets info alert", () => {
       const requestType = `${AsyncRequest.CANCEL_UPLOAD}-foo`;
       const result = reducer(
         initialState,
-        cancelUpload({ ...mockSuccessfulUploadJob, jobId: "foo", key: "cat" })
+        cancelUploads([
+          {
+            ...mockSuccessfulUploadJob,
+            jobId: "foo",
+            key: "cat",
+            fileIds: [],
+            filePaths: [],
+          },
+        ])
       );
       expect(result.requestsInProgress.includes(requestType));
       expect(result.alert).to.deep.equal({
@@ -563,7 +575,7 @@ describe("feedback reducer", () => {
           ...initialState,
           requestsInProgress: [AsyncRequest.GET_FILE_METADATA_FOR_JOB],
         },
-        openJobAsUploadSucceeded(mockWellUpload)
+        viewUploadsSucceeded(mockWellUpload)
       );
       expect(
         result.requestsInProgress.includes(

@@ -249,7 +249,7 @@ export interface MetadataStateBranch {
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
-  originalUpload?: UploadStateBranch;
+  originalUploads?: UploadStateBranch;
   templates: LabkeyTemplate[];
   units: Unit[];
   // Gets updated every time app changes pages.
@@ -304,7 +304,7 @@ export interface UploadTabSelections {
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
   hasNoPlateToUpload: boolean;
-  job?: JSSJob<UploadServiceFields>;
+  uploads: JSSJob<UploadServiceFields>[];
   massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
   rowsSelectedForDragEvent?: UploadRowTableId[];
@@ -453,6 +453,8 @@ export interface DragAndDropFile {
 export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
   // used by antd's Table component to uniquely identify rows
   key: string;
+  fileIds: string[];
+  filePaths: string[];
   progress?: UploadProgressInfo;
 }
 
