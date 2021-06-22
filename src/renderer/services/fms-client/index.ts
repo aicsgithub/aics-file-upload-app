@@ -348,6 +348,7 @@ export default class FileManagementSystem {
           }
 
           const md5 = message.split(":")[1];
+          this.jobIdToWorkerMap[jobId].terminate();
           delete this.jobIdToWorkerMap[jobId];
           resolve(md5);
         } else if (message.includes(WORKER_MESSAGE_TYPE.PROGRESS_UPDATE)) {
