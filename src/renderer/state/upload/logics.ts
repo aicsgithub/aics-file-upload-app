@@ -38,13 +38,13 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
-import { closeUpload, openJobAsUpload, resetUpload } from "../route/actions";
+import { closeUpload, viewUploads, resetUpload } from "../route/actions";
 import {
   handleStartingNewUploadJob,
   resetHistoryActions,
 } from "../route/logics";
 import { updateMassEditRow } from "../selection/actions";
-import { getMassEditRow, getSelectedJob } from "../selection/selectors";
+import { getMassEditRow, getSelectedUploads } from "../selection/selectors";
 import { getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -80,12 +80,12 @@ import {
 import {
   ADD_UPLOAD_FILES,
   APPLY_TEMPLATE,
-  CANCEL_UPLOAD,
+  CANCEL_UPLOADS,
   getUploadRowKey,
   INITIATE_UPLOAD,
   isSubImageOnlyRow,
   OPEN_UPLOAD_DRAFT,
-  RETRY_UPLOAD,
+  RETRY_UPLOADS,
   SAVE_UPLOAD_DRAFT,
   SUBMIT_FILE_METADATA_UPDATE,
   UPDATE_SUB_IMAGES,
@@ -262,7 +262,7 @@ const initiateUploadLogic = createLogic({
   warnTimeout: 0,
 });
 
-export const cancelUploadLogic = createLogic({
+export const cancelUploadsLogic = createLogic({
   process: async (
     {
       action,
@@ -272,25 +272,29 @@ export const cancelUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const job = action.payload;
-    try {
-      await fms.cancelUpload(job.jobId);
-      dispatch(cancelUploadSucceeded(job.jobName || ""));
-    } catch (e) {
-      logger.error(`Cancel upload failed`, e);
-      dispatch(
-        cancelUploadFailed(
-          job.jobName || "",
-          `Cancel upload ${job.jobName} failed: ${e.message}`
-        )
-      );
-    }
+    const jobs = action.payload;
+    await Promise.all(
+      jobs.map(async (job) => {
+        try {
+          await fms.cancelUpload(job.jobId);
+          dispatch(cancelUploadSucceeded(job.jobName || ""));
+        } catch (e) {
+          logger.error(`Cancel upload failed`, e);
+          dispatch(
+            cancelUploadFailed(
+              job.jobName || "",
+              `Cancel upload ${job.jobName} failed: ${e.message}`
+            )
+          );
+        }
+      })
+    );
     done();
   },
-  type: CANCEL_UPLOAD,
+  type: CANCEL_UPLOADS,
 });
 
-const retryUploadLogic = createLogic({
+const retryUploadsLogic = createLogic({
   process: async (
     {
       action,
@@ -300,23 +304,27 @@ const retryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const job = action.payload;
-    const fileNames =
-      job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
-    try {
-      await fms.retryUpload(job.jobId, (jobId) =>
-        handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
-          dispatch(updateUploadProgressInfo(jobId, progress))
-        )
-      );
-    } catch (e) {
-      const error = `Retry upload ${job.jobName} failed: ${e.message}`;
-      logger.error(`Retry for jobId=${job.jobId} failed`, e);
-      dispatch(uploadFailed(error, job.jobName || ""));
-    }
+    const jobs = action.payload;
+    await Promise.all(
+      jobs.map(async (job) => {
+        const fileNames =
+          job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
+        try {
+          await fms.retryUpload(job.jobId, (jobId) =>
+            handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
+              dispatch(updateUploadProgressInfo(jobId, progress))
+            )
+          );
+        } catch (e) {
+          const error = `Retry upload ${job.jobName} failed: ${e.message}`;
+          logger.error(`Retry for jobId=${job.jobId} failed`, e);
+          dispatch(uploadFailed(error, job.jobName || ""));
+        }
+      })
+    );
     done();
   },
-  type: RETRY_UPLOAD,
+  type: RETRY_UPLOADS,
   warnTimeout: 0,
 });
 
@@ -780,11 +788,11 @@ const openUploadLogic = createLogic({
 
     try {
       ctx.draft = JSON.parse((await readFile(ctx.filePath, "utf8")) as string);
-      const selectedJob = getSelectedJob(ctx.draft);
-      if (selectedJob) {
-        // If a selectedJob exists on the draft, we know that the upload has been submitted before
-        // and we actually want to edit it. This will go through the openJobAsUpload logics instead.
-        reject(openJobAsUpload(selectedJob));
+      const selectedUploads = getSelectedUploads(ctx.draft);
+      if (selectedUploads.length) {
+        // If selectedUploads exists on the draft, we know that the upload has been submitted before
+        // and we actually want to edit it. This will go through the viewUploads logics instead.
+        reject(viewUploads(selectedUploads));
       } else {
         next(action);
       }
@@ -804,13 +812,10 @@ const submitFileMetadataUpdateLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    let selectedJob;
+    const selectedUploads = getSelectedUploads(getState());
+    const combinedNames = selectedUploads.map((u) => u.jobName).join(", ");
     try {
-      selectedJob = getSelectedJob(getState());
       const editFileMetadataRequests = getUploadRequests(getState());
-      if (!selectedJob) {
-        throw new Error("Could not determine which job is selected for update");
-      }
       await Promise.all(
         editFileMetadataRequests.map((request) =>
           mmsClient.editFileMetadata(request.file.fileId, request)
@@ -819,10 +824,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
       dispatch(
-        editFileMetadataFailed(
-          "Could not edit file: " + message,
-          selectedJob?.jobName || ""
-        )
+        editFileMetadataFailed("Could not edit file: " + message, combinedNames)
       );
       done();
       return;
@@ -830,7 +832,7 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     dispatch(
       batchActions([
-        editFileMetadataSucceeded(selectedJob.jobName || ""),
+        editFileMetadataSucceeded(combinedNames),
         closeUpload(),
         resetUpload(),
       ])
@@ -843,10 +845,10 @@ const submitFileMetadataUpdateLogic = createLogic({
 export default [
   addUploadFilesLogic,
   applyTemplateLogic,
-  cancelUploadLogic,
+  cancelUploadsLogic,
   initiateUploadLogic,
   openUploadLogic,
-  retryUploadLogic,
+  retryUploadsLogic,
   saveUploadDraftLogic,
   submitFileMetadataUpdateLogic,
   updateSubImagesLogic,

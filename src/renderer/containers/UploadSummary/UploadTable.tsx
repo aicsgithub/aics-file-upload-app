@@ -1,4 +1,4 @@
-import { DatePicker, Input, Table } from "antd";
+import { Button, DatePicker, Input, Table, Tooltip } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as React from "react";
 
@@ -18,8 +18,7 @@ interface Props {
   isLoading: boolean;
   onContextMenu: () => void;
   uploads: UploadSummaryTableRow[];
-  selectedUploads: UploadSummaryTableRow[];
-  setSelectedUploads: (selectedUploads: UploadSummaryTableRow[]) => void;
+  setSelectedUploadKeys: (selectedUploadKeys: string[]) => void;
 }
 
 const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
@@ -89,9 +88,10 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
     title: "Created",
     filterDropdown: (props) => (
       <DatePicker
-        onChange={(v) =>
-          props.setSelectedKeys?.(v ? [v?.toLocaleString()] : [])
-        }
+        onChange={(v) => {
+          props.setSelectedKeys?.(v ? [v?.toLocaleString()] : []);
+          props.confirm?.();
+        }}
       />
     ),
     width: "200px",
@@ -114,9 +114,10 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
     title: "Status Updated",
     filterDropdown: (props) => (
       <DatePicker
-        onChange={(v) =>
-          props.setSelectedKeys?.(v ? [v?.toLocaleString()] : [])
-        }
+        onChange={(v) => {
+          props.setSelectedKeys?.(v ? [v?.toLocaleString()] : []);
+          props.confirm?.();
+        }}
       />
     ),
     width: "200px",
@@ -142,6 +143,21 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
     },
     onFilter: (value, record) =>
       record.fileIds?.some((id) => id.includes(value)) || false,
+    render: (fileIds: string[]) => (
+      fileIds ? (
+        <div>
+          {`${fileIds.join(", ").substring(0, 15)}...`}
+          <Tooltip overlay="Copy to Clipboard">
+            <Button
+              icon="copy"
+              // TODO
+              onClick={() => console.log("copy to clipboard")}
+              type="link"
+            />
+          </Tooltip>
+        </div>
+      ) : undefined
+    ),
     sorter: (a, b) => a.fileIds?.[0].localeCompare(b.fileIds?.[0] || "") || 1,
     title: "File ID",
     width: "200px",
@@ -165,6 +181,21 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
         </form>
       );
     },
+    render: (filePaths: string[]) => (
+      filePaths ? (
+        <div>
+          {`${filePaths.join(", ").substring(0, 15)}...`}
+          <Tooltip overlay="Copy to Clipboard">
+            <Button
+              icon="copy"
+              // TODO
+              onClick={() => console.log("copy to clipboard")}
+              type="link"
+            />
+          </Tooltip>
+        </div>
+      ) : undefined
+    ),
     onFilter: (value, record) =>
       record.filePaths?.some((p) => p.includes(value)),
     sorter: (a, b) =>
@@ -188,11 +219,13 @@ export default function UploadTable(props: Props) {
         onContextMenu: props.onContextMenu,
       })}
       rowSelection={{
-        onChange: (_, selectedUploads) => {
-          console.log(selectedUploads);
+        onChange: (selectedUploadKeys) => {
+          props.setSelectedUploadKeys(selectedUploadKeys as string[]);
         },
       }}
-      scroll={{ y: "50%", x: true }}
+      // Unforunately this is the only way to convince the table
+      // to confine its height
+      scroll={{ y: "calc(50vh - 170px)", x: 700 }}
     />
   );
 }

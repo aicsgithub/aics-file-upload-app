@@ -38,7 +38,7 @@ export default function NavigationBar() {
         icon="upload"
         isSelected={view === Page.AddCustomData}
         onSelect={() => dispatch(selectPage(Page.AddCustomData))}
-        title={isUploadJobInProgress ? "Current Upload" : "New Upload"}
+        title={isUploadJobInProgress ? "Current Upload" : "+Upload"}
       />
       <NavigationButton
         icon="profile"

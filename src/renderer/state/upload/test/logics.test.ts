@@ -47,14 +47,14 @@ import { AsyncRequest, FileModel, Page, State } from "../../types";
 import {
   addUploadFiles,
   applyTemplate,
-  cancelUpload,
+  cancelUploads,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
   initiateUpload,
   initiateUploadFailed,
   openUploadDraft,
-  retryUpload,
+  retryUploads,
   saveUploadDraft,
   saveUploadDraftSuccess,
   submitFileMetadataUpdate,
@@ -281,7 +281,7 @@ describe("Upload logics", () => {
       ).to.be.true;
     });
   });
-  describe("retryUploadLogic", () => {
+  describe("retryUploadsLogic", () => {
     it("calls fms.retryUpload if no missing info on job", async () => {
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
@@ -289,8 +289,14 @@ describe("Upload logics", () => {
         uploadLogics
       );
 
-      const uploadJob = { ...mockFailedUploadJob, jobName: "bar", key: "foo" };
-      store.dispatch(retryUpload(uploadJob));
+      const uploadJob = {
+        ...mockFailedUploadJob,
+        jobName: "bar",
+        key: "foo",
+        fileIds: [],
+        filePaths: [],
+      };
+      store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(fms.retryUpload.called).to.be.true;
@@ -303,8 +309,13 @@ describe("Upload logics", () => {
         uploadLogics
       );
 
-      const uploadJob = { ...mockFailedUploadJob, key: "foo" };
-      store.dispatch(retryUpload(uploadJob));
+      const uploadJob = {
+        ...mockFailedUploadJob,
+        key: "foo",
+        fileIds: [],
+        filePaths: [],
+      };
+      store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(
@@ -1612,7 +1623,7 @@ describe("Upload logics", () => {
       ).to.be.true;
     });
   });
-  describe("cancelUpload", () => {
+  describe("cancelUploads", () => {
     it("dispatches cancel success action upon successful cancellation", async () => {
       // Arrange
       const { actions, logicMiddleware, store } = createMockReduxStore(
@@ -1622,7 +1633,11 @@ describe("Upload logics", () => {
       );
 
       // Act
-      store.dispatch(cancelUpload({ ...mockJob, key: "myJob" }));
+      store.dispatch(
+        cancelUploads([
+          { ...mockJob, key: "myJob", fileIds: [], filePaths: [] },
+        ])
+      );
       await logicMiddleware.whenComplete();
 
       // Assert
@@ -1641,7 +1656,11 @@ describe("Upload logics", () => {
       fms.cancelUpload.rejects(new Error(errorMessage));
 
       // Act
-      store.dispatch(cancelUpload({ ...mockJob, key: "myJob" }));
+      store.dispatch(
+        cancelUploads([
+          { ...mockJob, key: "myJob", fileIds: [], filePaths: [] },
+        ])
+      );
       await logicMiddleware.whenComplete();
 
       // Assert

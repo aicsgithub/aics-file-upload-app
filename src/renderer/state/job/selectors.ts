@@ -97,24 +97,24 @@ export const getJobsForTable = createSelector(
   }
 );
 
-export const getJobsByTemplateUsage = createSelector(
+export const getUploadsByTemplateUsage = createSelector(
   [getJobsForTable],
   (
     jobs
   ): {
-    jobsWithTemplates: UploadSummaryTableRow[];
-    jobsWithoutTemplates: UploadSummaryTableRow[];
+    uploadsWithTemplates: UploadSummaryTableRow[];
+    uploadsWithoutTemplates: UploadSummaryTableRow[];
   } => {
-    const jobsWithTemplates: UploadSummaryTableRow[] = [];
-    const jobsWithoutTemplates: UploadSummaryTableRow[] = [];
+    const uploadsWithTemplates: UploadSummaryTableRow[] = [];
+    const uploadsWithoutTemplates: UploadSummaryTableRow[] = [];
     jobs.forEach((job) => {
       if (job.serviceFields?.files?.[0].customMetadata) {
-        jobsWithTemplates.push(job);
+        uploadsWithTemplates.push(job);
       } else {
-        jobsWithoutTemplates.push(job);
+        uploadsWithoutTemplates.push(job);
       }
     });
-    return { jobsWithTemplates, jobsWithoutTemplates };
+    return { uploadsWithTemplates, uploadsWithoutTemplates };
   }
 );
 

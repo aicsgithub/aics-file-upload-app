@@ -135,14 +135,14 @@ export interface UploadFailedAction {
 export interface CancelUploadAction<
   T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
 > {
-  payload: T;
+  payload: T[];
   type: string;
 }
 
 export interface RetryUploadAction<
   T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
 > {
-  payload: T;
+  payload: T[];
   type: string;
 }
 

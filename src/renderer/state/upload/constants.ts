@@ -9,7 +9,7 @@ const BRANCH_NAME = "upload";
 
 export const ADD_UPLOAD_FILES = makeConstant(BRANCH_NAME, "add-upload-files");
 export const APPLY_TEMPLATE = makeConstant(BRANCH_NAME, "apply-template");
-export const CANCEL_UPLOAD = makeConstant(BRANCH_NAME, "cancel-upload");
+export const CANCEL_UPLOADS = makeConstant(BRANCH_NAME, "cancel-uploads");
 export const CANCEL_UPLOAD_SUCCEEDED = makeConstant(
   BRANCH_NAME,
   "cancel-upload-succeeded"
@@ -55,7 +55,7 @@ export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
 );
 export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
 export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
-export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
+export const RETRY_UPLOADS = makeConstant(BRANCH_NAME, "retry-uploads");
 export const SAVE_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "save-upload-draft");
 export const UPDATE_SUB_IMAGES = makeConstant(BRANCH_NAME, "update-sub-images");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
