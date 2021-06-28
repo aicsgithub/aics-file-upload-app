@@ -51,8 +51,6 @@ export interface ReduxLogicDependencies {
   };
   fms: SinonStubbedInstance<FileManagementSystem>;
   getApplicationMenu: SinonStub;
-  getRetryUploadWorker: SinonStub;
-  getUploadWorker: SinonStub;
   ipcRenderer: {
     on: SinonStub;
     send: SinonStub;
@@ -131,8 +129,6 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
   dialog,
   fms,
   getApplicationMenu,
-  getRetryUploadWorker: stub(),
-  getUploadWorker: stub(),
   ipcRenderer,
   jssClient,
   labkeyClient,

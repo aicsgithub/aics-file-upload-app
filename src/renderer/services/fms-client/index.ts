@@ -1,8 +1,11 @@
+import { createHash } from "crypto";
 import * as fs from "fs";
+import { createReadStream, createWriteStream } from "fs";
 import * as path from "path";
+import { basename, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
-import { noop, uniq } from "lodash";
+import { noop, uniq, throttle } from "lodash";
 import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 import * as uuid from "uuid";
@@ -19,7 +22,6 @@ import { JSSJob, JSSJobStatus, UploadStage } from "../job-status-client/types";
 import LabkeyClient from "../labkey-client";
 import { UploadRequest, UploadServiceFields } from "../types";
 
-import { WORKER_MESSAGE_TYPE } from "./copy-worker";
 import {
   UnrecoverableJobError,
   UNRECOVERABLE_JOB_ERROR,
@@ -32,8 +34,6 @@ interface FileManagementSystemConfig {
   jss: JobStatusClient;
   lk: LabkeyClient;
   storage: LocalStorage;
-  // Available as parameter for easier unit testing
-  copyWorkerGetter: () => Worker;
 }
 
 type CopyProgressCallBack = (
@@ -53,8 +53,8 @@ export default class FileManagementSystem {
   private readonly jss: JobStatusClient;
   private readonly lk: LabkeyClient;
   private readonly storage: LocalStorage;
-  private readonly copyWorkerGetter: () => Worker;
-  private jobIdToWorkerMap: { [jobId: string]: Worker } = {};
+  // TODO: Keep track of streams so they can be cancelled
+  // private jobIdToStreamMap: { [jobId: string]: ReadStream } = {};
 
   // Creates JSS friendly unique ids
   public static createUniqueId() {
@@ -66,7 +66,6 @@ export default class FileManagementSystem {
     this.jss = config.jss;
     this.lk = config.lk;
     this.storage = config.storage;
-    this.copyWorkerGetter = config.copyWorkerGetter;
   }
 
   /**
@@ -134,7 +133,6 @@ export default class FileManagementSystem {
     try {
       // Physically copy the file to the supplied directory, retrieving the MD5
       const md5 = await this.copyFile(
-        jobId,
         filePath,
         uploadDirectory,
         copyProgressCb
@@ -288,13 +286,65 @@ export default class FileManagementSystem {
    * is now entirely managed by FSS.
    */
   public async cancelUpload(jobId: string): Promise<void> {
-    if (this.jobIdToWorkerMap[jobId]) {
-      this.jobIdToWorkerMap[jobId].terminate();
-      delete this.jobIdToWorkerMap[jobId];
-    }
+    // TODO: Destroy read (and write and hash?) stream if cancelled
+    // if (this.jobIdToWorkerMap[jobId]) {
+    //   this.jobIdToWorkerMap[jobId].terminate();
+    //   delete this.jobIdToWorkerMap[jobId];
+    // }
     await this.jss.updateJob(jobId, {
       status: JSSJobStatus.FAILED,
       serviceFields: { cancelled: true, error: "Cancelled by user" },
+    });
+  }
+  private async doCopy(
+    source: string,
+    dest: string,
+    onProgress: (bytesCopied: number) => void
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      try {
+        const readable = createReadStream(source);
+        // this.jobIdToStreamMap[jobId] = readable;
+        const hash = createHash("md5").setEncoding("hex");
+        const writeable = createWriteStream(
+          resolvePath(dest, basename(source))
+        );
+
+        let bytesCopied = 0;
+        readable.on("data", (chunk) => {
+          bytesCopied += chunk.length;
+          onProgress(bytesCopied);
+        });
+
+        // File copy and MD5 calculation will be done when this event fires
+        writeable.on("finish", () => {
+          // Resolve with the calculated MD5 hash
+          resolve(hash.read());
+        });
+
+        // Error cases
+        readable.on("error", (e) => {
+          reject(e);
+        });
+        writeable.on("error", (e) => {
+          reject(e);
+        });
+        writeable.on("unpipe", (src) => {
+          if (src !== readable) {
+            reject(new Error(`Copy of file ${source} has been interrupted`));
+          }
+        });
+        hash.on("error", (e) => {
+          reject(e);
+        });
+
+        // Send source bytes to destination through pipe
+        readable.pipe(writeable);
+        // Calculate MD5 through pipe
+        readable.pipe(hash);
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
@@ -303,7 +353,6 @@ export default class FileManagementSystem {
    * the copy progress via the supplied callback throughout.
    */
   private async copyFile(
-    jobId: string,
     source: string,
     dest: string,
     copyProgressCb: CopyProgressCallBack
@@ -325,55 +374,25 @@ export default class FileManagementSystem {
         targetFolder = `\\${targetFolder}`;
       }
     }
-
-    // Copy worker internals defined in `./copy-worker.ts`
-    const worker = this.copyWorkerGetter();
-    this.jobIdToWorkerMap[jobId] = worker;
-    return new Promise<string>((resolve, reject) => {
-      // Receive messages from the worker. Each message should be formatted
-      // like <message_type>:<message> (ex. "upload-progress:111" where the type
-      // is that the copy is in progress and message is the amount of bytes copied so far)
-      worker.onmessage = (e: MessageEvent) => {
-        const message = e?.data.toLowerCase() as string;
-
-        if (message.includes(WORKER_MESSAGE_TYPE.SUCCESS)) {
-          // https://apple.stackexchange.com/questions/14980/why-are-dot-underscore-files-created-and-how-can-i-avoid-them
-          if (process.platform === "darwin") {
-            const toRemove = path.resolve(targetFolder, `._${fileName}`);
-            try {
-              rimraf.sync(toRemove);
-            } catch (e) {
-              console.error(`Failed to remove ${toRemove}` + e.message);
-            }
-          }
-
-          const md5 = message.split(":")[1];
-          this.jobIdToWorkerMap[jobId].terminate();
-          delete this.jobIdToWorkerMap[jobId];
-          resolve(md5);
-        } else if (message.includes(WORKER_MESSAGE_TYPE.PROGRESS_UPDATE)) {
-          const info = e.data.split(":");
-          if (info.length === 2) {
-            try {
-              copyProgressCb(source, parseInt(info[1], 10), fileSize);
-            } catch (e) {
-              console.error("Could not parse JSON progress info", e);
-            }
-          }
+    try {
+      const md5 = await this.doCopy(
+        source,
+        dest,
+        throttle((progress) => copyProgressCb(source, progress, fileSize), 5000)
+      );
+      if (process.platform === "darwin") {
+        const toRemove = path.resolve(targetFolder, `._${fileName}`);
+        try {
+          rimraf.sync(toRemove);
+        } catch (e) {
+          console.error(`Failed to remove ${toRemove}` + e.message);
         }
-      };
-
-      // Reject the promise (i.e. throwing an error) on failure
-      worker.onerror = (e: ErrorEvent) => {
-        console.error(`Error while copying file ${source}`, e);
-        delete this.jobIdToWorkerMap[jobId];
-        reject(new Error(e.message));
-      };
-
-      // Send the source file and formatted destination to the worker
-      // see `copy-worker.ts` for the message handler
-      worker.postMessage([source, targetFolder]);
-    });
+      }
+      return md5;
+    } catch (e) {
+      console.error(`Error while copying file ${source}`, e);
+      throw e;
+    }
   }
 
   /**

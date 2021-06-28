@@ -136,8 +136,7 @@
     "sinon-chai": "^3.5.0",
     "style-loader": "0.23.1",
     "typescript": "3.7.2",
-    "webpack": "4.28.4",
-    "worker-loader": "2.0.0"
+    "webpack": "4.28.4"
   },
   "husky": {
     "hooks": {

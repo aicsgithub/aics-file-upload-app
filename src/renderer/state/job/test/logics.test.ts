@@ -158,7 +158,7 @@ describe("Job logics", () => {
         handleAbandonedJobsLogic,
       ]);
 
-      fms.retryUpload.rejects(new Error("Error in worker"));
+      fms.retryUpload.rejects(new Error("Error"));
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
 
@@ -168,9 +168,7 @@ describe("Job logics", () => {
         setInfoAlert(
           'Upload "abandoned_job" was abandoned and will now be retried.'
         ),
-        setErrorAlert(
-          'Retry for upload "abandoned_job" failed: Error in worker'
-        ),
+        setErrorAlert('Retry for upload "abandoned_job" failed: Error'),
       ]);
     });
   });

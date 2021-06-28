@@ -173,7 +173,7 @@ describe("Upload logics", () => {
     const jobName = "file1";
     const files = "file1, file2, file3";
 
-    it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions, and starts a web worker", async () => {
+    it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions", async () => {
       fms.startUpload.resolves(startUploadResponse);
       jssClient.existsById.resolves(true);
       const { actions, logicMiddleware, store } = createMockReduxStore(
