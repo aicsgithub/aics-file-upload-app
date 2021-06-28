@@ -3,7 +3,7 @@ import * as fs from "fs";
 import { createReadStream, createWriteStream } from "fs";
 import * as path from "path";
 import { basename, resolve as resolvePath } from "path";
-import { Transform } from "stream";
+import { Transform, pipeline } from "stream";
 import { promisify } from "util";
 
 import { noop, uniq, throttle } from "lodash";
@@ -302,56 +302,56 @@ export default class FileManagementSystem {
    * Copies the file located at `source` to `dest`, and returns the calculated
    * MD5. Calls `onProgress` whenever a chunk of data is copied.
    * */
-  private copyToDestAndCalcMD5(
+  private async copyToDestAndCalcMD5(
     source: string,
     dest: string,
     onProgress: (bytesCopied: number) => void
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      try {
-        let bytesCopied = 0;
-
-        const readable = createReadStream(source);
-        // this.jobIdToStreamMap[jobId] = readable;
-        const hash = createHash("md5").setEncoding("hex");
-        const writeable = createWriteStream(
-          resolvePath(dest, basename(source))
-        );
-        // This is a dummy stream to track the progress of the copy
-        const progressStream = new Transform({
-          transform(chunk, encoding, callback) {
-            bytesCopied += chunk.length;
-            onProgress(bytesCopied);
-            this.push(chunk);
-            callback();
-          },
-        });
-
-        // File copy and MD5 calculation will be done when this event fires
-        writeable.on("finish", () => {
-          // Resolve with the calculated MD5 hash
-          resolve(hash.read());
-        });
-
-        // Error cases
-        readable.on("error", (e) => {
-          reject(e);
-        });
-        writeable.on("error", (e) => {
-          reject(e);
-        });
-        hash.on("error", (e) => {
-          reject(e);
-        });
-
-        // Send source bytes to destination through pipe
-        readable.pipe(progressStream).pipe(writeable);
-        // Calculate MD5 through pipe
-        readable.pipe(hash);
-      } catch (e) {
-        reject(e);
-      }
+    let bytesCopied = 0;
+    const readable = createReadStream(source);
+    // this.jobIdToStreamMap[jobId] = readable;
+    const hash = createHash("md5").setEncoding("hex");
+    const writeable = createWriteStream(resolvePath(dest, basename(source)));
+    // This is a dummy stream to track the progress of the copy
+    const progressStream = new Transform({
+      transform(chunk, encoding, callback) {
+        bytesCopied += chunk.length;
+        onProgress(bytesCopied);
+        this.push(chunk);
+        callback();
+      },
     });
+
+    // TODO: Replace this with the built-in promise version of `pipeline` once
+    // we are on Node v15+.
+    // https://nodejs.org/api/stream.html#stream_stream_pipeline_streams_callback
+    const copyPromise = new Promise((resolve, reject) => {
+      // Send source bytes to destination and track progress
+      pipeline(readable, progressStream, writeable, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    const md5CalcPromise = new Promise((resolve, reject) => {
+      // Calculate MD5
+      pipeline(readable, hash, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Wait for copy and MD5 calculation to complete
+    await Promise.all([copyPromise, md5CalcPromise]);
+
+    // Return calculated MD5
+    return hash.read();
   }
 
   /**
