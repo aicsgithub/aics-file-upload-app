@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { createReadStream, createWriteStream } from "fs";
 import * as path from "path";
 import { basename, resolve as resolvePath } from "path";
+import { Transform } from "stream";
 import { promisify } from "util";
 
 import { noop, uniq, throttle } from "lodash";
@@ -296,24 +297,34 @@ export default class FileManagementSystem {
       serviceFields: { cancelled: true, error: "Cancelled by user" },
     });
   }
-  private async doCopy(
+
+  /**
+   * Copies the file located at `source` to `dest`, and returns the calculated
+   * MD5. Calls `onProgress` whenever a chunk of data is copied.
+   * */
+  private copyToDestAndCalcMD5(
     source: string,
     dest: string,
     onProgress: (bytesCopied: number) => void
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
+        let bytesCopied = 0;
+
         const readable = createReadStream(source);
         // this.jobIdToStreamMap[jobId] = readable;
         const hash = createHash("md5").setEncoding("hex");
         const writeable = createWriteStream(
           resolvePath(dest, basename(source))
         );
-
-        let bytesCopied = 0;
-        readable.on("data", (chunk) => {
-          bytesCopied += chunk.length;
-          onProgress(bytesCopied);
+        // This is a dummy stream to track the progress of the copy
+        const progressStream = new Transform({
+          transform(chunk, encoding, callback) {
+            bytesCopied += chunk.length;
+            onProgress(bytesCopied);
+            this.push(chunk);
+            callback();
+          },
         });
 
         // File copy and MD5 calculation will be done when this event fires
@@ -329,17 +340,12 @@ export default class FileManagementSystem {
         writeable.on("error", (e) => {
           reject(e);
         });
-        writeable.on("unpipe", (src) => {
-          if (src !== readable) {
-            reject(new Error(`Copy of file ${source} has been interrupted`));
-          }
-        });
         hash.on("error", (e) => {
           reject(e);
         });
 
         // Send source bytes to destination through pipe
-        readable.pipe(writeable);
+        readable.pipe(progressStream).pipe(writeable);
         // Calculate MD5 through pipe
         readable.pipe(hash);
       } catch (e) {
@@ -375,11 +381,19 @@ export default class FileManagementSystem {
       }
     }
     try {
-      const md5 = await this.doCopy(
+      console.time(`Copy ${source}`);
+      const throttledProgress = throttle(
+        (progress) => copyProgressCb(source, progress, fileSize),
+        5000
+      );
+      const md5 = await this.copyToDestAndCalcMD5(
         source,
         dest,
-        throttle((progress) => copyProgressCb(source, progress, fileSize), 5000)
+        throttledProgress
       );
+      console.timeEnd(`Copy ${source}`);
+      // Flush out the last call so completed progress is shown immediately
+      throttledProgress.flush();
       if (process.platform === "darwin") {
         const toRemove = path.resolve(targetFolder, `._${fileName}`);
         try {
