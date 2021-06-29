@@ -2,6 +2,7 @@ import { basename } from "path";
 
 import {
   castArray,
+  chunk,
   flatMap,
   forEach,
   get,
@@ -220,30 +221,34 @@ const initiateUploadLogic = createLogic({
     // Reset redo/undo logic
     dispatch(batchActions([...resetHistoryActions]));
 
-    await Promise.all(
-      initiateUploadResults.map(async (result) => {
-        const jobName = basename(result.request.file.originalPath);
-        try {
-          await fms.uploadFile(
-            result.response.jobId,
-            result.request.file.originalPath,
-            result.request,
-            result.response.uploadDirectory,
-            handleUploadProgress(
-              [result.request.file.originalPath],
-              (progress: UploadProgressInfo) =>
-                dispatch(
-                  updateUploadProgressInfo(result.response.jobId, progress)
-                )
-            )
-          );
-        } catch (e) {
-          const error = `Upload ${jobName} failed: ${e.message}`;
-          logger.error(`Upload failed`, e);
-          dispatch(uploadFailed(error, jobName));
-        }
-      })
-    );
+    // Upload 25 files at a time to prevent performance issues in the case of
+    // uploads with many files.
+    for (const batch of chunk(initiateUploadResults, 25)) {
+      await Promise.all(
+        batch.map(async (result) => {
+          const jobName = basename(result.request.file.originalPath);
+          try {
+            await fms.uploadFile(
+              result.response.jobId,
+              result.request.file.originalPath,
+              result.request,
+              result.response.uploadDirectory,
+              handleUploadProgress(
+                [result.request.file.originalPath],
+                (progress: UploadProgressInfo) =>
+                  dispatch(
+                    updateUploadProgressInfo(result.response.jobId, progress)
+                  )
+              )
+            );
+          } catch (e) {
+            const error = `Upload ${jobName} failed: ${e.message}`;
+            logger.error(`Upload failed`, e);
+            dispatch(uploadFailed(error, jobName));
+          }
+        })
+      );
+    }
     done();
   },
   transform: (
