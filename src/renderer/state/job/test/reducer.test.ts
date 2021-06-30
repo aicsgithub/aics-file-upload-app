@@ -6,12 +6,10 @@ import {
   mockWorkingAddMetadataJob,
   mockWorkingUploadJob,
 } from "../../test/mocks";
-import { JobFilter } from "../../types";
 import {
   receiveJobInsert,
   receiveJobs,
   receiveJobUpdate,
-  selectJobFilter,
   updateUploadProgressInfo,
 } from "../actions";
 import reducer from "../reducer";
@@ -60,12 +58,6 @@ describe("job reducer", () => {
         receiveJobUpdate(mockWorkingAddMetadataJob)
       );
       expect(result).to.deep.equal(state);
-    });
-  });
-  describe("selectJobFilter", () => {
-    it("sets jobFilter", () => {
-      const result = reducer(initialState, selectJobFilter(JobFilter.Failed));
-      expect(result.jobFilter).to.equal(JobFilter.Failed);
     });
   });
   describe("updateUploadProgressInfo", () => {

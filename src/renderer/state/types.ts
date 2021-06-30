@@ -161,13 +161,6 @@ export enum AsyncRequest {
   REQUEST_ANNOTATION_USAGE = "REQUEST_ANNOTATION_USAGE",
 }
 
-export enum JobFilter {
-  All = "All",
-  Failed = "Failed",
-  InProgress = "In Progress",
-  Successful = "Successful",
-}
-
 export interface PageToIndexMap {
   [page: string]: number;
 }
@@ -207,8 +200,6 @@ export interface JobStateBranch {
   copyProgress: {
     [jobId: string]: UploadProgressInfo;
   };
-  // Represents which filter has been selected on the Upload Summary page
-  jobFilter: JobFilter;
   lastSelectedUpload?: Row<any>;
 }
 

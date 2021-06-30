@@ -2,7 +2,7 @@ import { AnyAction } from "redux";
 
 import { JSSJob } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
-import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
+import { JobStateBranch, TypeToDescriptionMap } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 import { makeReducer } from "../util";
 
@@ -10,13 +10,11 @@ import {
   RECEIVE_JOB_INSERT,
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
-  SELECT_JOB_FILTER,
   SET_LAST_SELECTED_UPLOAD,
 } from "./constants";
 import {
   ReceiveJobsAction,
   ReceiveJobInsertAction,
-  SelectJobFilterAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
   SetLastSelectedUploadAction,
@@ -24,7 +22,6 @@ import {
 
 export const initialState: JobStateBranch = {
   copyProgress: {},
-  jobFilter: JobFilter.All,
   uploadJobs: [],
 };
 
@@ -72,16 +69,6 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
             ? (updatedJob as JSSJob<UploadServiceFields>)
             : job
         ),
-      };
-    },
-  },
-  [SELECT_JOB_FILTER]: {
-    accepts: (action: AnyAction): action is SelectJobFilterAction =>
-      action.type === SELECT_JOB_FILTER,
-    perform: (state: JobStateBranch, action: SelectJobFilterAction) => {
-      return {
-        ...state,
-        jobFilter: action.payload,
       };
     },
   },

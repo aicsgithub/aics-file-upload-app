@@ -2,20 +2,18 @@ import { Row } from "react-table";
 
 import { JSSJob } from "../../services/job-status-client/types";
 import { BaseServiceFields } from "../../services/types";
-import { JobFilter, UploadProgressInfo } from "../types";
+import { UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
 import {
   RECEIVE_JOB_INSERT,
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
-  SELECT_JOB_FILTER,
   SET_LAST_SELECTED_UPLOAD,
 } from "./constants";
 import {
   ReceiveJobsAction,
   ReceiveJobInsertAction,
-  SelectJobFilterAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
   SetLastSelectedUploadAction,
@@ -43,13 +41,6 @@ export function receiveJobUpdate<T extends BaseServiceFields = any>(
   return {
     payload: job,
     type: RECEIVE_JOB_UPDATE,
-  };
-}
-
-export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
-  return {
-    payload: jobFilter,
-    type: SELECT_JOB_FILTER,
   };
 }
 
