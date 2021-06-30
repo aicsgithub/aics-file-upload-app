@@ -6,6 +6,7 @@ import {
   OpenDialogOptions,
   Remote,
 } from "electron";
+import { Row } from "react-table";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -208,6 +209,7 @@ export interface JobStateBranch {
   };
   // Represents which filter has been selected on the Upload Summary page
   jobFilter: JobFilter;
+  lastSelectedUpload?: Row<any>;
 }
 
 // Map of the output of getUploadRowKey to the FileModel
@@ -451,10 +453,8 @@ export interface DragAndDropFile {
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
-  // used by antd's Table component to uniquely identify rows
-  key: string;
-  fileIds: string[];
-  filePaths: string[];
+  fileId: string;
+  filePath: string;
   progress?: UploadProgressInfo;
 }
 

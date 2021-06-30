@@ -1,8 +1,9 @@
 import { Tooltip } from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
+import { CellProps } from "react-table";
 
-import { JSSJobStatus } from "../../services/job-status-client/types";
+import { UploadSummaryTableRow } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
@@ -20,23 +21,17 @@ const STATUS_TO_CLASSNAME_MAP: { [status: string]: string } = Object.freeze({
   WORKING: IN_PROGRESS_CLASSNAME,
 });
 
-interface Props {
-  className?: string;
-  status: JSSJobStatus;
+export default function StatusCircle(props: CellProps<UploadSummaryTableRow>) {
+  return (
+    <Tooltip placement="right" title={status}>
+      <div className={styles.container}>
+        <div
+          className={classNames(
+            styles.statusCircle,
+            styles[STATUS_TO_CLASSNAME_MAP[props.value]]
+          )}
+        />
+      </div>
+    </Tooltip>
+  );
 }
-
-const StatusCircle: React.FunctionComponent<Props> = ({
-  className,
-  status,
-}: Props) => (
-  <Tooltip placement="right" title={status} className={className}>
-    <div
-      className={classNames(
-        styles.statusCircle,
-        styles[STATUS_TO_CLASSNAME_MAP[status]]
-      )}
-    />
-  </Tooltip>
-);
-
-export default StatusCircle;

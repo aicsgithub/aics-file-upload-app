@@ -1,3 +1,5 @@
+import { Row } from "react-table";
+
 import { JSSJob } from "../../services/job-status-client/types";
 import { BaseServiceFields } from "../../services/types";
 import { JobFilter, UploadProgressInfo } from "../types";
@@ -19,6 +21,11 @@ export interface ReceiveJobUpdateAction<T extends BaseServiceFields = any> {
 
 export interface SelectJobFilterAction {
   payload: JobFilter;
+  type: string;
+}
+
+export interface SetLastSelectedUploadAction {
+  payload: Row<any>;
   type: string;
 }
 

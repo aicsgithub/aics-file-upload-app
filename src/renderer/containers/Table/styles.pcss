@@ -24,8 +24,10 @@
 
 .table-cell {
     height: 35px;
+    overflow: hidden;
     padding: 0;
     margin: 0;
+    text-overflow: ellipsis;
 }
 
 .table-cell:hover {
@@ -39,4 +41,9 @@
     max-height: 105px;
     overflow: hidden;
     user-select: none;
+}
+
+.table-header-container {
+    display: flex;
+    justify-content: center;
 }

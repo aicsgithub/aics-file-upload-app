@@ -2,18 +2,16 @@ import { Icon, Tooltip } from "antd";
 import React from "react";
 import { HeaderProps } from "react-table";
 
-import { UploadTableRow } from "../../../../state/upload/types";
-
 const styles = require("./styles.pcss");
 
 /*
   This component renders an interactive header rendered by default for
   all react-tables.
 */
-export default function DefaultHeader({
+export default function DefaultHeader<T extends {}>({
   column,
   name,
-}: HeaderProps<UploadTableRow>) {
+}: HeaderProps<T>) {
   return (
     <Tooltip title={column.description}>
       <div className={styles.header}>

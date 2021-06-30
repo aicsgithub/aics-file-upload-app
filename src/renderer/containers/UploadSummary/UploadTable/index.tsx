@@ -1,16 +1,28 @@
-import { Button, DatePicker, Input, Table, Tooltip } from "antd";
-import { ColumnProps } from "antd/lib/table";
+import { Spin } from "antd";
 import * as React from "react";
+import {
+  Column,
+  FilterValue,
+  Row,
+  TableInstance,
+  useBlockLayout,
+  useFilters,
+  useResizeColumns,
+  useRowSelect,
+  useSortBy,
+  useTable,
+} from "react-table";
 
 import StatusCircle from "../../../components/StatusCircle";
-import {
-  JOB_STATUSES,
-  JSSJobStatus,
-} from "../../../services/job-status-client/types";
+import { JOB_STATUSES } from "../../../services/job-status-client/types";
 import { UploadSummaryTableRow } from "../../../state/types";
+import Table from "../../Table";
+import SelectionCell from "../../Table/CustomCells/SelectionCell";
+import ReadOnlyCell from "../../Table/DefaultCells/ReadOnlyCell";
+import DefaultHeader from "../../Table/Headers/DefaultHeader";
+import SelectionHeader from "../../Table/Headers/SelectionHeader";
 
-import UploadProgress from "../UploadProgress";
-import ResizeableHeader from "./ResizeableHeader";
+import Filter, { FilterType } from "./Filter";
 
 const styles = require("./styles.pcss");
 
@@ -22,214 +34,124 @@ interface Props {
   setSelectedUploadKeys: (selectedUploadKeys: string[]) => void;
 }
 
-const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
+const COLUMNS: Column<UploadSummaryTableRow>[] = [
   {
-    align: "center",
-    dataIndex: "status",
-    filterMultiple: true,
-    filters: JOB_STATUSES.map((s) => ({
-      text: s,
-      value: s,
-    })),
-    onFilter: (value, record) => record.status === value,
-    render: function render(status: JSSJobStatus) {
-      return <StatusCircle status={status} />;
-    },
-    sorter: (a, b) => a.status.localeCompare(b.status),
-    title: "Status",
-    width: 115,
+    id: "selection",
+    disableResizing: true,
+    Header: SelectionHeader,
+    Cell: SelectionCell,
+    maxWidth: 35,
   },
   {
-    dataIndex: "jobName",
-    ellipsis: true,
-    onFilter: (value, record) => record.jobName?.includes(value) || false,
-    filters: [],
-    filterDropdown: (props) => {
-      function onSubmit(e: any) {
-        e.preventDefault();
-        props.setSelectedKeys?.([e.target.firstChild.value]);
-        props.confirm?.();
-      }
-      return (
-        <form onSubmit={onSubmit}>
-          <Input placeholder="Filter File Names" />
-          <div className={styles.filterButtonBar}>
-            <button type="submit">OK</button>
-            <button onClick={() => props.clearFilters?.()}>Reset</button>
-          </div>
-        </form>
-      );
-    },
-    render: function render(filename: string, row: UploadSummaryTableRow) {
-      return (
-        <Tooltip overlay={filename} mouseLeaveDelay={0} placement="leftTop">
-          {filename}
-          <UploadProgress row={row} />
-        </Tooltip>
-      );
-    },
-    sorter: (a, b) => a.jobName?.localeCompare(b?.jobName || "") || 1,
-    title: "File Name",
-    width: "100%",
+    accessor: "status",
+    Cell: StatusCircle,
+    description: "Status of the upload",
+    filter: FilterType.SELECTION,
+    Filter: Filter({ type: FilterType.SELECTION, options: JOB_STATUSES }),
+    id: "Status",
+    width: 85,
   },
   {
-    dataIndex: "created",
-    // sorter: (a, b) => a.created.getMilliseconds() - b.created.getMilliseconds(),
-    // onFilter: (value, record) => {
-    //   const valueAsDate = new Date(value);
-    //   return (
-    //     valueAsDate.getFullYear() === record.created.getFullYear() &&
-    //     valueAsDate.getMonth() === record.created.getMonth() &&
-    //     valueAsDate.getDate() === record.created.getDate()
-    //   );
-    // },
-    // filters: [],
-    render: (created: Date) =>
-      created.toLocaleString(undefined, { timeZone: "America/Los_Angeles" }),
-    title: "Created",
-    // filterDropdown: (props) => (
-    //   <DatePicker
-    //     onChange={(v) => {
-    //       props.setSelectedKeys?.(v ? [v?.toLocaleString()] : []);
-    //       props.confirm?.();
-    //     }}
-    //   />
-    // ),
-    width: 235,
+    accessor: "jobName",
+    description: "Name of the file uploaded",
+    Filter: Filter({ type: FilterType.TEXT }),
+    id: "File Name",
+    width: 350,
   },
   {
-    dataIndex: "fileIds",
-    filters: [],
-    filterDropdown: (props) => {
-      function onSubmit(e: any) {
-        e.preventDefault();
-        props.setSelectedKeys?.([e.target.firstChild.value]);
-        props.confirm?.();
-      }
-      return (
-        <form onSubmit={onSubmit}>
-          <Input placeholder="Filter File IDs" />
-          <div className={styles.filterButtonBar}>
-            <button type="submit">OK</button>
-            <button onClick={() => props.clearFilters?.()}>Reset</button>
-          </div>
-        </form>
-      );
-    },
-    onFilter: (value, record) =>
-      record.fileIds?.some((id) => id.includes(value)) || false,
-    render: (fileIds: string[]) =>
-      fileIds ? (
-        <div>
-          <Tooltip overlay={fileIds.join(", ")} mouseLeaveDelay={0} placement="leftTop">
-            {`${fileIds.join(", ").substring(0, 10)}...`}
-          </Tooltip>
-          <Tooltip overlay="Copy to Clipboard" mouseLeaveDelay={0}>
-            <Button
-              icon="copy"
-              // TODO
-              onClick={() => console.log("copy to clipboard")}
-              type="link"
-            />
-          </Tooltip>
-        </div>
-      ) : undefined,
-    sorter: (a, b) => a.fileIds?.[0].localeCompare(b.fileIds?.[0] || "") || 1,
-    title: "File ID",
-    width: 200,
+    accessor: "created",
+    Cell: (props) => (
+      <ReadOnlyCell
+        {...props}
+        value={props.value.toLocaleString(undefined, {
+          timeZone: "America/Los_Angeles",
+        })}
+      />
+    ),
+    description: "Time the file upload began",
+    Filter: Filter({ type: FilterType.DATE }),
+    filter: FilterType.DATE,
+    id: "Created",
   },
   {
-    dataIndex: "filePaths",
-    filters: [],
-    filterDropdown: (props) => {
-      function onSubmit(e: any) {
-        e.preventDefault();
-        props.setSelectedKeys?.([e.target.firstChild.value]);
-        props.confirm?.();
-      }
-      return (
-        <form onSubmit={onSubmit}>
-          <Input placeholder="Filter File Paths" />
-          <div className={styles.filterButtonBar}>
-            <button type="submit">OK</button>
-            <button onClick={() => props.clearFilters?.()}>Reset</button>
-          </div>
-        </form>
-      );
-    },
-    render: (filePaths: string[]) =>
-      filePaths ? (
-        <div>
-          <Tooltip overlay={filePaths.join(", ")} mouseLeaveDelay={0} placement="leftTop">
-            {`${filePaths.join(", ").substring(0, 10)}...`}
-          </Tooltip>
-          <Tooltip overlay="Copy to Clipboard" mouseLeaveDelay={0}>
-            <Button
-              icon="copy"
-              // TODO
-              onClick={() => console.log("copy to clipboard")}
-              type="link"
-            />
-          </Tooltip>
-        </div>
-      ) : undefined,
-    onFilter: (value, record) =>
-      record.filePaths?.some((p) => p.includes(value)),
-    sorter: (a, b) =>
-      a.filePaths?.[0].localeCompare(b.filePaths?.[0] || "") || 1,
-    title: "FMS File Path",
-    width: 200,
+    accessor: "fileId",
+    description: "Unique FMS ID assigned to the uploaded file",
+    Filter: Filter({ type: FilterType.TEXT }),
+    id: "File ID",
+  },
+  {
+    accessor: "filePath",
+    description: "Unique FMS File Path assigned to the uploaded file",
+    Filter: Filter({ type: FilterType.TEXT }),
+    id: "FMS File Path",
   },
 ];
 
+// Custom filtering methods for react-table
+const FILTER_TYPES: Record<string, FilterValue> = {
+  [FilterType.DATE]: (
+    rows: Row<UploadSummaryTableRow>[],
+    _: "created",
+    filterValue: FilterValue
+  ) =>
+    rows.filter(
+      (row) =>
+        row.original["created"].getDate() === filterValue.getDate() &&
+        row.original["created"].getMonth() === filterValue.getMonth() &&
+        row.original["created"].getFullYear() === filterValue.getFullYear()
+    ),
+  [FilterType.SELECTION]: (
+    rows: Row<UploadSummaryTableRow>[],
+    _: "status",
+    filterValue: FilterValue
+  ) => rows.filter((row) => filterValue.includes(row.original["status"])),
+};
+
 export default function UploadTable(props: Props) {
-  const [columns, setColumns] = React.useState(COLUMNS);
+  const data = React.useMemo(() => props.uploads, [props.uploads]);
+  const columns = React.useMemo(() => COLUMNS, [COLUMNS]);
 
-  function handleResize(index: number) {
-    return (_: any, { size }: { size: { width: number } }) => {
-      console.log("resizing", index, size);
-      const nextColumns = [...columns];
-      nextColumns[index] = {
-        ...nextColumns[index],
-        width: size.width
-      }
-      setColumns(nextColumns);
-    }
-  };
-
-  const columnsWithResizeEvent: ColumnProps<UploadSummaryTableRow>[] = columns.map((col, index) => ({
-    ...col,
-    onHeaderCell: (column) => ({
-      width: column.width,
-      onResize: handleResize(index),
-    }),
-  }));
+  const tableInstance: TableInstance<UploadSummaryTableRow> = useTable<
+    UploadSummaryTableRow
+  >(
+    {
+      columns,
+      data,
+      // Defines the default column properties, can be overriden per column
+      defaultColumn: {
+        Cell: ReadOnlyCell,
+        Header: DefaultHeader,
+        minWidth: 30,
+        width: 200,
+        maxWidth: 1000,
+      },
+      getRowId: (row) => row.jobId,
+      // Similarly to the above property this comes from a plugin, useSortBy,
+      // and prevents sorting from reseting after data is modified
+      autoResetSortBy: false,
+      // Similarly to the above property this comes from a plugin, useFilters,
+      // and prevents filtering from reseting after data is modified
+      autoResetFilters: false,
+      filterTypes: FILTER_TYPES,
+    },
+    // optional plugins
+    useFilters,
+    useSortBy,
+    useRowSelect,
+    useBlockLayout, // Makes element widths adjustable
+    useResizeColumns
+  );
 
   return (
-    <Table
-      className={styles.table}
-      components={{
-        header: {
-          cell: ResizeableHeader,
-        },
-      }}
-      loading={props.isLoading}
-      columns={columnsWithResizeEvent}
-      title={() => props.title}
-      dataSource={props.uploads}
-      size="small"
-      pagination={false}
-      onRow={() => ({
-        onContextMenu: props.onContextMenu,
-      })}
-      rowSelection={{
-        onChange: (selectedUploadKeys) => {
-          props.setSelectedUploadKeys(selectedUploadKeys as string[]);
-        },
-      }}
-      // Unforunately this is the only way to convince the table
-      // to confine its height
-      scroll={{ y: "calc(50vh - 170px)", x: 700 }}
-    />
+    <div>
+      <h3 className={styles.tableTitle}>{props.title}</h3>
+      {props.isLoading ? (
+        <div className={styles.loadingContainer}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Table className={styles.tableContainer} tableInstance={tableInstance} />
+      )}
+    </div>
   );
 }

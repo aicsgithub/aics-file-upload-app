@@ -11,6 +11,7 @@ import {
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
+  SET_LAST_SELECTED_UPLOAD,
 } from "./constants";
 import {
   ReceiveJobsAction,
@@ -18,6 +19,7 @@ import {
   SelectJobFilterAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
+  SetLastSelectedUploadAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
@@ -82,6 +84,14 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
         jobFilter: action.payload,
       };
     },
+  },
+  [SET_LAST_SELECTED_UPLOAD]: {
+    accepts: (action: AnyAction): action is SetLastSelectedUploadAction =>
+      action.type === SET_LAST_SELECTED_UPLOAD,
+    perform: (state: JobStateBranch, action: SetLastSelectedUploadAction) => ({
+      ...state,
+      lastSelectedUpload: action.payload,
+    }),
   },
   [UPDATE_UPLOAD_PROGRESS_INFO]: {
     accepts: (action: AnyAction): action is UpdateUploadProgressInfoAction =>

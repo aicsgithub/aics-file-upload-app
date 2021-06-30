@@ -1,9 +1,27 @@
+import classNames from "classnames";
 import React from "react";
 import { HeaderGroup, TableInstance } from "react-table";
-
-import { UploadTableRow } from "../../state/upload/types";
+import { FixedSizeList } from "react-window";
 
 const styles = require("./styles.pcss");
+
+interface Props<T extends {}> {
+  className?: string;
+  tableInstance: TableInstance<T>;
+}
+
+// From https://davidwalsh.name/detect-scrollbar-width
+function getScrollBarWidth(): number {
+  const scrollDiv = document.createElement("div");
+  scrollDiv.setAttribute(
+    "style",
+    "width: 100px; height: 100px; overflow: scroll; position:absolute; top:-9999px;"
+  );
+  document.body.appendChild(scrollDiv);
+  const scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+  document.body.removeChild(scrollDiv);
+  return scrollbarWidth;
+}
 
 /*
   This stateless component renders a table meant for connecting to
@@ -12,29 +30,48 @@ const styles = require("./styles.pcss");
   properties of the column definition supplied for that column or
   by the defaultColumn properties supplied to react-table.
 */
-export default function Table(props: {
-  tableInstance: TableInstance<UploadTableRow>;
-}) {
-  const { tableInstance } = props;
+export default function Table<T extends {}>(props: Props<T>) {
+  const { className, tableInstance } = props;
+
+  const scrollBarSize = React.useMemo(() => getScrollBarWidth(), []);
+
+  const RenderRow = React.useCallback(
+    ({ index, style }) => {
+      const row = tableInstance.rows[index];
+      tableInstance.prepareRow(row);
+      return (
+        <div {...row.getRowProps({ style })} key={row.getRowProps().key}>
+          {row.cells.map((cell) => (
+            <div
+              {...cell.getCellProps()}
+              className={styles.tableCell}
+              key={cell.getCellProps().key}
+            >
+              {cell.render("Cell")}
+            </div>
+          ))}
+        </div>
+      );
+    },
+    [tableInstance.prepareRow, tableInstance.rows]
+  );
+
   return (
-    <div className={styles.tableContainer}>
-      <table
-        className={styles.tableContainer}
-        {...tableInstance.getTableProps()}
-      >
-        <thead>
+    <div className={classNames(styles.tableContainer, className)}>
+      <div className={styles.tableContainer} {...tableInstance.getTableProps()}>
+        <div>
           {tableInstance.headerGroups.map((headerGroup) => (
-            <tr
+            <div
               {...headerGroup.getHeaderGroupProps()}
               key={headerGroup.getHeaderGroupProps().key}
             >
-              {headerGroup.headers.map(
-                (column: HeaderGroup<UploadTableRow>) => (
-                  <th
-                    {...column.getHeaderProps()}
-                    className={styles.tableHeader}
-                    key={column.getHeaderProps().key}
-                  >
+              {headerGroup.headers.map((column: HeaderGroup<T>) => (
+                <div
+                  {...column.getHeaderProps()}
+                  className={styles.tableHeader}
+                  key={column.getHeaderProps().key}
+                >
+                  <div className={styles.tableHeaderContainer}>
                     <div
                       {...(column.getResizerProps && column.getResizerProps())}
                       className={styles.columnResizer}
@@ -45,31 +82,37 @@ export default function Table(props: {
                     >
                       {column.render("Header")}
                     </div>
-                  </th>
-                )
-              )}
-            </tr>
+                    <div>
+                      {column.canFilter ? column.render("Filter") : null}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ))}
-        </thead>
-        <tbody {...tableInstance.getTableBodyProps()}>
-          {tableInstance.rows.map((row) => {
-            tableInstance.prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.getRowProps().key}>
-                {row.cells.map((cell) => (
-                  <td
-                    {...cell.getCellProps()}
-                    className={styles.tableCell}
-                    key={cell.getCellProps().key}
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+        </div>
+        <div {...tableInstance.getTableBodyProps()}>
+          <FixedSizeList
+            height={400}
+            itemCount={tableInstance.rows.length}
+            itemSize={35}
+            width={tableInstance.totalColumnsWidth + scrollBarSize}
+          >
+            {RenderRow}
+          </FixedSizeList>
+        </div>
+        {!!tableInstance.filteredRows &&
+          tableInstance.filteredRows.length !== tableInstance.rows.length && (
+            <div>
+              <div>
+                <div>
+                  Showing {tableInstance.filteredRows.length} of{" "}
+                  {tableInstance.rows.length}
+                </div>
+              </div>
+            </div>
+          )}
+      </div>
     </div>
   );
 }

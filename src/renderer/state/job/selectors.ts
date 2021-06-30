@@ -14,6 +14,8 @@ import { JobFilter, State, UploadSummaryTableRow } from "../types";
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
+export const getLastSelectedUpload = (state: State) =>
+  state.job.lastSelectedUpload;
 
 export const getJobIdToUploadJobMap = createSelector(
   [getUploadJobs],
@@ -74,14 +76,18 @@ export const getJobsForTable = createSelector(
       .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
       .map((job) => ({
         ...job,
-        key: job.jobId,
         created: new Date(job.created),
         modified: new Date(job.modified),
         progress: copyProgress[job.jobId],
-        fileIds: job.serviceFields?.result?.map((file) => file.fileId),
-        filePaths: job.serviceFields?.result?.map((file) => file.readPath),
+        fileId: job.serviceFields?.result
+          ?.map((file) => file.fileId)
+          .join(", "),
+        filePath: job.serviceFields?.result
+          ?.map((file) => file.readPath)
+          .join(", "),
         serviceFields: {
           ...job.serviceFields,
+          // TODO: No longer do this?
           files: job.serviceFields?.groupId
             ? groupIdToJobs[job.serviceFields.groupId].flatMap(
                 (j) => j?.serviceFields?.files || []

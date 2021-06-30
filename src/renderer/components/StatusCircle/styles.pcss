@@ -2,12 +2,18 @@
     --status-circle-diameter: 0.75em;
 }
 
+.container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
 .status-circle {
     height: var(--status-circle-diameter);
     width: var(--status-circle-diameter);
     border-radius: 50%;
     background-color: var(--grey);
-    margin: 0 auto;
+    margin: auto;
 
     &.success {
         background-color: var(--success);

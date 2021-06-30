@@ -1,8 +1,35 @@
-.table {
-    margin-bottom: 0;
-    max-height: 50%;
-    min-height: 50%;
-    overflow: auto;
+.table-title {
+    margin-top: 0.5em;
+    margin-bottom: 0.25em;
+}
+
+.table-container {
+    border-bottom: var(--border);
+    border-top: var(--border);
+}
+
+.table-container > * {
     padding-bottom: 0;
+}
+
+.selection-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.selection-menu > * {
+    margin-left: 0 !important;
+}
+
+.filter {
+    position: absolute;
+    right: 0;
+    margin: 4px 4px 0 0;
+}
+
+.loading-container {
+    display: flex;
+    height: 400px;
+    justify-content: center;
     width: 100%;
 }
