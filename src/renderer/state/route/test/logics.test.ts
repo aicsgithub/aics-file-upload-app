@@ -208,7 +208,7 @@ describe("Route logics", () => {
       );
     });
   });
-  describe("openJobAsUploadLogic", () => {
+  describe("viewUploadsLogic", () => {
     const fileMetadata = {
       fileId: "abcdefg",
       filename: "name",
@@ -389,7 +389,9 @@ describe("Route logics", () => {
       const alert = getAlert(store.getState());
       expect(alert).to.not.be.undefined;
       expect(alert?.type).to.equal(AlertType.ERROR);
-      expect(alert?.message).to.equal("upload has missing information");
+      expect(alert?.message).to.equal(
+        `Upload ${mockSuccessfulUploadJob.jobName} has missing information`
+      );
     });
     it("sets error alert if something fails while showing the warning dialog", async () => {
       const showMessageBox = stub().resolves({
@@ -413,32 +415,6 @@ describe("Route logics", () => {
       expect(alert).to.not.be.undefined;
       expect(alert?.type).to.equal(AlertType.ERROR);
       expect(alert?.message).to.equal("Could not save draft: foo");
-    });
-    it("sets error alert if all files for the job have since been deleted", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      store.dispatch(
-        viewUploads([
-          {
-            ...mockSuccessfulUploadJob,
-            serviceFields: {
-              ...mockSuccessfulUploadJob.serviceFields,
-              deletedFileIds: ["cat", "dog"],
-            },
-          },
-        ])
-      );
-      await logicMiddleware.whenComplete();
-
-      const alert = getAlert(store.getState());
-      expect(alert).to.deep.equal({
-        message: "All files in this upload have been deleted!",
-        type: AlertType.ERROR,
-      });
     });
     it("allows users to open a failed upload", async () => {
       stubMethods({});

@@ -113,7 +113,7 @@ describe("metadata reducer", () => {
         initialState,
         viewUploadsSucceeded(mockWellUpload)
       );
-      expect(result.originalUpload).to.equal(mockWellUpload);
+      expect(result.originalUploads).to.equal(mockWellUpload);
     });
   });
   describe("saveUploadDraftSuccess", () => {

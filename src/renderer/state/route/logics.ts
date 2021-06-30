@@ -21,8 +21,12 @@ import {
   Lookup,
   ScalarType,
 } from "../../services/labkey-client/types";
-import MMSClient, { AnnotationValue } from "../../services/mms-client";
-import { FSSResponseFile, UploadRequest } from "../../services/types";
+import MMSClient from "../../services/mms-client";
+import {
+  MMSFileAnnotation,
+  FSSResponseFile,
+  UploadRequest,
+} from "../../services/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { Duration } from "../../types";
 import {
@@ -264,7 +268,10 @@ function convertUploadRequestsToUploadStateBranch(
 
     templateId = file.customMetadata.templateId || templateId;
     return file.customMetadata.annotations.reduce(
-      (keyToMetadataSoFar: UploadStateBranch, annotation: AnnotationValue) => {
+      (
+        keyToMetadataSoFar: UploadStateBranch,
+        annotation: MMSFileAnnotation
+      ) => {
         const key = getUploadRowKey({
           file: file.file.originalPath,
           ...annotation,
@@ -394,7 +401,33 @@ const viewUploadsLogic = createLogic({
       );
 
       // Second, we fetch the file metadata
-      const { files } = ctx;
+      const { requests, fileIds } = ctx as {
+        requests: UploadRequest[];
+        fileIds: string[];
+      };
+      const fileIdsAsFiles: UploadRequest[] = await Promise.all(
+        fileIds.map(async (fileId: string) => {
+          const [labkeyFileMetadata, customMetadata] = await Promise.all([
+            labkeyClient.selectFirst<LabKeyFileMetadata>(
+              LK_SCHEMA.FMS,
+              "File",
+              RELEVANT_FILE_COLUMNS,
+              [LabkeyClient.createFilter("FileId", fileId)]
+            ),
+            mmsClient.getFileMetadata(fileId),
+          ]);
+          return {
+            ...labkeyFileMetadata,
+            fileId,
+            customMetadata,
+            file: {
+              originalPath: labkeyFileMetadata.localFilePath as string,
+              fileType: labkeyFileMetadata.fileType,
+            },
+          };
+        })
+      );
+      const files = [...requests, ...fileIdsAsFiles];
       const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
 
       const actions: AnyAction[] = [];
@@ -473,9 +506,10 @@ const viewUploadsLogic = createLogic({
     }
 
     // Validate the uploads passed in as the action payload
-    const { payload: uploads } = action;
-    ctx.files = await Promise.all(
-      uploads.map(async (upload) => {
+    ctx.fileIds = [];
+    ctx.requests = [];
+    try {
+      action.payload.forEach((upload) => {
         if (
           upload.status === JSSJobStatus.SUCCEEDED &&
           upload.serviceFields?.result &&
@@ -488,38 +522,21 @@ const viewUploadsLogic = createLogic({
             ? castArray(upload.serviceFields.deletedFileIds)
             : [];
           const fileIds = difference(originalFileIds, deletedFileIds);
-          return await Promise.all(
-            fileIds.map(async (fileId: string) => {
-              const [labkeyFileMetadata, customMetadata] = await Promise.all([
-                deps.labkeyClient.selectFirst<LabKeyFileMetadata>(
-                  LK_SCHEMA.FMS,
-                  "File",
-                  RELEVANT_FILE_COLUMNS,
-                  [LabkeyClient.createFilter("FileId", fileId)]
-                ),
-                deps.mmsClient.getFileMetadata(fileId),
-              ]);
-              return {
-                ...labkeyFileMetadata,
-                fileId,
-                customMetadata,
-                file: { originalPath: labkeyFileMetadata.localFilePath },
-              };
-            })
-          );
+          ctx.fileIds = [...ctx.fileIds, ...fileIds];
         } else if (
           upload.serviceFields?.files &&
           !isEmpty(upload.serviceFields?.files)
         ) {
-          return upload.serviceFields?.files;
+          ctx.requests = [...ctx.requests, ...upload.serviceFields?.files];
+        } else {
+          throw new Error(`Upload ${upload.jobName} has missing information`);
         }
+      });
 
-        reject(setErrorAlert("upload has missing information"));
-        return [];
-      })
-    );
-
-    next(action);
+      next(action);
+    } catch (error) {
+      reject(setErrorAlert(error.message || "Failed to open uploads"));
+    }
   },
 });
 

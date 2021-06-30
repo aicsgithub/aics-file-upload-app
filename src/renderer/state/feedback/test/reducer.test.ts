@@ -427,9 +427,8 @@ describe("feedback reducer", () => {
         retryUploads([
           {
             ...mockFailedUploadJob,
-            key: "something",
-            fileIds: [],
-            filePaths: [],
+            fileId: "abc123",
+            filePath: "/my/file/path",
           },
         ])
       );
@@ -451,9 +450,8 @@ describe("feedback reducer", () => {
           {
             ...mockSuccessfulUploadJob,
             jobId: "foo",
-            key: "cat",
-            fileIds: [],
-            filePaths: [],
+            fileId: "abc123",
+            filePath: "/my/file/path",
           },
         ])
       );

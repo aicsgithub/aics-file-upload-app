@@ -467,10 +467,12 @@ describe("Selections selectors", () => {
           ...mockState,
           selection: getMockStateWithHistory({
             ...mockSelection,
-            job: {
-              ...mockJob,
-              status,
-            },
+            uploads: [
+              {
+                ...mockJob,
+                status,
+              },
+            ],
           }),
         };
         const result = getAreSelectedUploadsInFlight(state);
@@ -493,10 +495,12 @@ describe("Selections selectors", () => {
           ...mockState,
           selection: getMockStateWithHistory({
             ...mockSelection,
-            job: {
-              ...mockJob,
-              status,
-            },
+            uploads: [
+              {
+                ...mockJob,
+                status,
+              },
+            ],
           }),
         };
         const result = getAreSelectedUploadsInFlight(state);

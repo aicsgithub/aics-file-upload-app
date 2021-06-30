@@ -292,9 +292,8 @@ describe("Upload logics", () => {
       const uploadJob = {
         ...mockFailedUploadJob,
         jobName: "bar",
-        key: "foo",
-        fileIds: [],
-        filePaths: [],
+        fileId: "abc123",
+        filePath: "/my/file/path",
       };
       store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
@@ -311,9 +310,8 @@ describe("Upload logics", () => {
 
       const uploadJob = {
         ...mockFailedUploadJob,
-        key: "foo",
-        fileIds: [],
-        filePaths: [],
+        fileId: "abc123",
+        filePath: "/my/file/path",
       };
       store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
@@ -1571,7 +1569,7 @@ describe("Upload logics", () => {
         ...nonEmptyStateForInitiatingUpload,
         selection: getMockStateWithHistory({
           ...mockState.selection.present,
-          job: mockSuccessfulUploadJob,
+          uploads: [mockSuccessfulUploadJob],
         }),
         upload: getMockStateWithHistory({
           cat: catUpload,
@@ -1635,7 +1633,7 @@ describe("Upload logics", () => {
       // Act
       store.dispatch(
         cancelUploads([
-          { ...mockJob, key: "myJob", fileIds: [], filePaths: [] },
+          { ...mockJob, fileId: "abc123", filePath: "/my/file/path" },
         ])
       );
       await logicMiddleware.whenComplete();
@@ -1658,7 +1656,7 @@ describe("Upload logics", () => {
       // Act
       store.dispatch(
         cancelUploads([
-          { ...mockJob, key: "myJob", fileIds: [], filePaths: [] },
+          { ...mockJob, fileId: "abc123", filePath: "/my/file/path" },
         ])
       );
       await logicMiddleware.whenComplete();

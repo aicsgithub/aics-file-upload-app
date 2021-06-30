@@ -99,7 +99,7 @@ describe("selection reducer", () => {
         getMockStateWithHistory(initialState),
         viewUploads([mockSuccessfulUploadJob])
       );
-      expect(result.present.uploads).to.equal([mockSuccessfulUploadJob]);
+      expect(result.present.uploads).to.deep.equal([mockSuccessfulUploadJob]);
     });
   });
 });

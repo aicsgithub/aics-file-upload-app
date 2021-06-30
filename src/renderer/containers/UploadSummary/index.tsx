@@ -1,5 +1,4 @@
 import { Button, Tooltip } from "antd";
-import * as classNames from "classnames";
 import { remote } from "electron";
 import { isEmpty, uniqBy } from "lodash";
 import * as React from "react";
@@ -21,10 +20,6 @@ import UploadTable from "./UploadTable";
 
 const styles = require("./styles.pcss");
 
-interface Props {
-  className?: string;
-}
-
 function getContextMenuItems(
   dispatch: Dispatch,
   selectedUploads: UploadSummaryTableRow[],
@@ -34,20 +29,21 @@ function getContextMenuItems(
   return remote.Menu.buildFromTemplate([
     {
       label: "View",
+      enabled: !!selectedUploads.length,
       click: () => {
         dispatch(viewUploads(selectedUploads));
       },
     },
     {
       label: "Retry",
-      enabled: areSelectedUploadsAllFailed,
+      enabled: !!selectedUploads.length && areSelectedUploadsAllFailed,
       click: () => {
         dispatch(retryUploads(selectedUploads));
       },
     },
     {
       label: "Cancel",
-      enabled: areSelectedUploadsAllInProgress,
+      enabled: !!selectedUploads.length && areSelectedUploadsAllInProgress,
       click: () => {
         dispatch(cancelUploads(selectedUploads));
       },
@@ -55,7 +51,7 @@ function getContextMenuItems(
   ]);
 }
 
-export default function UploadSummary(props: Props) {
+export default function UploadSummary() {
   const dispatch = useDispatch();
   const { uploadsWithTemplates, uploadsWithoutTemplates } = useSelector(
     getUploadsByTemplateUsage
@@ -107,7 +103,7 @@ export default function UploadSummary(props: Props) {
   }
 
   return (
-    <div className={classNames(styles.container, props.className)}>
+    <div className={styles.container}>
       <div className={styles.header}>
         <h2>My Uploads</h2>
         <div className={styles.tableToolBar}>
