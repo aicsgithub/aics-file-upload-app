@@ -1,5 +1,6 @@
 import { createLogic } from "redux-logic";
 
+import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
 import {
   FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
@@ -54,9 +55,11 @@ export const handleAbandonedJobsLogic = createLogic({
             )
           );
         } catch (e) {
-          const message = `Retry for upload "${abandonedJob.jobName}" failed: ${e.message}`;
-          logger.error(message, e);
-          dispatch(setErrorAlert(message));
+          if (!(e instanceof CopyCancelledError)) {
+            const message = `Retry for upload "${abandonedJob.jobName}" failed: ${e.message}`;
+            logger.error(message, e);
+            dispatch(setErrorAlert(message));
+          }
         }
       })
     );

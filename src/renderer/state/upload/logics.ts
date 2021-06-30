@@ -22,6 +22,7 @@ import {
   WELL_ANNOTATION_NAME,
 } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
+import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
@@ -242,9 +243,11 @@ const initiateUploadLogic = createLogic({
               )
             );
           } catch (e) {
-            const error = `Upload ${jobName} failed: ${e.message}`;
-            logger.error(`Upload failed`, e);
-            dispatch(uploadFailed(error, jobName));
+            if (!(e instanceof CopyCancelledError)) {
+              const error = `Upload ${jobName} failed: ${e.message}`;
+              logger.error(`Upload failed`, e);
+              dispatch(uploadFailed(error, jobName));
+            }
           }
         })
       );
@@ -315,9 +318,11 @@ const retryUploadLogic = createLogic({
         )
       );
     } catch (e) {
-      const error = `Retry upload ${job.jobName} failed: ${e.message}`;
-      logger.error(`Retry for jobId=${job.jobId} failed`, e);
-      dispatch(uploadFailed(error, job.jobName || ""));
+      if (!(e instanceof CopyCancelledError)) {
+        const error = `Retry upload ${job.jobName} failed: ${e.message}`;
+        logger.error(`Retry for jobId=${job.jobId} failed`, e);
+        dispatch(uploadFailed(error, job.jobName || ""));
+      }
     }
     done();
   },
