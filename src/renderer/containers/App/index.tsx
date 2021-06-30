@@ -84,7 +84,7 @@ export default function App() {
   useEffect(() => {
     dispatch(addRequestToInProgress(AsyncRequest.GET_JOBS));
     const eventSource = new AutoReconnectingEventSource(
-      `${limsUrl}/jss/1.0/job/subscribe/${user}`,
+      `${limsUrl}/jss/1.0/job/subscribe/tylerf`,
       { withCredentials: true }
     );
 

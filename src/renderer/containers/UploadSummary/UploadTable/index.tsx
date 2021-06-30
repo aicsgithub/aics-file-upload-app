@@ -2,14 +2,15 @@ import { Button, DatePicker, Input, Table, Tooltip } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as React from "react";
 
-import StatusCircle from "../../components/StatusCircle";
+import StatusCircle from "../../../components/StatusCircle";
 import {
   JOB_STATUSES,
   JSSJobStatus,
-} from "../../services/job-status-client/types";
-import { UploadSummaryTableRow } from "../../state/types";
+} from "../../../services/job-status-client/types";
+import { UploadSummaryTableRow } from "../../../state/types";
 
-import UploadProgress from "./UploadProgress";
+import UploadProgress from "../UploadProgress";
+import ResizeableHeader from "./ResizeableHeader";
 
 const styles = require("./styles.pcss");
 
@@ -36,7 +37,7 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
     },
     sorter: (a, b) => a.status.localeCompare(b.status),
     title: "Status",
-    width: "115px",
+    width: 115,
   },
   {
     dataIndex: "jobName",
@@ -61,10 +62,10 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
     },
     render: function render(filename: string, row: UploadSummaryTableRow) {
       return (
-        <>
+        <Tooltip overlay={filename} mouseLeaveDelay={0} placement="leftTop">
           {filename}
           <UploadProgress row={row} />
-        </>
+        </Tooltip>
       );
     },
     sorter: (a, b) => a.jobName?.localeCompare(b?.jobName || "") || 1,
@@ -73,54 +74,28 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
   },
   {
     dataIndex: "created",
-    sorter: (a, b) => a.created.getMilliseconds() - b.created.getMilliseconds(),
-    onFilter: (value, record) => {
-      const valueAsDate = new Date(value);
-      return (
-        valueAsDate.getFullYear() === record.created.getFullYear() &&
-        valueAsDate.getMonth() === record.created.getMonth() &&
-        valueAsDate.getDate() === record.created.getDate()
-      );
-    },
-    filters: [],
+    // sorter: (a, b) => a.created.getMilliseconds() - b.created.getMilliseconds(),
+    // onFilter: (value, record) => {
+    //   const valueAsDate = new Date(value);
+    //   return (
+    //     valueAsDate.getFullYear() === record.created.getFullYear() &&
+    //     valueAsDate.getMonth() === record.created.getMonth() &&
+    //     valueAsDate.getDate() === record.created.getDate()
+    //   );
+    // },
+    // filters: [],
     render: (created: Date) =>
       created.toLocaleString(undefined, { timeZone: "America/Los_Angeles" }),
     title: "Created",
-    filterDropdown: (props) => (
-      <DatePicker
-        onChange={(v) => {
-          props.setSelectedKeys?.(v ? [v?.toLocaleString()] : []);
-          props.confirm?.();
-        }}
-      />
-    ),
-    width: "200px",
-  },
-  {
-    dataIndex: "modified",
-    onFilter: (value, record) => {
-      const valueAsDate = new Date(value);
-      return (
-        valueAsDate.getFullYear() === record.modified.getFullYear() &&
-        valueAsDate.getMonth() === record.modified.getMonth() &&
-        valueAsDate.getDate() === record.modified.getDate()
-      );
-    },
-    filters: [],
-    render: (modified: Date) =>
-      modified.toLocaleString(undefined, { timeZone: "America/Los_Angeles" }),
-    sorter: (a, b) =>
-      a.modified.getMilliseconds() - b.modified.getMilliseconds(),
-    title: "Status Updated",
-    filterDropdown: (props) => (
-      <DatePicker
-        onChange={(v) => {
-          props.setSelectedKeys?.(v ? [v?.toLocaleString()] : []);
-          props.confirm?.();
-        }}
-      />
-    ),
-    width: "200px",
+    // filterDropdown: (props) => (
+    //   <DatePicker
+    //     onChange={(v) => {
+    //       props.setSelectedKeys?.(v ? [v?.toLocaleString()] : []);
+    //       props.confirm?.();
+    //     }}
+    //   />
+    // ),
+    width: 235,
   },
   {
     dataIndex: "fileIds",
@@ -143,11 +118,13 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
     },
     onFilter: (value, record) =>
       record.fileIds?.some((id) => id.includes(value)) || false,
-    render: (fileIds: string[]) => (
+    render: (fileIds: string[]) =>
       fileIds ? (
         <div>
-          {`${fileIds.join(", ").substring(0, 15)}...`}
-          <Tooltip overlay="Copy to Clipboard">
+          <Tooltip overlay={fileIds.join(", ")} mouseLeaveDelay={0} placement="leftTop">
+            {`${fileIds.join(", ").substring(0, 10)}...`}
+          </Tooltip>
+          <Tooltip overlay="Copy to Clipboard" mouseLeaveDelay={0}>
             <Button
               icon="copy"
               // TODO
@@ -156,11 +133,10 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
             />
           </Tooltip>
         </div>
-      ) : undefined
-    ),
+      ) : undefined,
     sorter: (a, b) => a.fileIds?.[0].localeCompare(b.fileIds?.[0] || "") || 1,
     title: "File ID",
-    width: "200px",
+    width: 200,
   },
   {
     dataIndex: "filePaths",
@@ -181,11 +157,13 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
         </form>
       );
     },
-    render: (filePaths: string[]) => (
+    render: (filePaths: string[]) =>
       filePaths ? (
         <div>
-          {`${filePaths.join(", ").substring(0, 15)}...`}
-          <Tooltip overlay="Copy to Clipboard">
+          <Tooltip overlay={filePaths.join(", ")} mouseLeaveDelay={0} placement="leftTop">
+            {`${filePaths.join(", ").substring(0, 10)}...`}
+          </Tooltip>
+          <Tooltip overlay="Copy to Clipboard" mouseLeaveDelay={0}>
             <Button
               icon="copy"
               // TODO
@@ -194,23 +172,49 @@ const COLUMNS: ColumnProps<UploadSummaryTableRow>[] = [
             />
           </Tooltip>
         </div>
-      ) : undefined
-    ),
+      ) : undefined,
     onFilter: (value, record) =>
       record.filePaths?.some((p) => p.includes(value)),
     sorter: (a, b) =>
       a.filePaths?.[0].localeCompare(b.filePaths?.[0] || "") || 1,
     title: "FMS File Path",
-    width: "200px",
+    width: 200,
   },
 ];
 
 export default function UploadTable(props: Props) {
+  const [columns, setColumns] = React.useState(COLUMNS);
+
+  function handleResize(index: number) {
+    return (_: any, { size }: { size: { width: number } }) => {
+      console.log("resizing", index, size);
+      const nextColumns = [...columns];
+      nextColumns[index] = {
+        ...nextColumns[index],
+        width: size.width
+      }
+      setColumns(nextColumns);
+    }
+  };
+
+  const columnsWithResizeEvent: ColumnProps<UploadSummaryTableRow>[] = columns.map((col, index) => ({
+    ...col,
+    onHeaderCell: (column) => ({
+      width: column.width,
+      onResize: handleResize(index),
+    }),
+  }));
+
   return (
     <Table
       className={styles.table}
+      components={{
+        header: {
+          cell: ResizeableHeader,
+        },
+      }}
       loading={props.isLoading}
-      columns={COLUMNS}
+      columns={columnsWithResizeEvent}
       title={() => props.title}
       dataSource={props.uploads}
       size="small"
