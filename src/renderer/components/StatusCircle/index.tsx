@@ -23,7 +23,7 @@ const STATUS_TO_CLASSNAME_MAP: { [status: string]: string } = Object.freeze({
 
 export default function StatusCircle(props: CellProps<UploadSummaryTableRow>) {
   return (
-    <Tooltip placement="right" title={status}>
+    <Tooltip title={props.value} mouseLeaveDelay={0}>
       <div className={styles.container}>
         <div
           className={classNames(

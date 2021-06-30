@@ -80,10 +80,11 @@ declare module "react-table" {
     extends UseGroupByCellProps<D>,
       UseRowStateCellProps<D> {}
 
+  export interface HeaderGroup<D extends object = {}>
+    extends UseSortByColumnProps<D>,
+      UseFiltersColumnProps<D> {}
+
   export interface Row<D extends object = {}>
     extends UseExpandedRowProps<D>,
       UseRowSelectRowProps<D> {}
-
-  export interface HeaderGroup<D extends object = {}>
-    extends UseFiltersColumnProps<D> {}
 }

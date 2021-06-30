@@ -7,6 +7,7 @@ const styles = require("./styles.pcss");
 
 interface Props<T extends {}> {
   className?: string;
+  height?: number;
   tableInstance: TableInstance<T>;
 }
 
@@ -35,10 +36,11 @@ export default function Table<T extends {}>(props: Props<T>) {
 
   const scrollBarSize = React.useMemo(() => getScrollBarWidth(), []);
 
+  const { rows, prepareRow } = tableInstance;
   const RenderRow = React.useCallback(
     ({ index, style }) => {
-      const row = tableInstance.rows[index];
-      tableInstance.prepareRow(row);
+      const row = rows[index];
+      prepareRow(row);
       return (
         <div {...row.getRowProps({ style })} key={row.getRowProps().key}>
           {row.cells.map((cell) => (
@@ -53,7 +55,7 @@ export default function Table<T extends {}>(props: Props<T>) {
         </div>
       );
     },
-    [tableInstance.prepareRow, tableInstance.rows]
+    [prepareRow, rows]
   );
 
   return (
@@ -93,7 +95,7 @@ export default function Table<T extends {}>(props: Props<T>) {
         </div>
         <div {...tableInstance.getTableBodyProps()}>
           <FixedSizeList
-            height={400}
+            height={props.height || 400}
             itemCount={tableInstance.rows.length}
             itemSize={35}
             width={tableInstance.totalColumnsWidth + scrollBarSize}

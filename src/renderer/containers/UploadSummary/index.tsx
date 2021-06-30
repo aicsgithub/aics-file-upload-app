@@ -1,20 +1,22 @@
 import { Button, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { remote } from "electron";
-import { isEmpty } from "lodash";
+import { isEmpty, uniqBy } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Row } from "react-table";
 import { Dispatch } from "redux";
 
 import {
-  FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
+  JSSJobStatus,
 } from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { getUploadsByTemplateUsage } from "../../state/job/selectors";
 import { startNewUpload, viewUploads } from "../../state/route/actions";
-import { AsyncRequest } from "../../state/types";
+import { AsyncRequest, UploadSummaryTableRow } from "../../state/types";
 import { cancelUploads, retryUploads } from "../../state/upload/actions";
+
 import UploadTable from "./UploadTable";
 
 const styles = require("./styles.pcss");
@@ -23,30 +25,31 @@ interface Props {
   className?: string;
 }
 
-function getContextMenuItems(dispatch: Dispatch, selectedUploadKeys: string[]) {
+function getContextMenuItems(
+  dispatch: Dispatch,
+  selectedUploads: UploadSummaryTableRow[],
+  areSelectedUploadsAllFailed: boolean,
+  areSelectedUploadsAllInProgress: boolean
+) {
   return remote.Menu.buildFromTemplate([
     {
       label: "View",
       click: () => {
-        dispatch(viewUploads(selectedUploadKeys));
+        dispatch(viewUploads(selectedUploads));
       },
     },
     {
       label: "Retry",
-      enabled: selectedUploadKeys.every((r) =>
-        FAILED_STATUSES.includes(r.status)
-      ),
+      enabled: areSelectedUploadsAllFailed,
       click: () => {
-        dispatch(retryUploads(selectedUploadKeys));
+        dispatch(retryUploads(selectedUploads));
       },
     },
     {
       label: "Cancel",
-      enabled: selectedUploads.some((r) =>
-        IN_PROGRESS_STATUSES.includes(r.status)
-      ),
+      enabled: areSelectedUploadsAllInProgress,
       click: () => {
-        dispatch(cancelUploads(selectedUploadKeys));
+        dispatch(cancelUploads(selectedUploads));
       },
     },
   ]);
@@ -60,30 +63,48 @@ export default function UploadSummary(props: Props) {
   const requestsInProgress = useSelector(getRequestsInProgress);
   const isRequestingJobs = requestsInProgress.includes(AsyncRequest.GET_JOBS);
 
-  const [selectedUploadKeys, setSelectedUploadKeys] = React.useState<string[]>(
-    []
-  );
+  const [selectedUploads, setSelectedUploads] = React.useState<
+    UploadSummaryTableRow[]
+  >([]);
 
   const [
-    selectedAllFailedUploads,
-    selectedAllInProgressUploads,
+    areSelectedUploadsAllFailed,
+    areSelectedUploadsAllInProgress,
   ] = React.useMemo(() => {
-    return [false, false];
-    // const uploadJobIdSet = new Set(selectedUploadKeys);
-    // const selectedUploads = [...uploadsWithTemplates, ...uploadsWithoutTemplates].filter(upload => (
-    //   uploadJobIdSet.has(upload.jobId)
-    // ));
-    // const selectedAllFailedUploads = selectedUploads.every(upload => (
-    //   upload.status === JSSJobStatus.FAILED
-    // ));
-    // let selectedAllInProgressUploads = false;
-    // if (!selectedAllFailedUploads) {
-    //   selectedAllInProgressUploads = selectedUploads.every(upload => (
-    //     IN_PROGRESS_STATUSES.includes(upload.status)
-    //   ));
-    // }
-    // return [selectedAllFailedUploads, selectedAllInProgressUploads];
-  }, [selectedUploadKeys, uploadsWithTemplates, uploadsWithoutTemplates]);
+    const selectedAllFailedUploads = selectedUploads.every(
+      (upload) => upload.status === JSSJobStatus.FAILED
+    );
+    let selectedAllInProgressUploads = false;
+    if (!selectedAllFailedUploads) {
+      selectedAllInProgressUploads = selectedUploads.every((upload) =>
+        IN_PROGRESS_STATUSES.includes(upload.status)
+      );
+    }
+    return [selectedAllFailedUploads, selectedAllInProgressUploads];
+  }, [selectedUploads]);
+
+  function onSelect(
+    rows: Row<UploadSummaryTableRow>[],
+    isDeselecting: boolean
+  ) {
+    if (isDeselecting) {
+      const rowIds = new Set(rows.map((r) => r.id));
+      setSelectedUploads(selectedUploads.filter((u) => !rowIds.has(u.jobId)));
+    } else {
+      const uploads = rows.map((r) => r.original);
+      setSelectedUploads(uniqBy([...selectedUploads, ...uploads], "jobId"));
+    }
+  }
+  console.log(selectedUploads.length);
+
+  function onContextMenu() {
+    getContextMenuItems(
+      dispatch,
+      selectedUploads,
+      areSelectedUploadsAllFailed,
+      areSelectedUploadsAllInProgress
+    ).popup();
+  }
 
   return (
     <div className={classNames(styles.container, props.className)}>
@@ -94,8 +115,8 @@ export default function UploadSummary(props: Props) {
             <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
               <Button
                 className={styles.tableToolBarButton}
-                onClick={() => dispatch(viewUploads(selectedUploadKeys))}
-                disabled={isEmpty(selectedUploadKeys)}
+                onClick={() => dispatch(viewUploads(selectedUploads))}
+                disabled={isEmpty(selectedUploads)}
                 icon="file-search"
               >
                 View
@@ -104,9 +125,9 @@ export default function UploadSummary(props: Props) {
             <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
               <Button
                 className={styles.tableToolBarButton}
-                onClick={() => dispatch(retryUploads(selectedUploadKeys))}
+                onClick={() => dispatch(retryUploads(selectedUploads))}
                 disabled={
-                  isEmpty(selectedUploadKeys) || !selectedAllFailedUploads
+                  isEmpty(selectedUploads) || !areSelectedUploadsAllFailed
                 }
                 icon="redo"
               >
@@ -116,9 +137,9 @@ export default function UploadSummary(props: Props) {
             <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
               <Button
                 className={styles.tableToolBarButton}
-                onClick={() => dispatch(cancelUploads(selectedUploadKeys))}
+                onClick={() => dispatch(cancelUploads(selectedUploads))}
                 disabled={
-                  isEmpty(selectedUploadKeys) || !selectedAllInProgressUploads
+                  isEmpty(selectedUploads) || !areSelectedUploadsAllInProgress
                 }
                 icon="stop"
               >
@@ -138,21 +159,19 @@ export default function UploadSummary(props: Props) {
       <div className={styles.tableContainer}>
         <UploadTable
           isLoading={isRequestingJobs}
-          title="Uploads Without Metadata Templates"
+          height={uploadsWithoutTemplates.length < 10 ? 200 : 400}
+          onContextMenu={onContextMenu}
+          onSelect={onSelect}
+          title="Uploads Missing Metadata Templates"
           uploads={uploadsWithoutTemplates}
-          setSelectedUploadKeys={setSelectedUploadKeys}
-          onContextMenu={() =>
-            getContextMenuItems(dispatch, selectedUploadKeys).popup()
-          }
         />
         <UploadTable
           isLoading={isRequestingJobs}
+          height={uploadsWithoutTemplates.length < 10 ? 600 : 400}
+          onContextMenu={onContextMenu}
+          onSelect={onSelect}
           title="Uploads With Metadata Templates"
           uploads={uploadsWithTemplates}
-          setSelectedUploadKeys={setSelectedUploadKeys}
-          onContextMenu={() =>
-            getContextMenuItems(dispatch, selectedUploadKeys).popup()
-          }
         />
       </div>
     </div>

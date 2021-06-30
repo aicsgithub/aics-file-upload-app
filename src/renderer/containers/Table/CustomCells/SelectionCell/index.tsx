@@ -2,18 +2,22 @@ import { Checkbox } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { CellProps } from "react-table";
+import { CellProps, Row } from "react-table";
 
 import { setLastSelectedUpload } from "../../../../state/job/actions";
 import { getLastSelectedUpload } from "../../../../state/job/selectors";
 
 const styles = require("./styles.pcss");
 
+interface Props<T extends {}> extends CellProps<T> {
+  onSelect?: (rows: Row<T>[], isDeselecting: boolean) => void;
+}
+
 /*
     This renders a checkbox that controls the selection state
     of an individual row.
 */
-export default function SelectionCell<T extends {}>(props: CellProps<T>) {
+export default function SelectionCell<T extends {}>(props: Props<T>) {
   const dispatch = useDispatch();
   const lastRowSelected = useSelector(getLastSelectedUpload);
   const checkBoxProps = props.row.getToggleRowSelectedProps();
@@ -42,8 +46,10 @@ export default function SelectionCell<T extends {}>(props: CellProps<T>) {
       rows.forEach((row) => {
         props.toggleRowSelected(row.id, e.target.checked);
       });
+      props.onSelect?.(rows, !e.target.checked);
     } else {
       checkBoxProps.onChange?.(e as any);
+      props.onSelect?.([props.row], !e.target.checked);
     }
   }
 

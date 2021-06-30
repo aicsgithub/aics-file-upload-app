@@ -1,6 +1,7 @@
-import { Spin } from "antd";
+import { Empty, Spin } from "antd";
 import * as React from "react";
 import {
+  CellProps,
   Column,
   FilterValue,
   Row,
@@ -28,20 +29,17 @@ const styles = require("./styles.pcss");
 
 interface Props {
   title: string;
+  height: number;
   isLoading: boolean;
   onContextMenu: () => void;
+  onSelect: (
+    rows: Row<UploadSummaryTableRow>[],
+    isDeselecting: boolean
+  ) => void;
   uploads: UploadSummaryTableRow[];
-  setSelectedUploadKeys: (selectedUploadKeys: string[]) => void;
 }
 
 const COLUMNS: Column<UploadSummaryTableRow>[] = [
-  {
-    id: "selection",
-    disableResizing: true,
-    Header: SelectionHeader,
-    Cell: SelectionCell,
-    maxWidth: 35,
-  },
   {
     accessor: "status",
     Cell: StatusCircle,
@@ -60,14 +58,16 @@ const COLUMNS: Column<UploadSummaryTableRow>[] = [
   },
   {
     accessor: "created",
-    Cell: (props) => (
-      <ReadOnlyCell
-        {...props}
-        value={props.value.toLocaleString(undefined, {
-          timeZone: "America/Los_Angeles",
-        })}
-      />
-    ),
+    Cell: function Cell(props) {
+      return (
+        <ReadOnlyCell
+          {...props}
+          value={props.value.toLocaleString(undefined, {
+            timeZone: "America/Los_Angeles",
+          })}
+        />
+      );
+    },
     description: "Time the file upload began",
     Filter: Filter({ type: FilterType.DATE }),
     filter: FilterType.DATE,
@@ -109,7 +109,21 @@ const FILTER_TYPES: Record<string, FilterValue> = {
 
 export default function UploadTable(props: Props) {
   const data = React.useMemo(() => props.uploads, [props.uploads]);
-  const columns = React.useMemo(() => COLUMNS, [COLUMNS]);
+  const columns = React.useMemo(
+    () => [
+      {
+        id: "selection",
+        disableResizing: true,
+        Header: SelectionHeader,
+        Cell: function Cell(cp: CellProps<UploadSummaryTableRow>) {
+          return <SelectionCell {...cp} onSelect={props.onSelect} />;
+        },
+        maxWidth: 35,
+      },
+      ...COLUMNS,
+    ],
+    [props.onSelect]
+  );
 
   const tableInstance: TableInstance<UploadSummaryTableRow> = useTable<
     UploadSummaryTableRow
@@ -150,7 +164,14 @@ export default function UploadTable(props: Props) {
           <Spin size="large" />
         </div>
       ) : (
-        <Table className={styles.tableContainer} tableInstance={tableInstance} />
+        <>
+          <Table
+            className={styles.tableContainer}
+            height={props.height}
+            tableInstance={tableInstance}
+          />
+          <Empty description={`No ${props.title}`} />
+        </>
       )}
     </div>
   );

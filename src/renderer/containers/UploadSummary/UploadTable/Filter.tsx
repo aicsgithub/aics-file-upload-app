@@ -18,15 +18,13 @@ interface Props {
 }
 
 export default function Filter(props: Props) {
-  return <T extends {}>(filterProps: FilterProps<T>) => {
+  return function FilterComponent<T extends {}>(filterProps: FilterProps<T>) {
     let content: React.ReactNode;
     if (props.type === FilterType.DATE) {
       content = (
         <DatePicker
           value={moment(filterProps.column.filterValue)}
-          onChange={(v) =>
-            filterProps.column.setFilter(v?.toDate())
-          }
+          onChange={(v) => filterProps.column.setFilter(v?.toDate())}
           placeholder={`Search by ${filterProps.column.id}`}
         />
       );
@@ -37,11 +35,22 @@ export default function Filter(props: Props) {
             <Checkbox
               key={option}
               checked={filterProps.column.filterValue?.includes(option)}
-              onChange={(e) =>
-                e.target.checked
-                  ? filterProps.column.setFilter([...(filterProps.column.filterValue || []), option])
-                  : filterProps.column.setFilter(without(filterProps.column.filterValue, option))
-              }
+              onChange={(e) => {
+                if (e.target.checked) {
+                  filterProps.column.setFilter([
+                    ...(filterProps.column.filterValue || []),
+                    option,
+                  ]);
+                } else {
+                  const columnsWithoutValue = without(
+                    filterProps.column.filterValue,
+                    option
+                  );
+                  filterProps.column.setFilter(
+                    columnsWithoutValue.length ? columnsWithoutValue : undefined
+                  );
+                }
+              }}
             >
               {option}
             </Checkbox>
@@ -49,18 +58,17 @@ export default function Filter(props: Props) {
         </div>
       );
     } else {
-        const onUpdate = debounce((value: string) => {
-            filterProps.column.setFilter(value);
-        })
-        function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-            e.persist();
-            onUpdate(e.target.value);
-        }
+      const onUpdate = debounce((value: string) => {
+        filterProps.column.setFilter(value);
+      });
       content = (
         <Input
-            allowClear
+          allowClear
           defaultValue={filterProps.column.filterValue}
-          onChange={onChange}
+          onChange={(e) => {
+            e.persist();
+            onUpdate(e.target.value);
+          }}
           placeholder={`Search by ${filterProps.column.id}`}
         />
       );
@@ -72,7 +80,9 @@ export default function Filter(props: Props) {
           className={styles.filter}
           title={`Filter by ${filterProps.column.id}`}
           type="filter"
-          theme={filterProps.column.filterValue !== undefined ? "filled" : "outlined"}
+          theme={
+            filterProps.column.filterValue !== undefined ? "filled" : "outlined"
+          }
         />
       </Popover>
     );
