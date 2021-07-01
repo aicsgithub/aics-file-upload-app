@@ -1,14 +1,5 @@
-import { createHash, Hash } from "crypto";
 import * as fs from "fs";
-import {
-  createReadStream,
-  createWriteStream,
-  ReadStream,
-  WriteStream,
-} from "fs";
 import * as path from "path";
-import { basename, resolve as resolvePath } from "path";
-import { Transform, pipeline } from "stream";
 import { promisify } from "util";
 
 import { noop, uniq, throttle } from "lodash";
@@ -29,6 +20,7 @@ import LabkeyClient from "../labkey-client";
 import { UploadRequest, UploadServiceFields } from "../types";
 
 import { CopyCancelledError } from "./CopyCancelledError";
+import FileCopier from "./FileCopier";
 import {
   UnrecoverableJobError,
   UNRECOVERABLE_JOB_ERROR,
@@ -41,6 +33,7 @@ interface FileManagementSystemConfig {
   jss: JobStatusClient;
   lk: LabkeyClient;
   storage: LocalStorage;
+  fileCopier: FileCopier;
 }
 
 type CopyProgressCallBack = (
@@ -60,14 +53,7 @@ export default class FileManagementSystem {
   private readonly jss: JobStatusClient;
   private readonly lk: LabkeyClient;
   private readonly storage: LocalStorage;
-  private jobIdToStreamMap: {
-    [jobId: string]: {
-      readStream: ReadStream;
-      writeStream: WriteStream;
-      progressStream: Transform;
-      hashStream: Hash;
-    };
-  } = {};
+  private readonly fileCopier: FileCopier;
 
   // Creates JSS friendly unique ids
   public static createUniqueId() {
@@ -79,6 +65,7 @@ export default class FileManagementSystem {
     this.jss = config.jss;
     this.lk = config.lk;
     this.storage = config.storage;
+    this.fileCopier = config.fileCopier;
   }
 
   /**
@@ -115,7 +102,7 @@ export default class FileManagementSystem {
     }
     if (metadata.file.originalPath !== filePath) {
       throw new Error(
-        `Metadata for file ${filePath} has property file.originalPath set to ${filePath} which doesn't match ${filePath}`
+        `Metadata for file ${filePath} has property file.originalPath set to ${metadata.file.originalPath} which doesn't match ${filePath}`
       );
     }
 
@@ -296,95 +283,15 @@ export default class FileManagementSystem {
    * Cancels the given Job. This will mark the job as a failure and
    * stop the copy portion of the upload if ongoing on the client side.
    * Note: the job is not guaranteed to stop if it has left the
-   * client-side portion of the upload and
-   * is now entirely managed by FSS.
+   * client-side portion of the upload and is now entirely managed by FSS.
    */
   public async cancelUpload(jobId: string): Promise<void> {
-    if (jobId in this.jobIdToStreamMap) {
-      const {
-        readStream,
-        writeStream,
-        hashStream,
-        progressStream,
-      } = this.jobIdToStreamMap[jobId];
-      readStream.unpipe();
-      const cancelledError = new CopyCancelledError();
-      readStream.destroy(cancelledError);
-      writeStream.destroy(cancelledError);
-      hashStream.destroy(cancelledError);
-      progressStream.destroy(cancelledError);
-      delete this.jobIdToStreamMap[jobId];
-    }
+    this.fileCopier.cancelCopy(jobId);
+
     await this.jss.updateJob(jobId, {
       status: JSSJobStatus.FAILED,
       serviceFields: { cancelled: true, error: "Cancelled by user" },
     });
-  }
-
-  /**
-   * Copies the file located at `source` to `dest`, and returns the calculated
-   * MD5. Calls `onProgress` whenever a chunk of data is copied.
-   * */
-  private async copyToDestAndCalcMD5(
-    jobId: string,
-    source: string,
-    dest: string,
-    onProgress: (bytesCopied: number) => void
-  ): Promise<string> {
-    let bytesCopied = 0;
-    const readStream = createReadStream(source);
-    const hashStream = createHash("md5").setEncoding("hex");
-    const writeStream = createWriteStream(resolvePath(dest, basename(source)));
-    // This is a dummy stream to track the progress of the copy
-    const progressStream = new Transform({
-      transform(chunk, encoding, callback) {
-        bytesCopied += chunk.length;
-        onProgress(bytesCopied);
-        this.push(chunk);
-        callback();
-      },
-    });
-
-    this.jobIdToStreamMap[jobId] = {
-      readStream,
-      writeStream,
-      hashStream,
-      progressStream,
-    };
-
-    // TODO: Replace this with the built-in promise version of `pipeline` once
-    // we are on Node v15+.
-    // https://nodejs.org/api/stream.html#stream_stream_pipeline_streams_callback
-    const copyPromise = new Promise((resolve, reject) => {
-      // Send source bytes to destination and track progress
-      pipeline(readStream, progressStream, writeStream, (error) => {
-        if (error) {
-          delete this.jobIdToStreamMap[jobId];
-          reject(error);
-        } else {
-          resolve();
-        }
-      });
-    });
-
-    const md5CalcPromise = new Promise((resolve, reject) => {
-      // Calculate MD5
-      pipeline(readStream, hashStream, (error) => {
-        if (error) {
-          delete this.jobIdToStreamMap[jobId];
-          reject(error);
-        } else {
-          resolve();
-        }
-      });
-    });
-
-    // Wait for copy and MD5 calculation to complete
-    await Promise.all([copyPromise, md5CalcPromise]);
-
-    delete this.jobIdToStreamMap[jobId];
-    // Return calculated MD5
-    return hashStream.read();
   }
 
   /**
@@ -420,7 +327,7 @@ export default class FileManagementSystem {
         5000
       );
       console.time(`Copy ${source}`);
-      const md5 = await this.copyToDestAndCalcMD5(
+      const md5 = await this.fileCopier.copyToDestAndCalcMD5(
         jobId,
         source,
         dest,
