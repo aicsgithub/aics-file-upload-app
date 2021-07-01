@@ -322,6 +322,7 @@ export default class FileManagementSystem {
       }
     }
     try {
+      // Update copy progress every 5 seconds
       const throttledProgress = throttle(
         (progress) => copyProgressCb(source, progress, fileSize),
         5000
