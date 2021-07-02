@@ -3,7 +3,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 import { CellProps } from "react-table";
 
-import { UploadSummaryTableRow } from "../../state/types";
+import { UploadSummaryTableRow } from "../../../../state/types";
 
 const styles = require("./styles.pcss");
 
@@ -21,7 +21,7 @@ const STATUS_TO_CLASSNAME_MAP: { [status: string]: string } = Object.freeze({
   WORKING: IN_PROGRESS_CLASSNAME,
 });
 
-export default function StatusCircle(props: CellProps<UploadSummaryTableRow>) {
+export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
   return (
     <Tooltip title={props.value} mouseLeaveDelay={0}>
       <div className={styles.container}>

@@ -1,6 +1,7 @@
 import { Checkbox } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
-import React from "react";
+import { pick } from "lodash";
+import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps, Row } from "react-table";
 
@@ -26,7 +27,7 @@ export default function SelectionCell<T extends {}>(props: Props<T>) {
     // TODO: How to handle expandable rows...?
 
     // Track the last selected upload row to enable shift selection
-    dispatch(setLastSelectedUpload(props.row));
+    dispatch(setLastSelectedUpload(pick(props.row, ["id", "index"])));
     // If the user holds SHIFT while selecting rows the inbetween rows will be selected
     // unless the last row selected has shifted in position since the interaction
     if (

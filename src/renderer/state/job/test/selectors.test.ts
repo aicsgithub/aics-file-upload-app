@@ -15,14 +15,14 @@ import {
 import {
   getIsSafeToExit,
   getJobIdToUploadJobMap,
-  getJobsForTable,
+  getUploadsByTemplateUsage,
 } from "../selectors";
 
 describe("Job selectors", () => {
-  describe("getJobsForTable", () => {
-    it("converts jobs in redux store to objects used by upload summary page", () => {
-      const jobs = [...nonEmptyJobStateBranch.uploadJobs];
-      const jobTableRows = getJobsForTable({
+  describe("getUploadsByTemplateUsage", () => {
+    it("divides jobs by if they have been used with a template", () => {
+      // Arrange
+      const state = {
         ...mockState,
         job: {
           ...nonEmptyJobStateBranch,
@@ -33,11 +33,20 @@ describe("Job selectors", () => {
             },
           },
         },
-      });
+      };
+      const jobs = [...nonEmptyJobStateBranch.uploadJobs];
 
-      expect(jobTableRows.length).to.equal(jobs.length);
+      // Act
+      const {
+        uploadsWithTemplates,
+        uploadsWithoutTemplates,
+      } = getUploadsByTemplateUsage(state);
+
+      // Assert
+      expect(uploadsWithTemplates).to.be.lengthOf(1);
+      expect(uploadsWithoutTemplates).to.be.lengthOf(2);
       let foundWorkingJob = false;
-      jobTableRows.forEach((jobTableRow) => {
+      uploadsWithoutTemplates.forEach((jobTableRow) => {
         const match = jobs.find((job) => {
           return (
             job.jobName === jobTableRow.jobName &&
@@ -86,7 +95,10 @@ describe("Job selectors", () => {
       };
 
       // Act
-      const rows = getJobsForTable({
+      const {
+        uploadsWithTemplates,
+        uploadsWithoutTemplates,
+      } = getUploadsByTemplateUsage({
         ...mockState,
         job: {
           ...mockState.job,
@@ -95,8 +107,9 @@ describe("Job selectors", () => {
       });
 
       // Assert
-      expect(rows).to.be.lengthOf(1);
-      expect(rows[0].jobId).to.equal(expectedJob.jobId);
+      expect(uploadsWithTemplates).to.be.lengthOf(0);
+      expect(uploadsWithoutTemplates).to.be.lengthOf(1);
+      expect(uploadsWithoutTemplates[0].jobId).to.equal(expectedJob.jobId);
     });
   });
 

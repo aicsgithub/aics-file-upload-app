@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import { LabkeyTemplate } from "../../services/labkey-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
-import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { openTemplateEditor } from "../../state/selection/actions";
 import { AsyncRequest } from "../../state/types";
@@ -30,9 +29,6 @@ export default function TemplateSearch(props: TemplateSearchProps) {
   const loading = requestsInProgress.includes(AsyncRequest.GET_TEMPLATES);
   const templates = useSelector(getTemplates);
   const dispatch = useDispatch();
-  React.useEffect(() => {
-    dispatch(requestTemplates());
-  }, [dispatch]);
   const [open, setOpen] = React.useState<boolean>(false);
   const [elClicked, setElClicked] = React.useState<EventTarget | undefined>(
     undefined

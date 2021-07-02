@@ -13,6 +13,9 @@
     background-color: var(--app-foreground-color);
     /* Variable located in styles/variables */
     border-right: var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
     overflow-x: auto;
     padding-bottom: 2px;
 }
@@ -46,4 +49,15 @@
 .table-header-container {
     display: flex;
     justify-content: center;
+}
+
+.table-body {
+    flex-grow: 1;
+}
+
+.table-footer {
+    border-left: var(--border);
+    border-top: var(--border);
+    padding-right: 4px;
+    text-align: right;
 }

@@ -6,7 +6,6 @@ import {
   OpenDialogOptions,
   Remote,
 } from "electron";
-import { Row } from "react-table";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -200,7 +199,7 @@ export interface JobStateBranch {
   copyProgress: {
     [jobId: string]: UploadProgressInfo;
   };
-  lastSelectedUpload?: Row<any>;
+  lastSelectedUpload?: { id: string, index: number };
 }
 
 // Map of the output of getUploadRowKey to the FileModel
@@ -444,8 +443,9 @@ export interface DragAndDropFile {
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
-  fileId: string;
-  filePath: string;
+  fileId?: string;
+  filePath?: string;
+  template?: string;
   progress?: UploadProgressInfo;
 }
 

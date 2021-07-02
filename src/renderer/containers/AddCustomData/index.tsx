@@ -10,10 +10,9 @@ import { ActionCreator } from "redux";
 
 import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import DragAndDrop from "../../components/DragAndDrop";
-import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+import { JSSJob } from "../../services/job-status-client/types";
 import {
   BarcodePrefix,
   LabkeyTemplate,
@@ -197,7 +196,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         <div className={styles.contentRoot}>
           <div className={styles.contentAbs}>
             <div className={styles.contentContainer}>
-              <JobOverviewDisplay uploads={selectedUploads} />
               {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
               {templateIsLoading || selectedJobIsLoading ? (
                 <div className={styles.spinContainer}>
@@ -439,7 +437,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors.length === 0 &&
       (selectedBarcode || hasNoPlateToUpload)
     ) {
-      if (selectedUploads.some((u) => u.status === JSSJobStatus.SUCCEEDED)) {
+      if (selectedUploads) {
         submitFileMetadataUpdate();
       } else {
         initiateUpload();

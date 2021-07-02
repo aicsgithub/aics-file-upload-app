@@ -1,10 +1,9 @@
-import { Button, Tooltip } from "antd";
+import { Button, Spin, Tooltip } from "antd";
 import { remote } from "electron";
 import { isEmpty, uniqBy } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Row } from "react-table";
-import { Dispatch } from "redux";
 
 import {
   IN_PROGRESS_STATUSES,
@@ -16,40 +15,9 @@ import { startNewUpload, viewUploads } from "../../state/route/actions";
 import { AsyncRequest, UploadSummaryTableRow } from "../../state/types";
 import { cancelUploads, retryUploads } from "../../state/upload/actions";
 
-import UploadTable from "./UploadTable";
+import UploadTable from "../UploadTable";
 
 const styles = require("./styles.pcss");
-
-function getContextMenuItems(
-  dispatch: Dispatch,
-  selectedUploads: UploadSummaryTableRow[],
-  areSelectedUploadsAllFailed: boolean,
-  areSelectedUploadsAllInProgress: boolean
-) {
-  return remote.Menu.buildFromTemplate([
-    {
-      label: "View",
-      enabled: !!selectedUploads.length,
-      click: () => {
-        dispatch(viewUploads(selectedUploads));
-      },
-    },
-    {
-      label: "Retry",
-      enabled: !!selectedUploads.length && areSelectedUploadsAllFailed,
-      click: () => {
-        dispatch(retryUploads(selectedUploads));
-      },
-    },
-    {
-      label: "Cancel",
-      enabled: !!selectedUploads.length && areSelectedUploadsAllInProgress,
-      click: () => {
-        dispatch(cancelUploads(selectedUploads));
-      },
-    },
-  ]);
-}
 
 export default function UploadSummary() {
   const dispatch = useDispatch();
@@ -93,13 +61,39 @@ export default function UploadSummary() {
   }
   console.log(selectedUploads.length);
 
+  function onView() {
+    dispatch(viewUploads(selectedUploads));
+    setSelectedUploads([]);
+  }
+
+  function onRetry() {
+    dispatch(retryUploads(selectedUploads));
+    setSelectedUploads([]);
+  }
+
+  function onCancel() {
+    dispatch(cancelUploads(selectedUploads));
+    setSelectedUploads([]);
+  }
+
   function onContextMenu() {
-    getContextMenuItems(
-      dispatch,
-      selectedUploads,
-      areSelectedUploadsAllFailed,
-      areSelectedUploadsAllInProgress
-    ).popup();
+    remote.Menu.buildFromTemplate([
+      {
+        label: "View",
+        enabled: !!selectedUploads.length,
+        click: onView,
+      },
+      {
+        label: "Retry",
+        enabled: !!selectedUploads.length && areSelectedUploadsAllFailed,
+        click: onRetry,
+      },
+      {
+        label: "Cancel",
+        enabled: !!selectedUploads.length && areSelectedUploadsAllInProgress,
+        click: onCancel,
+      },
+    ]).popup();
   }
 
   return (
@@ -111,7 +105,7 @@ export default function UploadSummary() {
             <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
               <Button
                 className={styles.tableToolBarButton}
-                onClick={() => dispatch(viewUploads(selectedUploads))}
+                onClick={onView}
                 disabled={isEmpty(selectedUploads)}
                 icon="file-search"
               >
@@ -121,7 +115,7 @@ export default function UploadSummary() {
             <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
               <Button
                 className={styles.tableToolBarButton}
-                onClick={() => dispatch(retryUploads(selectedUploads))}
+                onClick={onRetry}
                 disabled={
                   isEmpty(selectedUploads) || !areSelectedUploadsAllFailed
                 }
@@ -133,7 +127,7 @@ export default function UploadSummary() {
             <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
               <Button
                 className={styles.tableToolBarButton}
-                onClick={() => dispatch(cancelUploads(selectedUploads))}
+                onClick={onCancel}
                 disabled={
                   isEmpty(selectedUploads) || !areSelectedUploadsAllInProgress
                 }
@@ -153,22 +147,28 @@ export default function UploadSummary() {
         </div>
       </div>
       <div className={styles.tableContainer}>
-        <UploadTable
-          isLoading={isRequestingJobs}
-          height={uploadsWithoutTemplates.length < 10 ? 200 : 400}
-          onContextMenu={onContextMenu}
-          onSelect={onSelect}
-          title="Uploads Missing Metadata Templates"
-          uploads={uploadsWithoutTemplates}
-        />
-        <UploadTable
-          isLoading={isRequestingJobs}
-          height={uploadsWithoutTemplates.length < 10 ? 600 : 400}
-          onContextMenu={onContextMenu}
-          onSelect={onSelect}
-          title="Uploads With Metadata Templates"
-          uploads={uploadsWithTemplates}
-        />
+        {isRequestingJobs ? (
+          <div className={styles.loadingContainer}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <>
+            {!!uploadsWithoutTemplates.length && (
+              <UploadTable
+                title="Uploads Missing Metadata Templates"
+                uploads={uploadsWithoutTemplates}
+                onContextMenu={onContextMenu}
+                onSelect={onSelect}
+              />
+            )}
+            <UploadTable
+              title="Uploads With Metadata Templates"
+              uploads={uploadsWithTemplates}
+              onContextMenu={onContextMenu}
+              onSelect={onSelect}
+            />
+          </>
+        )}
       </div>
     </div>
   );

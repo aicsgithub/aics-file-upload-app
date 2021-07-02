@@ -2,6 +2,7 @@
     position: relative;
     height: 100%;
     margin: 1em;
+    overflow: hidden;
     width: 100%;
 
     --header-height: 85px;
@@ -29,5 +30,16 @@
 }
 
 .table-container {
-    height: calc(100% - var(--header-height) - 15px);
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - var(--header-height) - 20px);
+}
+
+.loading-container {
+    display: flex;
+    height: 100%;
+}
+
+.loading-container > * {
+    margin: auto;
 }

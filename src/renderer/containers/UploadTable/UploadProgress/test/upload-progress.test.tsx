@@ -13,8 +13,6 @@ describe("<UploadProgress/>", () => {
     beforeEach(() => {
       row = {
         ...mockWorkingUploadJob,
-        fileId: "mykey",
-        filePath: "/my/file/path",
       };
     });
     it("returns null if status is SUCCEEDED", () => {

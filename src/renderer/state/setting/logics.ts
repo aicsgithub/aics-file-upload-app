@@ -101,24 +101,27 @@ const gatherSettingsLogic = createLogic({
       // so we need to get it from another place and add it manually.
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
 
-      // Determine the most update to date template for the stored template ID
-      const templates = await labkeyClient.getTemplates();
-      const templateForStoredId = find(
-        templates,
-        (template) => userSettings.templateId === template["TemplateId"]
-      );
-      if (templateForStoredId) {
-        let mostRecentlyCreatedTemplateForName = templateForStoredId;
-        templates.forEach((template) => {
-          if (
-            template["Name"] === templateForStoredId["Name"] &&
-            template["Version"] > mostRecentlyCreatedTemplateForName["Version"]
-          ) {
-            mostRecentlyCreatedTemplateForName = template;
-          }
-        });
-        userSettings.templateId =
-          mostRecentlyCreatedTemplateForName["TemplateId"];
+      if (userSettings.templateId) {
+        // Determine the most update to date template for the stored template ID
+        const templates = await labkeyClient.getTemplates();
+        const templateForStoredId = find(
+          templates,
+          (template) => userSettings.templateId === template["TemplateId"]
+        );
+        if (templateForStoredId) {
+          let mostRecentlyCreatedTemplateForName = templateForStoredId;
+          templates.forEach((template) => {
+            if (
+              template["Name"] === templateForStoredId["Name"] &&
+              template["Version"] >
+                mostRecentlyCreatedTemplateForName["Version"]
+            ) {
+              mostRecentlyCreatedTemplateForName = template;
+            }
+          });
+          userSettings.templateId =
+            mostRecentlyCreatedTemplateForName["TemplateId"];
+        }
       }
 
       next({

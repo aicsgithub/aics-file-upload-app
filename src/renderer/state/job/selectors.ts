@@ -7,6 +7,7 @@ import {
   UploadStage,
 } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
+import { getTemplateIdToName } from "../metadata/selectors";
 import { State, UploadSummaryTableRow } from "../types";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
@@ -23,9 +24,16 @@ export const getJobIdToUploadJobMap = createSelector(
     }, new Map<string, JSSJob<UploadServiceFields>>())
 );
 
-export const getJobsForTable = createSelector(
-  [getUploadJobs, getJobIdToCopyProgress],
-  (uploadJobs, jobIdToCopyProgress): UploadSummaryTableRow[] => {
+export const getUploadsByTemplateUsage = createSelector(
+  [getUploadJobs, getJobIdToCopyProgress, getTemplateIdToName],
+  (
+    uploadJobs,
+    jobIdToCopyProgress,
+    templateIdToName
+  ): {
+    uploadsWithTemplates: UploadSummaryTableRow[];
+    uploadsWithoutTemplates: UploadSummaryTableRow[];
+  } => {
     const replacedJobIdSet = uploadJobs.reduce((setSoFar, job) => {
       if (job.serviceFields?.originalJobId) {
         setSoFar.add(job.serviceFields.originalJobId);
@@ -33,40 +41,32 @@ export const getJobsForTable = createSelector(
       return setSoFar;
     }, new Set());
 
-    return orderBy(uploadJobs, ["modified"], ["desc"])
-      .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
-      .map((job) => ({
-        ...job,
-        created: new Date(job.created),
-        modified: new Date(job.modified),
-        progress: jobIdToCopyProgress[job.jobId],
-        fileId: job.serviceFields?.result
-          ?.map((file) => file.fileId)
-          .join(", "),
-        filePath: job.serviceFields?.result
-          ?.map((file) => file.readPath)
-          .join(", "),
-      })) as UploadSummaryTableRow[];
-  }
-);
-
-export const getUploadsByTemplateUsage = createSelector(
-  [getJobsForTable],
-  (
-    jobs
-  ): {
-    uploadsWithTemplates: UploadSummaryTableRow[];
-    uploadsWithoutTemplates: UploadSummaryTableRow[];
-  } => {
     const uploadsWithTemplates: UploadSummaryTableRow[] = [];
     const uploadsWithoutTemplates: UploadSummaryTableRow[] = [];
-    jobs.forEach((job) => {
-      if (job.serviceFields?.files?.[0].customMetadata) {
-        uploadsWithTemplates.push(job);
-      } else {
-        uploadsWithoutTemplates.push(job);
-      }
-    });
+    orderBy(uploadJobs, ["modified"], ["desc"])
+      .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
+      .forEach((job) => {
+        const upload: UploadSummaryTableRow = {
+          ...job,
+          created: new Date(job.created),
+          modified: new Date(job.modified),
+          progress: jobIdToCopyProgress[job.jobId],
+          fileId: job.serviceFields?.result
+            ?.map((file) => file.fileId)
+            .join(", "),
+          filePath: job.serviceFields?.result
+            ?.map((file) => file.readPath)
+            .join(", "),
+          template: templateIdToName[job.serviceFields?.files?.[0]?.customMetadata?.templateId || 0]
+        };
+
+        if (upload.template) {
+          uploadsWithTemplates.push(upload);
+        } else {
+          uploadsWithoutTemplates.push(upload);
+        }
+      });
+
     return { uploadsWithTemplates, uploadsWithoutTemplates };
   }
 );

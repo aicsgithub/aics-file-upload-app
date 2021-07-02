@@ -1,7 +1,7 @@
 import { Icon, Tooltip } from "antd";
 import classNames from "classnames";
 import moment from "moment";
-import React from "react";
+import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 

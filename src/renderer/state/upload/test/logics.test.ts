@@ -292,8 +292,6 @@ describe("Upload logics", () => {
       const uploadJob = {
         ...mockFailedUploadJob,
         jobName: "bar",
-        fileId: "abc123",
-        filePath: "/my/file/path",
       };
       store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
@@ -310,8 +308,6 @@ describe("Upload logics", () => {
 
       const uploadJob = {
         ...mockFailedUploadJob,
-        fileId: "abc123",
-        filePath: "/my/file/path",
       };
       store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
@@ -1631,11 +1627,7 @@ describe("Upload logics", () => {
       );
 
       // Act
-      store.dispatch(
-        cancelUploads([
-          { ...mockJob, fileId: "abc123", filePath: "/my/file/path" },
-        ])
-      );
+      store.dispatch(cancelUploads([{ ...mockJob }]));
       await logicMiddleware.whenComplete();
 
       // Assert
@@ -1654,11 +1646,7 @@ describe("Upload logics", () => {
       fms.cancelUpload.rejects(new Error(errorMessage));
 
       // Act
-      store.dispatch(
-        cancelUploads([
-          { ...mockJob, fileId: "abc123", filePath: "/my/file/path" },
-        ])
-      );
+      store.dispatch(cancelUploads([{ ...mockJob }]));
       await logicMiddleware.whenComplete();
 
       // Assert

@@ -1,6 +1,6 @@
 import { Checkbox, DatePicker, Icon, Input, Popover } from "antd";
 import { debounce, without } from "lodash";
-import moment from "moment";
+import * as moment from "moment";
 import * as React from "react";
 import { FilterProps } from "react-table";
 
@@ -17,6 +17,10 @@ interface Props {
   type: FilterType;
 }
 
+/**
+ * Function that returns a different component to be used with a react-table
+ * to enable filtering. The component returned is dependent on the type prop given.
+ */
 export default function Filter(props: Props) {
   return function FilterComponent<T extends {}>(filterProps: FilterProps<T>) {
     let content: React.ReactNode;

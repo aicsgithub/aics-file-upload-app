@@ -1,5 +1,5 @@
 import { Icon, Tooltip } from "antd";
-import React from "react";
+import * as React from "react";
 import { HeaderProps } from "react-table";
 
 const styles = require("./styles.pcss");

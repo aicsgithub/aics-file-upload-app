@@ -45,7 +45,7 @@ export function receiveJobUpdate<T extends BaseServiceFields = any>(
 }
 
 export function setLastSelectedUpload(
-  row: Row<any>
+  row?: { id: string, index: number }
 ): SetLastSelectedUploadAction {
   return {
     payload: row,

@@ -1,13 +1,13 @@
 import classNames from "classnames";
-import React from "react";
-import { HeaderGroup, TableInstance } from "react-table";
+import * as React from "react";
+import { TableInstance } from "react-table";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 
 const styles = require("./styles.pcss");
 
 interface Props<T extends {}> {
   className?: string;
-  height?: number;
   tableInstance: TableInstance<T>;
 }
 
@@ -59,62 +59,62 @@ export default function Table<T extends {}>(props: Props<T>) {
   );
 
   return (
-    <div className={classNames(styles.tableContainer, className)}>
-      <div className={styles.tableContainer} {...tableInstance.getTableProps()}>
-        <div>
-          {tableInstance.headerGroups.map((headerGroup) => (
-            <div
-              {...headerGroup.getHeaderGroupProps()}
-              key={headerGroup.getHeaderGroupProps().key}
-            >
-              {headerGroup.headers.map((column: HeaderGroup<T>) => (
-                <div
-                  {...column.getHeaderProps()}
-                  className={styles.tableHeader}
-                  key={column.getHeaderProps().key}
-                >
-                  <div className={styles.tableHeaderContainer}>
-                    <div
-                      {...(column.getResizerProps && column.getResizerProps())}
-                      className={styles.columnResizer}
-                    />
-                    <div
-                      {...(column.getSortByToggleProps &&
-                        column.getSortByToggleProps())}
-                    >
-                      {column.render("Header")}
-                    </div>
-                    <div>
-                      {column.canFilter ? column.render("Filter") : null}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div {...tableInstance.getTableBodyProps()}>
-          <FixedSizeList
-            height={props.height || 400}
-            itemCount={tableInstance.rows.length}
-            itemSize={35}
-            width={tableInstance.totalColumnsWidth + scrollBarSize}
+    <div
+      className={classNames(styles.tableContainer, className)}
+      {...tableInstance.getTableProps()}
+    >
+      <div>
+        {tableInstance.headerGroups.map((headerGroup) => (
+          <div
+            {...headerGroup.getHeaderGroupProps()}
+            key={headerGroup.getHeaderGroupProps().key}
           >
-            {RenderRow}
-          </FixedSizeList>
-        </div>
-        {!!tableInstance.filteredRows &&
-          tableInstance.filteredRows.length !== tableInstance.rows.length && (
-            <div>
-              <div>
-                <div>
-                  Showing {tableInstance.filteredRows.length} of{" "}
-                  {tableInstance.rows.length}
+            {headerGroup.headers.map((column) => (
+              <div
+                {...column.getHeaderProps()}
+                className={styles.tableHeader}
+                key={column.getHeaderProps().key}
+              >
+                <div className={styles.tableHeaderContainer}>
+                  <div
+                    {...(column.getResizerProps && column.getResizerProps())}
+                    className={styles.columnResizer}
+                  />
+                  <div
+                    {...(column.getSortByToggleProps &&
+                      column.getSortByToggleProps())}
+                  >
+                    {column.render("Header")}
+                  </div>
+                  {column.canFilter && <div>{column.render("Filter")}</div>}
                 </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        ))}
       </div>
+      <div className={styles.tableBody} {...tableInstance.getTableBodyProps()}>
+        <AutoSizer>
+          {({ height }) => (
+            <FixedSizeList
+              height={height}
+              itemCount={tableInstance.rows.length}
+              itemSize={35}
+              width={tableInstance.totalColumnsWidth + scrollBarSize}
+            >
+              {RenderRow}
+            </FixedSizeList>
+          )}
+        </AutoSizer>
+      </div>
+      {!!tableInstance.filteredRows &&
+        tableInstance.filteredRows.length !==
+          tableInstance.preFilteredRows.length && (
+          <div className={styles.tableFooter}>
+            Showing {tableInstance.filteredRows.length} of{" "}
+            {tableInstance.preFilteredRows.length}
+          </div>
+        )}
     </div>
   );
 }

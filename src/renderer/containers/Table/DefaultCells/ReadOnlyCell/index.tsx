@@ -1,6 +1,6 @@
 import { Tooltip } from "antd";
 import { castArray } from "lodash";
-import React from "react";
+import * as React from "react";
 import { CellProps } from "react-table";
 
 import { useDisplayValue } from "../DisplayCell";
@@ -21,6 +21,7 @@ export default function ReadOnlyCell<T extends {}>(props: CellProps<T>) {
       arrowPointAtCenter
       autoAdjustOverflow
       mouseLeaveDelay={0}
+      mouseEnterDelay={1}
       title={displayValue}
     >
       <input readOnly className={styles.readOnlyCell} value={displayValue} />
