@@ -14,7 +14,6 @@ import { getUploadsByTemplateUsage } from "../../state/job/selectors";
 import { startNewUpload, viewUploads } from "../../state/route/actions";
 import { AsyncRequest, UploadSummaryTableRow } from "../../state/types";
 import { cancelUploads, retryUploads } from "../../state/upload/actions";
-
 import UploadTable from "../UploadTable";
 
 const styles = require("./styles.pcss");
@@ -59,7 +58,6 @@ export default function UploadSummary() {
       setSelectedUploads(uniqBy([...selectedUploads, ...uploads], "jobId"));
     }
   }
-  console.log(selectedUploads.length);
 
   function onView() {
     dispatch(viewUploads(selectedUploads));

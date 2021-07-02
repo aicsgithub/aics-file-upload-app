@@ -57,10 +57,13 @@ export const getUploadsByTemplateUsage = createSelector(
           filePath: job.serviceFields?.result
             ?.map((file) => file.readPath)
             .join(", "),
-          template: templateIdToName[job.serviceFields?.files?.[0]?.customMetadata?.templateId || 0]
+          template:
+            templateIdToName[
+              job.serviceFields?.files?.[0]?.customMetadata?.templateId || 0
+            ],
         };
 
-        if (upload.template) {
+        if (job.serviceFields?.files?.[0]?.customMetadata) {
           uploadsWithTemplates.push(upload);
         } else {
           uploadsWithoutTemplates.push(upload);

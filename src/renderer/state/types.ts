@@ -199,7 +199,7 @@ export interface JobStateBranch {
   copyProgress: {
     [jobId: string]: UploadProgressInfo;
   };
-  lastSelectedUpload?: { id: string, index: number };
+  lastSelectedUpload?: { id: string; index: number };
 }
 
 // Map of the output of getUploadRowKey to the FileModel

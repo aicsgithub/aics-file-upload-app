@@ -1,5 +1,3 @@
-import { Row } from "react-table";
-
 import { JSSJob } from "../../services/job-status-client/types";
 import { BaseServiceFields } from "../../services/types";
 import { UploadProgressInfo } from "../types";
@@ -44,9 +42,10 @@ export function receiveJobUpdate<T extends BaseServiceFields = any>(
   };
 }
 
-export function setLastSelectedUpload(
-  row?: { id: string, index: number }
-): SetLastSelectedUploadAction {
+export function setLastSelectedUpload(row?: {
+  id: string;
+  index: number;
+}): SetLastSelectedUploadAction {
   return {
     payload: row,
     type: SET_LAST_SELECTED_UPLOAD,

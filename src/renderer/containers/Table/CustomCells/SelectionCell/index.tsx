@@ -24,8 +24,6 @@ export default function SelectionCell<T extends {}>(props: Props<T>) {
   const checkBoxProps = props.row.getToggleRowSelectedProps();
 
   function onChange(e: CheckboxChangeEvent) {
-    // TODO: How to handle expandable rows...?
-
     // Track the last selected upload row to enable shift selection
     dispatch(setLastSelectedUpload(pick(props.row, ["id", "index"])));
     // If the user holds SHIFT while selecting rows the inbetween rows will be selected

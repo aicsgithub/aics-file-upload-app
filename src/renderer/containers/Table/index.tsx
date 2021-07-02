@@ -1,23 +1,10 @@
 import classNames from "classnames";
 import * as React from "react";
 import { TableInstance } from "react-table";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 
-let AutoSizer = require("react-virtualized-auto-sizer");
-
 const styles = require("./styles.pcss");
-
-// TODO: AutoSizer requires DOM methods that the DOM enzyme renders doesn't implement
-// I tried a few workarounds from the react-virtualized github forum with no luck
-// yet. I think we can do something with Jest &/or modifying the enzyme environment
-// to make this work without this weird import. - Sean M 07/02/21
-if (process.env.NODE_ENV === "test") {
-  AutoSizer = ({
-    children,
-  }: {
-    children: (size: { height: number; width: number }) => React.ReactNode;
-  }) => children({ height: 1000, width: 1000 });
-}
 
 interface Props<T extends {}> {
   className?: string;
@@ -108,7 +95,7 @@ export default function Table<T extends {}>(props: Props<T>) {
       </div>
       <div className={styles.tableBody} {...tableInstance.getTableBodyProps()}>
         <AutoSizer disableWidth>
-          {({ height }: { height: number }) => (
+          {({ height }) => (
             <FixedSizeList
               height={height}
               itemCount={tableInstance.rows.length}

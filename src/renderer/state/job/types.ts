@@ -18,7 +18,7 @@ export interface ReceiveJobUpdateAction<T extends BaseServiceFields = any> {
 }
 
 export interface SetLastSelectedUploadAction {
-  payload?: { id: string, index: number };
+  payload?: { id: string; index: number };
   type: string;
 }
 

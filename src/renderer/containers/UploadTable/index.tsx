@@ -16,16 +16,15 @@ import {
   useTable,
 } from "react-table";
 
-import StatusCell from "../Table/CustomCells/StatusCell";
 import { JOB_STATUSES } from "../../services/job-status-client/types";
 import { UploadSummaryTableRow } from "../../state/types";
 import Table from "../Table";
 import SelectionCell from "../Table/CustomCells/SelectionCell";
+import StatusCell from "../Table/CustomCells/StatusCell";
 import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
+import Filter, { FilterType } from "../Table/Filter";
 import DefaultHeader from "../Table/Headers/DefaultHeader";
 import SelectionHeader from "../Table/Headers/SelectionHeader";
-
-import Filter, { FilterType } from "../Table/Filter";
 
 const styles = require("./styles.pcss");
 
@@ -59,10 +58,14 @@ const COLUMNS: Column<UploadSummaryTableRow>[] = [
     Cell: function Cell(props) {
       return (
         <div className={styles.fileNameCell}>
-          {props.row.original.serviceFields?.error && <Tooltip overlay={props.row.original.serviceFields.error}><Icon type="close-circle" theme="filled" /></Tooltip>}
+          {props.row.original.serviceFields?.error && (
+            <Tooltip overlay={props.row.original.serviceFields.error}>
+              <Icon type="close-circle" theme="filled" />
+            </Tooltip>
+          )}
           <Tooltip overlay={props.value}>{props.value}</Tooltip>
         </div>
-      )
+      );
     },
     description: "Name of the file uploaded",
     id: "File Name",
@@ -103,21 +106,12 @@ const COLUMNS: Column<UploadSummaryTableRow>[] = [
   },
 ];
 
-
 // Custom sorting methods for react-table
 const SORT_TYPES: Record<string, SortByFn<UploadSummaryTableRow>> = {
-  [SortType.DATE]: (
-    rowA,
-    rowB,
-    columnId
-  ) => (
-    rowA.values[columnId] >= rowB.values[columnId] ? 1 : -1
-  ),
-  [SortType.DEFAULT]: (
-    rowA,
-    rowB,
-    columnId
-    ) => `${rowA.values[columnId]}`.localeCompare(`${rowB.values[columnId]}`),
+  [SortType.DATE]: (rowA, rowB, columnId) =>
+    rowA.values[columnId] >= rowB.values[columnId] ? 1 : -1,
+  [SortType.DEFAULT]: (rowA, rowB, columnId) =>
+    `${rowA.values[columnId]}`.localeCompare(`${rowB.values[columnId]}`),
 };
 
 // Custom filtering methods for react-table
@@ -126,16 +120,13 @@ const FILTER_TYPES: Record<string, FilterValue> = {
     rows: Row<UploadSummaryTableRow>[],
     columnId: string,
     filterValue: FilterValue
-  ) => {
-    console.log(rows[0]?.values);
-    console.log(columnId);
-    return rows.filter(
+  ) =>
+    rows.filter(
       (row) =>
         row.values[columnId].getDate() === filterValue.getDate() &&
         row.values[columnId].getMonth() === filterValue.getMonth() &&
         row.values[columnId].getFullYear() === filterValue.getFullYear()
-    );
-  },
+    ),
   [FilterType.SELECTION]: (
     rows: Row<UploadSummaryTableRow>[],
     columnId: string,
@@ -205,10 +196,7 @@ export default function UploadTable(props: Props) {
   return (
     <div className={styles.container} onContextMenu={props.onContextMenu}>
       {props.title && <h3 className={styles.tableTitle}>{props.title}</h3>}
-      <Table
-        className={styles.tableContainer}
-        tableInstance={tableInstance}
-      />
+      <Table className={styles.tableContainer} tableInstance={tableInstance} />
       {!tableInstance.rows.length && (
         <div className={styles.emptyContainer}>
           <Empty description={`No ${props.title} Found`} />

@@ -67,13 +67,15 @@ export const getUniqueBarcodeSearchResults = createSelector(
   }
 );
 
-export const getTemplateIdToName = createSelector(
-  [getTemplates],
-  (templates): { [templateId: number]: string } => (
-    templates.reduce((accum, template) => ({
+export const getTemplateIdToName = createSelector([getTemplates], (templates): {
+  [templateId: number]: string;
+} =>
+  templates.reduce(
+    (accum, template) => ({
       ...accum,
-      [template.TemplateId]: `${template.Name} (V${template.Version})`
-    }), {} as { [templateId: number]: string })
+      [template.TemplateId]: `${template.Name} (V${template.Version})`,
+    }),
+    {} as { [templateId: number]: string }
   )
 );
 
