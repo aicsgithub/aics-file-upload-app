@@ -35,7 +35,9 @@ describe("feedback util", () => {
     });
     it("throws error if response is not OK", () => {
       requestStub.rejects(new Error("foo"));
-      expect(getWithRetry(requestStub, dispatchStub)).to.be.rejectedWith(Error);
+      return expect(getWithRetry(requestStub, dispatchStub)).to.be.rejectedWith(
+        Error
+      );
     });
     it("does not retry if response is not Bad Gateway or VPN error", async () => {
       requestStub.rejects(new Error("foo"));

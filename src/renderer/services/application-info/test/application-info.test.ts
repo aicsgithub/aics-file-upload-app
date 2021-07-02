@@ -46,9 +46,11 @@ describe("ApplicationInfoService", () => {
         data: [],
       });
 
-      expect(
+      return expect(
         applicationInfoService.getNewestApplicationVersion()
-      ).to.eventually.throw();
+      ).to.be.rejectedWith(
+        "Unexpected return format from GitHub while trying to determine newest app version"
+      );
     });
 
     it("throws error if name not specified in response data", () => {
@@ -58,9 +60,11 @@ describe("ApplicationInfoService", () => {
         })),
       });
 
-      expect(
+      return expect(
         applicationInfoService.getNewestApplicationVersion()
-      ).to.eventually.throw();
+      ).to.be.rejectedWith(
+        "Unexpected return format from GitHub while trying to determine newest app version"
+      );
     });
   });
 });
