@@ -34,7 +34,10 @@ import {
   receiveJobUpdate,
 } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
-import { requestMetadata, requestTemplates } from "../../state/metadata/actions";
+import {
+  requestMetadata,
+  requestTemplates,
+} from "../../state/metadata/actions";
 import { getPage } from "../../state/route/selectors";
 import {
   gatherSettings,
