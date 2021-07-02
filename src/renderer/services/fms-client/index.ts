@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
 
-import { noop, uniq } from "lodash";
+import { noop, uniq, throttle } from "lodash";
 import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 import * as uuid from "uuid";
@@ -19,7 +19,8 @@ import { JSSJob, JSSJobStatus, UploadStage } from "../job-status-client/types";
 import LabkeyClient from "../labkey-client";
 import { UploadRequest, UploadServiceFields } from "../types";
 
-import { WORKER_MESSAGE_TYPE } from "./copy-worker";
+import { CopyCancelledError } from "./CopyCancelledError";
+import FileCopier from "./FileCopier";
 import {
   UnrecoverableJobError,
   UNRECOVERABLE_JOB_ERROR,
@@ -32,8 +33,7 @@ interface FileManagementSystemConfig {
   jss: JobStatusClient;
   lk: LabkeyClient;
   storage: LocalStorage;
-  // Available as parameter for easier unit testing
-  copyWorkerGetter: () => Worker;
+  fileCopier: FileCopier;
 }
 
 type CopyProgressCallBack = (
@@ -53,8 +53,7 @@ export default class FileManagementSystem {
   private readonly jss: JobStatusClient;
   private readonly lk: LabkeyClient;
   private readonly storage: LocalStorage;
-  private readonly copyWorkerGetter: () => Worker;
-  private jobIdToWorkerMap: { [jobId: string]: Worker } = {};
+  private readonly fileCopier: FileCopier;
 
   // Creates JSS friendly unique ids
   public static createUniqueId() {
@@ -66,7 +65,7 @@ export default class FileManagementSystem {
     this.jss = config.jss;
     this.lk = config.lk;
     this.storage = config.storage;
-    this.copyWorkerGetter = config.copyWorkerGetter;
+    this.fileCopier = config.fileCopier;
   }
 
   /**
@@ -103,7 +102,7 @@ export default class FileManagementSystem {
     }
     if (metadata.file.originalPath !== filePath) {
       throw new Error(
-        `Metadata for file ${filePath} has property file.originalPath set to ${filePath} which doesn't match ${filePath}`
+        `Metadata for file ${filePath} has property file.originalPath set to ${metadata.file.originalPath} which doesn't match ${filePath}`
       );
     }
 
@@ -249,7 +248,7 @@ export default class FileManagementSystem {
                     : JSSJobStatus.FAILED,
                 serviceFields: { error: error.message },
               });
-              return { error };
+              throw error;
             }
           } catch (error) {
             return { error };
@@ -262,7 +261,7 @@ export default class FileManagementSystem {
       return results.map((result) => {
         const errorCase = result as { error: Error };
         if (errorCase.error) {
-          throw errorCase;
+          throw errorCase.error;
         }
         return result as UploadMetadataResponse;
       });
@@ -284,14 +283,11 @@ export default class FileManagementSystem {
    * Cancels the given Job. This will mark the job as a failure and
    * stop the copy portion of the upload if ongoing on the client side.
    * Note: the job is not guaranteed to stop if it has left the
-   * client-side portion of the upload and
-   * is now entirely managed by FSS.
+   * client-side portion of the upload and is now entirely managed by FSS.
    */
   public async cancelUpload(jobId: string): Promise<void> {
-    if (this.jobIdToWorkerMap[jobId]) {
-      this.jobIdToWorkerMap[jobId].terminate();
-      delete this.jobIdToWorkerMap[jobId];
-    }
+    this.fileCopier.cancelCopy(jobId);
+
     await this.jss.updateJob(jobId, {
       status: JSSJobStatus.FAILED,
       serviceFields: { cancelled: true, error: "Cancelled by user" },
@@ -325,54 +321,39 @@ export default class FileManagementSystem {
         targetFolder = `\\${targetFolder}`;
       }
     }
-
-    // Copy worker internals defined in `./copy-worker.ts`
-    const worker = this.copyWorkerGetter();
-    this.jobIdToWorkerMap[jobId] = worker;
-    return new Promise<string>((resolve, reject) => {
-      // Receive messages from the worker. Each message should be formatted
-      // like <message_type>:<message> (ex. "upload-progress:111" where the type
-      // is that the copy is in progress and message is the amount of bytes copied so far)
-      worker.onmessage = (e: MessageEvent) => {
-        const message = e?.data.toLowerCase() as string;
-
-        if (message.includes(WORKER_MESSAGE_TYPE.SUCCESS)) {
-          // https://apple.stackexchange.com/questions/14980/why-are-dot-underscore-files-created-and-how-can-i-avoid-them
-          if (process.platform === "darwin") {
-            const toRemove = path.resolve(targetFolder, `._${fileName}`);
-            try {
-              rimraf.sync(toRemove);
-            } catch (e) {
-              console.error(`Failed to remove ${toRemove}` + e.message);
-            }
-          }
-
-          const md5 = message.split(":")[1];
-          delete this.jobIdToWorkerMap[jobId];
-          resolve(md5);
-        } else if (message.includes(WORKER_MESSAGE_TYPE.PROGRESS_UPDATE)) {
-          const info = e.data.split(":");
-          if (info.length === 2) {
-            try {
-              copyProgressCb(source, parseInt(info[1], 10), fileSize);
-            } catch (e) {
-              console.error("Could not parse JSON progress info", e);
-            }
-          }
+    try {
+      // Update copy progress every 5 seconds
+      const throttledProgress = throttle(
+        (progress) => copyProgressCb(source, progress, fileSize),
+        5000
+      );
+      console.time(`Copy ${source}`);
+      const md5 = await this.fileCopier.copyToDestAndCalcMD5(
+        jobId,
+        source,
+        dest,
+        throttledProgress
+      );
+      console.timeEnd(`Copy ${source}`);
+      // Flush out the last call so completed progress is shown immediately
+      throttledProgress.flush();
+      if (process.platform === "darwin") {
+        const toRemove = path.resolve(targetFolder, `._${fileName}`);
+        try {
+          rimraf.sync(toRemove);
+        } catch (e) {
+          console.error(`Failed to remove ${toRemove}` + e.message);
         }
-      };
-
-      // Reject the promise (i.e. throwing an error) on failure
-      worker.onerror = (e: ErrorEvent) => {
+      }
+      return md5;
+    } catch (e) {
+      if (e instanceof CopyCancelledError) {
+        console.warn(e.message);
+      } else {
         console.error(`Error while copying file ${source}`, e);
-        delete this.jobIdToWorkerMap[jobId];
-        reject(new Error(e.message));
-      };
-
-      // Send the source file and formatted destination to the worker
-      // see `copy-worker.ts` for the message handler
-      worker.postMessage([source, targetFolder]);
-    });
+      }
+      throw e;
+    }
   }
 
   /**

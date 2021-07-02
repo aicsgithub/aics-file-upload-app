@@ -21,6 +21,7 @@ module.exports = {
     "prettier/@typescript-eslint",
     "prettier/react",
     "plugin:prettier/recommended",
+    "plugin:@fintechstudios/chai-as-promised/recommended"
   ],
   settings: {
     react: {

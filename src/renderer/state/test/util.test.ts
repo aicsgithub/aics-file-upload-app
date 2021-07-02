@@ -183,7 +183,7 @@ describe("state utilities", () => {
       ).to.be.true;
       onProgress.reset();
 
-      // a worker thread has reported that 2 bytes of file "a" have been copied in total
+      // File stream has reported that 2 bytes of file "a" have been copied in total
       copyProgressCb("a", 2, 12);
       // 2 bytes for file "a", 2 bytes for file "b" = 4 bytes total copied
       expect(

@@ -15,12 +15,12 @@ import {
   Middleware,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
-import CopyWorker from "worker-loader!../services/fms-client/copy-worker";
 
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import ApplicationInfoService from "../services/application-info";
 import FileManagementSystem from "../services/fms-client";
+import FileCopier from "../services/fms-client/FileCopier";
 import FileStorageClient from "../services/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
@@ -95,7 +95,7 @@ export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
     jss: jssClient,
     lk: labkeyClient,
     storage,
-    copyWorkerGetter: () => new CopyWorker(),
+    fileCopier: new FileCopier(),
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   ipcRenderer,

@@ -6,13 +6,7 @@ import { expect } from "chai";
 import { noop } from "lodash";
 import * as hash from "object-hash";
 import * as rimraf from "rimraf";
-import {
-  createStubInstance,
-  stub,
-  restore,
-  replace,
-  SinonStubbedInstance,
-} from "sinon";
+import { createStubInstance, stub, restore, SinonStubbedInstance } from "sinon";
 
 import FileManagementSystem from "../";
 import { FileStorageClient, JobStatusClient, LabkeyClient } from "../..";
@@ -20,7 +14,7 @@ import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
 import { mockJob } from "../../../state/test/mocks";
 import { FileType } from "../../../state/upload/types";
 import { JSSJobStatus } from "../../job-status-client/types";
-import { WORKER_MESSAGE_TYPE } from "../copy-worker";
+import FileCopier from "../FileCopier";
 
 describe("FileManagementSystem", () => {
   let fms: FileManagementSystem;
@@ -28,9 +22,8 @@ describe("FileManagementSystem", () => {
   let jss: SinonStubbedInstance<JobStatusClient>;
   let lk: SinonStubbedInstance<LabkeyClient>;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
-  let copyWorkerGetter: SinonStubbedInstance<() => Worker>;
+  let fileCopier: SinonStubbedInstance<FileCopier>;
   const pathToFakeFile = path.resolve(os.tmpdir(), "myFakeFile.txt");
-  let copyWorkerStub: { onmessage: any; postMessage: any; onerror: any };
 
   before(async () => {
     await fs.promises.writeFile(pathToFakeFile, "test file");
@@ -47,19 +40,14 @@ describe("FileManagementSystem", () => {
     storage = createStubInstance(EnvironmentAwareStorage);
     // Stub `get` specifically, since it is a class property and not on the prototype
     storage.get = stub();
-    copyWorkerStub = {
-      onmessage: stub(),
-      onerror: stub(),
-      postMessage: stub(),
-    };
-    copyWorkerGetter = stub().returns(copyWorkerStub);
+    fileCopier = createStubInstance(FileCopier);
 
     fms = new FileManagementSystem({
       fss: (fss as any) as FileStorageClient,
       jss: (jss as any) as JobStatusClient,
       lk: (lk as any) as LabkeyClient,
       storage: (storage as any) as EnvironmentAwareStorage,
-      copyWorkerGetter: (copyWorkerGetter as any) as () => Worker,
+      fileCopier: (fileCopier as any) as FileCopier,
     });
   });
 
@@ -77,7 +65,7 @@ describe("FileManagementSystem", () => {
       } as any;
 
       // Act / Assert
-      expect(fms.startUpload(filePath, metadata, {})).to.be.rejectedWith(
+      return expect(fms.startUpload(filePath, metadata, {})).to.be.rejectedWith(
         `Can not find file: ${filePath}`
       );
     });
@@ -90,7 +78,9 @@ describe("FileManagementSystem", () => {
       } as any;
 
       // Act / Assert
-      expect(fms.startUpload(pathToFakeFile, metadata, {})).to.be.rejectedWith(
+      return expect(
+        fms.startUpload(pathToFakeFile, metadata, {})
+      ).to.be.rejectedWith(
         `Metadata for file ${pathToFakeFile} is missing the property file.fileType`
       );
     });
@@ -103,8 +93,10 @@ describe("FileManagementSystem", () => {
       } as any;
 
       // Act / Assert
-      expect(fms.startUpload(pathToFakeFile, metadata, {})).to.be.rejectedWith(
-        `Metadata for file ${pathToFakeFile} is missing the property file.originalPath`
+      return expect(
+        fms.startUpload(pathToFakeFile, metadata, {})
+      ).to.be.rejectedWith(
+        `Metadata for file ${pathToFakeFile} has property file.originalPath set to fail which doesn't match ${pathToFakeFile}`
       );
     });
 
@@ -113,14 +105,14 @@ describe("FileManagementSystem", () => {
       const error = new Error("failed to start upload");
       const metadata = {
         customMetadata: { templateId: 1, annotations: [] },
-        file: { originalPath: "fail", fileType: FileType.IMAGE },
+        file: { originalPath: pathToFakeFile, fileType: FileType.IMAGE },
       } as any;
       fss.startUpload.rejects(error);
 
       // Act / Assert
-      expect(fms.startUpload(pathToFakeFile, metadata)).to.be.rejectedWith(
-        error
-      );
+      return expect(
+        fms.startUpload(pathToFakeFile, metadata)
+      ).to.be.rejectedWith(error);
     });
 
     it("throws error if JSS fails to creates job within reasonable time", () => {
@@ -132,15 +124,15 @@ describe("FileManagementSystem", () => {
       const error = new Error("failed to create JSS job");
       const metadata = {
         customMetadata: { templateId: 1, annotations: [] },
-        file: { originalPath: "fail", fileType: FileType.IMAGE },
+        file: { originalPath: pathToFakeFile, fileType: FileType.IMAGE },
       } as any;
       fss.startUpload.resolves(fssResponse);
       jss.waitForJobToExist.rejects(error);
 
       // Act / Assert
-      expect(fms.startUpload(pathToFakeFile, metadata, {})).to.be.rejectedWith(
-        error
-      );
+      return expect(
+        fms.startUpload(pathToFakeFile, metadata, {})
+      ).to.be.rejectedWith(error);
     });
 
     it("start job via FSS", async () => {
@@ -197,13 +189,7 @@ describe("FileManagementSystem", () => {
       };
       const expectedFSSResponse = { jobId, files: [] };
       fss.uploadComplete.resolves(expectedFSSResponse);
-
-      const postMessageStub = stub().callsFake(() => {
-        copyWorkerStub.onmessage({
-          data: `${WORKER_MESSAGE_TYPE.SUCCESS}:somemd5`,
-        });
-      });
-      replace(copyWorkerStub, "postMessage", postMessageStub);
+      fileCopier.copyToDestAndCalcMD5.resolves("md5");
 
       // Act
       const result = await fms.uploadFile(
@@ -229,24 +215,20 @@ describe("FileManagementSystem", () => {
         },
         file: { originalPath: pathToFakeFile, fileType: FileType.TEXT },
       };
-      const error = "failed copy";
+      const error = new Error("failed copy");
+      fileCopier.copyToDestAndCalcMD5.rejects(error);
       const expectedFSSResponse = { jobId, files: [] };
       fss.uploadComplete.resolves(expectedFSSResponse);
 
-      const postMessageStub = stub().callsFake(() => {
-        copyWorkerStub.onerror(new Error(error));
-      });
-      replace(copyWorkerStub, "postMessage", postMessageStub);
-
       // Act / Assert
-      expect(
+      return expect(
         fms.uploadFile(jobId, pathToFakeFile, metadata, fakeUploadDirectory)
       ).to.be.rejectedWith(error);
     });
 
     it("fails job if an error occurs while preparing for copy", () => {
       // Arrange
-      const error = "failure to update job";
+      const error = new Error("failure to update job");
       const metadata = {
         customMetadata: {
           templateId: 1,
@@ -262,7 +244,7 @@ describe("FileManagementSystem", () => {
       jss.updateJob.onSecondCall().resolves({} as any);
 
       // Act / Assert
-      expect(
+      return expect(
         fms.uploadFile(jobId, pathToFakeFile, metadata, fakeUploadDirectory)
       ).to.be.rejectedWith(error);
     });
@@ -293,33 +275,42 @@ describe("FileManagementSystem", () => {
       });
     });
 
-    it("throws error if file has been uploaded to FMS before", () => {
+    it("throws error if file has been uploaded to FMS before", async () => {
       // Arrange
-      const filePath = "/foo/bar";
-      const lastModifiedDate = new Date();
+      const lastModifiedDate = (
+        await fs.promises.stat(pathToFakeFile)
+      ).mtime.toISOString();
       const md5 = "adsfkjakjasdfkjadsfjkadsf";
-      jss.getJob.resolves({
+      const jssJob = {
         ...mockJob,
         serviceFields: {
           files: [
             {
               jobId: "abc123",
+              file: {
+                originalPath: pathToFakeFile,
+                fileType: FileType.IMAGE,
+              },
             },
           ],
           lastModified: {
-            [hash.MD5(filePath)]: lastModifiedDate,
+            [hash.MD5(pathToFakeFile)]: lastModifiedDate,
           },
           md5: {
-            [hash.MD5(filePath)]: md5,
+            [hash.MD5(pathToFakeFile)]: md5,
           },
         },
         status: JSSJobStatus.FAILED,
-      });
+      };
+      jss.getJob.resolves(jssJob);
+      fss.startUpload.resolves({ jobId: "abc123", uploadDirectory: "" });
       lk.getFileExistsByMD5AndName.resolves(true);
 
       // Act / Assert
-      expect(fms.retryUpload(mockJob.jobId, () => noop)).to.be.rejectedWith(
-        `${path.basename(filePath)} has already been uploaded to FMS.`
+      return expect(
+        fms.retryUpload(mockJob.jobId, () => noop)
+      ).to.be.rejectedWith(
+        `${path.basename(pathToFakeFile)} has already been uploaded to FMS.`
       );
     });
 
@@ -373,7 +364,7 @@ describe("FileManagementSystem", () => {
   });
 
   describe("cancelUpload", () => {
-    it("fails job regardless of copy progress", () => {
+    it("fails job regardless of copy progress", async () => {
       // Arrange
       const jobId = "123abc";
       const jobUpdate = {
@@ -385,7 +376,7 @@ describe("FileManagementSystem", () => {
       };
 
       // Act
-      fms.cancelUpload(jobId);
+      await fms.cancelUpload(jobId);
 
       // Assert
       expect(jss.updateJob).to.have.been.calledWith(jobId, jobUpdate);

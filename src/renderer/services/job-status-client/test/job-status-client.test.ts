@@ -182,7 +182,7 @@ describe("JobStatusClient", () => {
       // Act / Assert
       promise = jobStatusClient.waitForJobToExist(jobId);
       await clock.tickAsync(60_000);
-      expect(promise).to.be.rejectedWith(badGatewayResponse);
+      await expect(promise).to.be.rejectedWith(badGatewayResponse);
       clock.restore();
     });
   });
