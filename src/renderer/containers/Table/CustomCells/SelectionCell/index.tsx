@@ -1,6 +1,5 @@
 import { Checkbox } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
-import { pick } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps, Row } from "react-table";
@@ -24,8 +23,13 @@ export default function SelectionCell<T extends {}>(props: Props<T>) {
   const checkBoxProps = props.row.getToggleRowSelectedProps();
 
   function onChange(e: CheckboxChangeEvent) {
+    // react-table only tracks the index of the row before filtering/sorting
+    // but to best determine if a sort or filter has changed where the last row
+    // selected is we need the index post filtering/sorting
+    const index = props.rows.findIndex((r) => r.id === props.row.id);
     // Track the last selected upload row to enable shift selection
-    dispatch(setLastSelectedUpload(pick(props.row, ["id", "index"])));
+    dispatch(setLastSelectedUpload({ index, id: props.row.id }));
+
     // If the user holds SHIFT while selecting rows the inbetween rows will be selected
     // unless the last row selected has shifted in position since the interaction
     if (
@@ -34,13 +38,9 @@ export default function SelectionCell<T extends {}>(props: Props<T>) {
       lastRowSelected.id === props.rows[lastRowSelected.index]?.id
     ) {
       const lowerIndex =
-        lastRowSelected.index < props.row.index
-          ? lastRowSelected.index
-          : props.row.index;
+        lastRowSelected.index < index ? lastRowSelected.index : index;
       const higherIndex =
-        lastRowSelected.index < props.row.index
-          ? props.row.index
-          : lastRowSelected.index;
+        lastRowSelected.index < index ? index : lastRowSelected.index;
       const rows = props.rows.slice(lowerIndex, higherIndex + 1);
       rows.forEach((row) => {
         props.toggleRowSelected(row.id, e.target.checked);

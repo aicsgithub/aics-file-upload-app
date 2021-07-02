@@ -437,7 +437,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors.length === 0 &&
       (selectedBarcode || hasNoPlateToUpload)
     ) {
-      if (selectedUploads) {
+      if (selectedUploads.length) {
         submitFileMetadataUpdate();
       } else {
         initiateUpload();
