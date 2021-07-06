@@ -4,6 +4,8 @@ import { TableInstance } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 
+import TableRow from "./TableRow";
+
 const styles = require("./styles.pcss");
 
 interface Props<T extends {}> {
@@ -37,26 +39,6 @@ export default function Table<T extends {}>(props: Props<T>) {
   const scrollBarSize = React.useMemo(() => getScrollBarWidth(), []);
 
   const { rows, prepareRow } = tableInstance;
-  const RenderRow = React.useCallback(
-    ({ index, style }) => {
-      const row = rows[index];
-      prepareRow(row);
-      return (
-        <div {...row.getRowProps({ style })} key={row.getRowProps().key}>
-          {row.cells.map((cell) => (
-            <div
-              {...cell.getCellProps()}
-              className={styles.tableCell}
-              key={cell.getCellProps().key}
-            >
-              {cell.render("Cell")}
-            </div>
-          ))}
-        </div>
-      );
-    },
-    [prepareRow, rows]
-  );
 
   return (
     <div
@@ -98,11 +80,12 @@ export default function Table<T extends {}>(props: Props<T>) {
           {({ height }) => (
             <FixedSizeList
               height={height}
+              itemData={{ rows, prepareRow }}
               itemCount={tableInstance.rows.length}
               itemSize={35}
               width={tableInstance.totalColumnsWidth + scrollBarSize}
             >
-              {RenderRow}
+              {TableRow}
             </FixedSizeList>
           )}
         </AutoSizer>

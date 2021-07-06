@@ -1,41 +1,33 @@
-:root {
-    --status-circle-diameter: 0.75em;
-}
-
 .container {
     display: flex;
+    font-size: 8px;
+    justify-content: space-evenly;
     height: 100%;
     width: 100%;
 }
 
-.status-circle {
-    height: var(--status-circle-diameter);
-    width: var(--status-circle-diameter);
-    border-radius: 50%;
-    background-color: var(--grey);
-    margin: auto;
-
-    &.success {
-        background-color: var(--success);
-    }
-
-    &.in-progress {
-        background-color: var(--warning);
-        -webkit-animation: pulse 1s infinite alternate;
-    }
-
-    &.error {
-        background-color: var(--error);
-    }
-
-    &.unrecoverable {
-        background-color: var(--unrecoverable);
-    }
+.success {
+    color: var(--success);
 }
 
-@-webkit-keyframes pulse {
-    0% {background-color: var(--warning);}
-    33% {background-color: #f5cb42;}
-    66% {background-color: #f5ef42;}
-    100% {background-color: #fcfbcc;}
+.failed {
+    color: var(--error);
+}
+
+.unrecoverable {
+    color: var(--unrecoverable);
+}
+
+.success, .failed, .unrecoverable {
+    font-size: 16px;
+    margin: auto;
+}
+
+.active-info {
+    margin: 0;
+}
+
+/* Colors the status circle */
+.safe-to-close > div > svg > path:last-child {
+    stroke: var(--success);
 }

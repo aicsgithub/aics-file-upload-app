@@ -10,7 +10,7 @@ export enum WORKER_MESSAGE_TYPE {
 }
 
 // Milliseconds to wait between progress updates
-const THROTTLE_MS = 20000;
+const THROTTLE_MS = 4000;
 
 /**
  * Copies source file to destination folder in chunks,

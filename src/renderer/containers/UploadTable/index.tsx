@@ -1,4 +1,4 @@
-import { Empty, Icon, Tooltip } from "antd";
+import { Empty } from "antd";
 import * as React from "react";
 import {
   CellProps,
@@ -55,18 +55,6 @@ const COLUMNS: Column<UploadSummaryTableRow>[] = [
   },
   {
     accessor: "jobName",
-    Cell: function Cell(props) {
-      return (
-        <div className={styles.fileNameCell}>
-          {props.row.original.serviceFields?.error && (
-            <Tooltip overlay={props.row.original.serviceFields.error}>
-              <Icon type="close-circle" theme="filled" />
-            </Tooltip>
-          )}
-          <Tooltip overlay={props.value}>{props.value}</Tooltip>
-        </div>
-      );
-    },
     description: "Name of the file uploaded",
     id: "File Name",
     width: 350,
