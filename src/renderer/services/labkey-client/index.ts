@@ -378,8 +378,8 @@ export default class LabkeyClient extends HttpCacheClient {
     name: string
   ): Promise<boolean> {
     const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.FMS, "File", [
-      `query.FileName~eq=${name}`,
-      `query.MD5~eq=${md5}`,
+      `query.FileName~eq=${encodeURIComponent(name)}`,
+      `query.MD5~eq=${encodeURIComponent(md5)}`,
     ]);
     const response = await this.get(query);
     return response.rows.length > 0;

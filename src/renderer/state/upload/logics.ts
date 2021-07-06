@@ -2,6 +2,7 @@ import { basename } from "path";
 
 import {
   castArray,
+  chunk,
   flatMap,
   forEach,
   get,
@@ -21,6 +22,7 @@ import {
   WELL_ANNOTATION_NAME,
 } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
+import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
@@ -220,30 +222,36 @@ const initiateUploadLogic = createLogic({
     // Reset redo/undo logic
     dispatch(batchActions([...resetHistoryActions]));
 
-    await Promise.all(
-      initiateUploadResults.map(async (result) => {
-        const jobName = basename(result.request.file.originalPath);
-        try {
-          await fms.uploadFile(
-            result.response.jobId,
-            result.request.file.originalPath,
-            result.request,
-            result.response.uploadDirectory,
-            handleUploadProgress(
-              [result.request.file.originalPath],
-              (progress: UploadProgressInfo) =>
-                dispatch(
-                  updateUploadProgressInfo(result.response.jobId, progress)
-                )
-            )
-          );
-        } catch (e) {
-          const error = `Upload ${jobName} failed: ${e.message}`;
-          logger.error(`Upload failed`, e);
-          dispatch(uploadFailed(error, jobName));
-        }
-      })
-    );
+    // Upload 25 files at a time to prevent performance issues in the case of
+    // uploads with many files.
+    for (const batch of chunk(initiateUploadResults, 25)) {
+      await Promise.all(
+        batch.map(async (result) => {
+          const jobName = basename(result.request.file.originalPath);
+          try {
+            await fms.uploadFile(
+              result.response.jobId,
+              result.request.file.originalPath,
+              result.request,
+              result.response.uploadDirectory,
+              handleUploadProgress(
+                [result.request.file.originalPath],
+                (progress: UploadProgressInfo) =>
+                  dispatch(
+                    updateUploadProgressInfo(result.response.jobId, progress)
+                  )
+              )
+            );
+          } catch (e) {
+            if (!(e instanceof CopyCancelledError)) {
+              const error = `Upload ${jobName} failed: ${e.message}`;
+              logger.error(`Upload failed`, e);
+              dispatch(uploadFailed(error, jobName));
+            }
+          }
+        })
+      );
+    }
     done();
   },
   transform: (
@@ -316,9 +324,11 @@ const retryUploadsLogic = createLogic({
             )
           );
         } catch (e) {
-          const error = `Retry upload ${job.jobName} failed: ${e.message}`;
-          logger.error(`Retry for jobId=${job.jobId} failed`, e);
-          dispatch(uploadFailed(error, job.jobName || ""));
+          if (!(e instanceof CopyCancelledError)) {
+            const error = `Retry upload ${job.jobName} failed: ${e.message}`;
+            logger.error(`Retry for jobId=${job.jobId} failed`, e);
+            dispatch(uploadFailed(error, job.jobName || ""));
+          }
         }
       })
     );

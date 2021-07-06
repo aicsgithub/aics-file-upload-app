@@ -82,6 +82,7 @@
     "uuid": "^8.3.0"
   },
   "devDependencies": {
+    "@fintechstudios/eslint-plugin-chai-as-promised": "^3.1.0",
     "@types/chai": "4.1.7",
     "@types/chai-as-promised": "7.1.2",
     "@types/classnames": "2.2.7",
@@ -140,8 +141,7 @@
     "sinon-chai": "^3.5.0",
     "style-loader": "0.23.1",
     "typescript": "3.7.2",
-    "webpack": "4.28.4",
-    "worker-loader": "2.0.0"
+    "webpack": "4.28.4"
   },
   "husky": {
     "hooks": {
