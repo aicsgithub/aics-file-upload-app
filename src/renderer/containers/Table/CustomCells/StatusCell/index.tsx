@@ -75,7 +75,7 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
     const stepInfo = !fssCompletedBytes
       ? "Step 1 of 2: Uploading file"
       : "Step 2 of 2: Post-upload processing";
-    tooltip = `${tooltip}\n ${stepInfo}`;
+    tooltip = `${tooltip} - ${stepInfo}`;
 
     content = (
       <>

@@ -43,7 +43,7 @@ export const getUploadsByTemplateUsage = createSelector(
 
     const uploadsWithTemplates: UploadSummaryTableRow[] = [];
     const uploadsWithoutTemplates: UploadSummaryTableRow[] = [];
-    orderBy(uploadJobs, ["modified"], ["desc"])
+    orderBy(uploadJobs, ["created"], ["desc"])
       .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
       .forEach((job) => {
         const upload: UploadSummaryTableRow = {
