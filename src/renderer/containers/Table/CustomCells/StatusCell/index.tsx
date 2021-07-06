@@ -53,40 +53,41 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
     );
   } else {
     let progress = 0;
-    const appCopyInProgress = false;
+    let fssCompletedBytes = 0;
     let totalBytesDisplay = "0";
     let completedBytesDisplay = "?";
-    const stepInfo = !appCopyInProgress
-      ? "Step 1 of 2: Uploading file"
-      : "Step 2 of 2: Post-upload processing";
-    tooltip = `${stepInfo}\n ${tooltip}`;
     if (props.row.original.progress?.totalBytes) {
       const { completedBytes, totalBytes } = props.row.original.progress;
-      const fssCompletedBytes =
+      fssCompletedBytes =
         props.row.original.serviceFields?.fssBytesProcessed ?? 0;
-      const appCopyInProgress = completedBytes !== totalBytes;
 
       // `completedBytes` refers to the copy done by the app itself, while
       // `fssCompletedBytes` refers to the post-upload processing done by FSS.
-      const completedBytesForStep = appCopyInProgress
-        ? completedBytes
-        : fssCompletedBytes;
-      progress = Math.floor(totalBytes / completedBytesForStep);
+      const completedBytesForStep = fssCompletedBytes || completedBytes;
+      progress =
+        totalBytes === completedBytesForStep
+          ? 100
+          : Math.floor(totalBytes / completedBytesForStep);
       completedBytesDisplay = getBytesDisplay(completedBytesForStep);
       totalBytesDisplay = getBytesDisplay(totalBytes);
     }
 
+    const stepInfo = !fssCompletedBytes
+      ? "Step 1 of 2: Uploading file"
+      : "Step 2 of 2: Post-upload processing";
+    tooltip = `${tooltip}\n ${stepInfo}`;
+
     content = (
       <>
         <Progress
-          className={classNames({ [styles.safeToClose]: !appCopyInProgress })}
+          className={classNames({ [styles.safeToClose]: !!fssCompletedBytes })}
           type="circle"
           percent={progress}
           width={25}
           status="active"
         />
         <div className={styles.activeInfo}>
-          <p>Step {!appCopyInProgress ? 1 : 2} of 2</p>
+          <p>Step {!fssCompletedBytes ? 1 : 2} of 2</p>
           <p>
             {completedBytesDisplay} / {totalBytesDisplay}
           </p>
