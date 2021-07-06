@@ -15,7 +15,6 @@ import {
   castArray,
   difference,
   isNil,
-  startCase,
   trim,
   uniq,
 } from "lodash";
@@ -180,12 +179,6 @@ export const pivotAnnotations = (
     }),
     {}
   );
-};
-
-// start case almost works but adds spaces before numbers which we'll remove here
-export const titleCase = (name?: string) => {
-  const result = startCase(name);
-  return result.replace(/\s([0-9]+)/g, "$1");
 };
 
 /**

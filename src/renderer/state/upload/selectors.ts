@@ -33,7 +33,7 @@ import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
 import { Duration } from "../../types";
-import { getWellLabelAndImagingSessionName, titleCase } from "../../util";
+import { getWellLabelAndImagingSessionName } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
@@ -96,15 +96,8 @@ const EXCLUDED_UPLOAD_FIELDS = [
 
 // this matches the metadata annotations to the ones in the database and removes
 // extra stuff that does not have annotations associated with it but is needed for UI display
-const standardizeUploadRow = (metadata: FileModel) => {
-  const strippedMetadata = omit(metadata, EXCLUDED_UPLOAD_FIELDS);
-  const result: any = {};
-  forEach(strippedMetadata, (value: any, key: string) => {
-    result[titleCase(key)] = value;
-  });
-
-  return result;
-};
+const removeExcludedFields = (metadata: FileModel) =>
+  omit(metadata, EXCLUDED_UPLOAD_FIELDS);
 
 export const getUploadWithCalculatedData = createSelector(
   [getUpload, getImagingSessions, getAllPlates, getWellIdToWellMap],
@@ -325,7 +318,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     forEach(upload, (metadata, key) => {
       const annotationToErrorMap: { [annotation: string]: string } = {};
       forEach(
-        standardizeUploadRow(metadata),
+        removeExcludedFields(metadata),
         (value: any, annotationName: string) => {
           const templateAnnotation = template.annotations.find(
             (a) => a.name === annotationName
@@ -549,10 +542,9 @@ const getAnnotations = (
     {}
   );
   return flatMap(metadata, (metadatum) => {
-    const customData = standardizeUploadRow(metadatum);
+    const customData = removeExcludedFields(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
-      annotationName = titleCase(annotationName);
       const annotation = annotationNameToAnnotationMap[annotationName];
       if (annotation) {
         let addAnnotation = Array.isArray(value)

@@ -16,7 +16,6 @@ import {
   getPowerOf1000,
   makePosixPathCompatibleWithPlatform,
   splitTrimAndFilter,
-  titleCase,
 } from "../";
 import MMSClient from "../../services/mms-client";
 import {
@@ -102,21 +101,6 @@ describe("General utilities", () => {
     it("should return -1 if a is alphabetically after b", () => {
       const result = alphaOrderComparator("foo", "bar");
       expect(result).to.equal(-1);
-    });
-  });
-
-  describe("titleCase", () => {
-    it("should return Cas9 when given Cas9", () => {
-      const result = titleCase("Cas9");
-      expect(result).to.equal("Cas9");
-    });
-    it("returns Cas99 when given cas99", () => {
-      const result = titleCase("cas99");
-      expect(result).to.equal("Cas99");
-    });
-    it('returns Cas99 when given "cas 9 9"', () => {
-      const result = titleCase("cas 9 9");
-      expect(result).to.equal("Cas99");
     });
   });
 
