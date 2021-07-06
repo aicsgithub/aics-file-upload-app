@@ -42,7 +42,10 @@ const TableRowMemoized = React.memo(
     isEqual(prevProp.original, nextProp.original) &&
     prevProp.isSelected === nextProp.isSelected &&
     prevProp.isExpanded === nextProp.isExpanded &&
-    prevProp.cells.length === nextProp.cells.length
+    // Updates row after columns change
+    prevProp.cells.length === nextProp.cells.length &&
+    // Updates row after resizing
+    nextProp.cells.every((cell) => !cell.column.isResizing)
 ) as typeof TableRow;
 
 /**
