@@ -168,6 +168,8 @@ export default function UploadTable(props: Props) {
       autoResetSortBy: false,
       // Prevents filters from reseting after data is modified
       autoResetFilters: false,
+      // Prevent selections from resetting after data is modified
+      autoResetSelectedRows: false,
       // Extra filter types -> their implementations
       filterTypes: FILTER_TYPES,
       // Extra sort types -> their implementations
