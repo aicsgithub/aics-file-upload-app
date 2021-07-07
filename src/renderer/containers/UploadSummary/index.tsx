@@ -46,18 +46,20 @@ export default function UploadSummary() {
     return [selectedAllFailedUploads, selectedAllInProgressUploads];
   }, [selectedUploads]);
 
-  function onSelect(
-    rows: Row<UploadSummaryTableRow>[],
-    isDeselecting: boolean
-  ) {
-    if (isDeselecting) {
-      const rowIds = new Set(rows.map((r) => r.id));
-      setSelectedUploads(selectedUploads.filter((u) => !rowIds.has(u.jobId)));
-    } else {
-      const uploads = rows.map((r) => r.original);
-      setSelectedUploads(uniqBy([...selectedUploads, ...uploads], "jobId"));
-    }
-  }
+  // Wrap as callback to avoid unnecessary renders due to referential equality between
+  // onSelect references in TableRow
+  const onSelect = React.useCallback(
+    (rows: Row<UploadSummaryTableRow>[], isDeselecting: boolean) => {
+      if (isDeselecting) {
+        const rowIds = new Set(rows.map((r) => r.id));
+        setSelectedUploads(selectedUploads.filter((u) => !rowIds.has(u.jobId)));
+      } else {
+        const uploads = rows.map((r) => r.original);
+        setSelectedUploads(uniqBy([...selectedUploads, ...uploads], "jobId"));
+      }
+    },
+    [selectedUploads, setSelectedUploads]
+  );
 
   function onView() {
     dispatch(viewUploads(selectedUploads));
