@@ -1,5 +1,5 @@
-import { Button, Spin, Tooltip } from "antd";
-import { remote } from "electron";
+import { Button, Dropdown, Menu, Spin, Tooltip } from "antd";
+import { OpenDialogOptions, remote } from "electron";
 import { isEmpty, uniqBy } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,11 +13,30 @@ import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { getUploadsByTemplateUsage } from "../../state/job/selectors";
 import { startNewUpload, viewUploads } from "../../state/route/actions";
 import { AsyncRequest, UploadSummaryTableRow } from "../../state/types";
-import { cancelUploads, retryUploads } from "../../state/upload/actions";
+import {
+  cancelUploads,
+  retryUploads,
+  uploadWithoutMetadata,
+} from "../../state/upload/actions";
 import UploadTable from "../UploadTable";
 
 const styles = require("./styles.pcss");
 
+const OPEN_FILES_DIALOG_OPTIONS: OpenDialogOptions = {
+  properties: ["openFile", "multiSelections"],
+  title: "Browse for files to upload",
+};
+
+const OPEN_FOLDER_DIALOG_OPTIONS: OpenDialogOptions = {
+  properties: ["openDirectory"],
+  title: "Browse for a folder of files to upload",
+};
+
+/**
+ * This component represents the "My Uploads" page for the user. The
+ * user's uploads are displayed as tables and are presented with options
+ * to interact with existing uploads as well as options to upload.
+ */
 export default function UploadSummary() {
   const dispatch = useDispatch();
   const { uploadsWithTemplates, uploadsWithoutTemplates } = useSelector(
@@ -94,6 +113,34 @@ export default function UploadSummary() {
     ]).popup();
   }
 
+  async function openFileBrowser(dialogOptions: OpenDialogOptions) {
+    const { filePaths } = await remote.dialog.showOpenDialog(dialogOptions);
+    console.log(filePaths);
+    // If cancel is clicked, this callback gets called and filePaths is undefined
+    if (!isEmpty(filePaths)) {
+      dispatch(uploadWithoutMetadata(filePaths));
+    }
+  }
+
+  const dropdownMenu = (
+    <Menu className={styles.menu}>
+      <Menu.Item disabled className={styles.menuDivider}>
+        Upload Without Metadata Template
+      </Menu.Item>
+      <Menu.Item onClick={() => openFileBrowser(OPEN_FILES_DIALOG_OPTIONS)}>
+        Files
+      </Menu.Item>
+      <Menu.Item onClick={() => openFileBrowser(OPEN_FOLDER_DIALOG_OPTIONS)}>
+        Folder
+      </Menu.Item>
+      <Menu.Item disabled className={styles.menuDivider}>
+        Upload With Metadata Template
+      </Menu.Item>
+      <Menu.Item onClick={() => dispatch(startNewUpload())}>Files</Menu.Item>
+      <Menu.Item onClick={() => dispatch(startNewUpload())}>Folder</Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -135,13 +182,13 @@ export default function UploadSummary() {
               </Button>
             </Tooltip>
           </div>
-          <Button
+          <Dropdown
             className={styles.newUploadButton}
-            icon="plus"
-            onClick={() => dispatch(startNewUpload())}
+            overlay={dropdownMenu}
+            trigger={["click", "hover"]}
           >
-            Upload
-          </Button>
+            <Button icon="plus">Upload</Button>
+          </Dropdown>
         </div>
       </div>
       <div className={styles.tableContainer}>

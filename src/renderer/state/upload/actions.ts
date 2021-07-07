@@ -32,6 +32,7 @@ import {
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
   ADD_UPLOAD_FILES,
+  UPLOAD_WITHOUT_METADATA,
 } from "./constants";
 import {
   AddUploadFilesAction,
@@ -63,6 +64,7 @@ import {
   UploadFailedAction,
   UploadTableRow,
   UploadSucceededAction,
+  UploadWithoutMetadataAction,
 } from "./types";
 
 export function addUploadFiles(
@@ -154,6 +156,15 @@ export function uploadFailed(
       jobName,
     },
     type: UPLOAD_FAILED,
+  };
+}
+
+export function uploadWithoutMetadata(
+  filePaths: string[]
+): UploadWithoutMetadataAction {
+  return {
+    payload: filePaths,
+    type: UPLOAD_WITHOUT_METADATA,
   };
 }
 

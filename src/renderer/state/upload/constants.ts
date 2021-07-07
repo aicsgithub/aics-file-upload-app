@@ -43,6 +43,10 @@ export const INITIATE_UPLOAD_FAILED = makeConstant(
 );
 export const UPLOAD_FAILED = makeConstant(BRANCH_NAME, "upload-failed");
 export const UPLOAD_SUCCEEDED = makeConstant(BRANCH_NAME, "upload-succeeded");
+export const UPLOAD_WITHOUT_METADATA = makeConstant(
+  BRANCH_NAME,
+  "upload-without-metadata"
+);
 export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
 export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
 export const SAVE_UPLOAD_DRAFT_SUCCESS = makeConstant(

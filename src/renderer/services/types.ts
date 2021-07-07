@@ -73,7 +73,7 @@ export interface MMSFile {
 }
 
 export interface UploadRequest {
-  customMetadata: MMSFile;
+  customMetadata?: MMSFile;
   fileType?: string;
   file: FileMetadataBlock;
   [id: string]: any;

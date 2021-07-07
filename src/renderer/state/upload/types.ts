@@ -132,6 +132,11 @@ export interface UploadFailedAction {
   type: string;
 }
 
+export interface UploadWithoutMetadataAction {
+  payload: string[];
+  type: string;
+}
+
 export interface CancelUploadAction<
   T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
 > {

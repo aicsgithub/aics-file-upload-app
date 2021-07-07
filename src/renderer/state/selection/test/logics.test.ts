@@ -25,7 +25,7 @@ import {
   mockWells,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, DragAndDropFileList, Page } from "../../types";
+import { AsyncRequest, Page } from "../../types";
 import { updateUploadRows } from "../../upload/actions";
 import { getUpload } from "../../upload/selectors";
 import {
@@ -67,26 +67,13 @@ describe("Selection logics", () => {
   });
 
   describe("loadFilesLogic", () => {
-    let fileList: DragAndDropFileList;
+    let fileList: string[];
 
     beforeEach(() => {
-      // a FileList (https://developer.mozilla.org/en-US/docs/Web/API/FileList) does not have a constructor
-      // and must implement some iterator methods. For the purposes of keeping these tests simple, we're casting
-      // it twice to make the transpiler happy.
-      fileList = {
-        length: 2,
-        0: {
-          name: FILE_NAME,
-          path: FILE_FULL_PATH,
-        },
-        1: {
-          name: FOLDER_NAME,
-          path: FOLDER_FULL_PATH,
-        },
-      };
+      fileList = [FILE_FULL_PATH, FOLDER_FULL_PATH];
     });
 
-    it("Does not change page if not on DragAndDrop page", async () => {
+    it("Does not change page if not on AddCustomData page", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
         route: {
@@ -99,7 +86,7 @@ describe("Selection logics", () => {
       expect(getPage(store.getState())).to.equal(Page.AddCustomData);
 
       // apply
-      store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
+      store.dispatch(selections.actions.loadFiles(fileList));
 
       // after
       await logicMiddleware.whenComplete();
@@ -113,7 +100,7 @@ describe("Selection logics", () => {
       expect(getUpload(store.getState())).to.be.empty;
 
       // apply
-      store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
+      store.dispatch(selections.actions.loadFiles(fileList));
 
       // after
       await logicMiddleware.whenComplete();
@@ -131,7 +118,7 @@ describe("Selection logics", () => {
       expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
 
       // apply
-      store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
+      store.dispatch(selections.actions.loadFiles(fileList));
 
       // after
       await logicMiddleware.whenComplete();
@@ -145,95 +132,7 @@ describe("Selection logics", () => {
       expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
 
       // apply
-      fileList = {
-        length: 2,
-        0: {
-          name: "does_not_exist.txt",
-          path: FILE_FULL_PATH,
-        },
-        1: {
-          name: FOLDER_NAME,
-          path: FOLDER_FULL_PATH,
-        },
-      };
-      store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-    });
-  });
-
-  describe("openFilesLogic", () => {
-    let filePaths: string[];
-
-    beforeEach(() => {
-      filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
-    });
-
-    it("Stages all files opened", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
-
-      // before
-      expect(Object.keys(getUpload(store.getState()))).to.be.empty;
-
-      // apply
-      store.dispatch(selections.actions.openFilesFromDialog(filePaths));
-
-      // after
-      await logicMiddleware.whenComplete();
-      const upload = getUpload(store.getState());
-
-      expect(Object.keys(upload)).to.be.lengthOf(1);
-      const file = upload[Object.keys(upload)[0]];
-      expect(file.file).to.equal(FILE_FULL_PATH);
-    });
-
-    it("Removes child files or directories", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
-
-      // before
-      expect(Object.keys(getUpload(store.getState()))).to.be.empty;
-
-      // apply
-      const filePathsWithDuplicates = [
-        resolve(FOLDER_FULL_PATH, "test.txt"),
-        FOLDER_FULL_PATH,
-        resolve(FOLDER_FULL_PATH, "test2.txt"),
-      ];
-      store.dispatch(
-        selections.actions.openFilesFromDialog(filePathsWithDuplicates)
-      );
-
-      // after
-      await logicMiddleware.whenComplete();
-      const upload = getUpload(store.getState());
-      expect(Object.keys(upload)).to.be.lengthOf(1);
-    });
-
-    it("should stop loading on success", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
-
-      // before
-      expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-
-      // apply
-      store.dispatch(selections.actions.openFilesFromDialog(filePaths));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-    });
-
-    it("should stop loading on error", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
-
-      // before
-      expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-
-      // apply
-      filePaths = [resolve(__dirname, TEST_FILES_DIR, "does_not_exist.txt")];
-      store.dispatch(selections.actions.openFilesFromDialog(filePaths));
+      store.dispatch(selections.actions.loadFiles(fileList));
 
       // after
       await logicMiddleware.whenComplete();

@@ -1,11 +1,4 @@
-import {
-  constants,
-  promises,
-  readdir as fsReaddir,
-  stat as fsStat,
-  Stats,
-} from "fs";
-import { basename, dirname, resolve as resolvePath } from "path";
+import { constants, promises, readdir as fsReaddir, stat as fsStat } from "fs";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
@@ -18,6 +11,7 @@ import {
   startCase,
   trim,
   uniq,
+  flatten,
 } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
@@ -37,7 +31,6 @@ import {
   ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
-  UploadFile,
   UploadStateBranch,
 } from "../state/types";
 
@@ -220,19 +213,6 @@ export function makePosixPathCompatibleWithPlatform(
   }
   return path;
 }
-
-export const mergeChildPaths = (filePaths: string[]): string[] => {
-  filePaths = uniq(filePaths);
-
-  return filePaths.filter((filePath) => {
-    const otherFilePaths = filePaths.filter(
-      (otherFilePath) => otherFilePath !== filePath
-    );
-    return !otherFilePaths.find((otherFilePath) =>
-      filePath.startsWith(otherFilePath)
-    );
-  });
-};
 
 export interface PlateInfo {
   plate: ImagingSessionIdToPlateMap;
@@ -420,70 +400,28 @@ export const ensureDraftGetsSaved = async (
   };
 };
 
-export class UploadFileImpl implements UploadFile {
-  public name: string;
-  public path: string;
-  // this will get populated once the folder is expanded
-  public files: UploadFile[] = [];
-  public readonly isDirectory: boolean;
-  public readonly canRead: boolean;
+// For each file path determines if the path leads to a directory
+// if so it extracts the file paths for the files within said directory
+// otherwise just returns the file path as is.
+export async function determineFilesFromNestedPaths(
+  paths: string[]
+): Promise<string[]> {
+  const filePaths = await Promise.all(
+    paths.flatMap(async (fullPath) => {
+      const stats = await stat(fullPath);
+      if (stats.isDirectory()) {
+        return [fullPath];
+      }
+      const canRead = await canUserRead(fullPath);
+      if (!canRead) {
+        return [fullPath];
+      }
+      return await readdir(fullPath);
+    })
+  );
 
-  constructor(
-    name: string,
-    path: string,
-    isDirectory: boolean,
-    canRead: boolean
-  ) {
-    this.name = name;
-    this.path = path;
-    this.isDirectory = isDirectory;
-    this.canRead = canRead;
-  }
-
-  get fullPath(): string {
-    return resolvePath(this.path, this.name);
-  }
-
-  public async loadFiles(): Promise<Array<Promise<UploadFile>>> {
-    if (!this.isDirectory) {
-      return Promise.reject("Not a directory");
-    }
-    const fullPath = resolvePath(this.path, this.name);
-    if (!this.canRead) {
-      return Promise.reject(
-        `You do not have permission to view this file/directory: ${fullPath}.`
-      );
-    }
-
-    const files: string[] = await readdir(this.fullPath);
-    return files.map(async (file: string) => {
-      const filePath = resolvePath(this.fullPath, file);
-      const stats: Stats = await stat(filePath);
-      const canRead = await canUserRead(filePath);
-      return new UploadFileImpl(
-        basename(filePath),
-        dirname(filePath),
-        stats.isDirectory(),
-        canRead
-      );
-    });
-  }
+  return uniq(flatten(filePaths));
 }
-
-export const getUploadFilePromise = async (
-  name: string,
-  path: string
-): Promise<UploadFile> => {
-  const fullPath = resolvePath(path, name);
-  const stats: Stats = await stat(fullPath);
-  const isDirectory = stats.isDirectory();
-  const canRead = await canUserRead(fullPath);
-  const file = new UploadFileImpl(name, path, isDirectory, canRead);
-  if (isDirectory && canRead) {
-    file.files = await Promise.all(await file.loadFiles());
-  }
-  return file;
-};
 
 /**
  * Returns largest factor of 1000 for num

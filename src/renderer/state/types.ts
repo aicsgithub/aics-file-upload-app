@@ -314,16 +314,6 @@ export interface ImagingSessionIdToWellsMap {
   [imagingSessionId: number]: WellResponse[];
 }
 
-export interface UploadFile {
-  name: string;
-  path: string;
-  files: UploadFile[];
-  fullPath: string;
-  canRead: boolean;
-  isDirectory: boolean;
-  loadFiles(): Promise<Array<Promise<UploadFile>>>;
-}
-
 export interface AnnotationDraft extends Audited {
   annotationId: number;
   annotationOptions?: string[];

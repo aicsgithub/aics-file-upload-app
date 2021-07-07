@@ -36,8 +36,7 @@ import { CreateBarcodeAction } from "../../state/metadata/types";
 import { closeUpload } from "../../state/route/actions";
 import { CloseUploadAction } from "../../state/route/types";
 import {
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
+  loadFiles,
   selectBarcode,
   setHasNoPlateToUpload,
 } from "../../state/selection/actions";
@@ -48,15 +47,14 @@ import {
   getSelectedUploads,
 } from "../../state/selection/selectors";
 import {
-  LoadFilesFromDragAndDropAction,
-  LoadFilesFromOpenDialogAction,
+  LoadFilesAction,
   SelectBarcodeAction,
   SetHasNoPlateToUploadAction,
 } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AsyncRequest, DragAndDropFileList, State } from "../../state/types";
+import { AsyncRequest, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,
@@ -122,10 +120,7 @@ interface Props {
   isReadOnly: boolean;
   initiateUpload: ActionCreator<InitiateUploadAction>;
   loading: boolean;
-  loadFilesFromDragAndDrop: (
-    files: DragAndDropFileList
-  ) => LoadFilesFromDragAndDropAction;
-  openFilesFromDialog: (files: string[]) => LoadFilesFromOpenDialogAction;
+  loadFiles: ActionCreator<LoadFilesAction>;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
@@ -189,8 +184,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       <DragAndDrop
         disabled={!!selectedUploads.length}
         overlayChildren={!Object.keys(uploads).length && !loading}
-        onDrop={this.props.loadFilesFromDragAndDrop}
-        onOpen={this.props.openFilesFromDialog}
+        onDrop={(files) =>
+          this.props.loadFiles(Array.from(files, (file) => file.path))
+        }
+        onOpen={this.props.loadFiles}
         openDialogOptions={openDialogOptions}
       >
         <div className={styles.contentRoot}>
@@ -479,8 +476,7 @@ const dispatchToPropsMap = {
   closeUpload,
   createBarcode,
   initiateUpload,
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
+  loadFiles,
   removeUploads,
   selectBarcode,
   setAlert,

@@ -1,4 +1,4 @@
-import { basename } from "path";
+import { basename, extname } from "path";
 
 import {
   castArray,
@@ -27,6 +27,7 @@ import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
 import {
+  determineFilesFromNestedPaths,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   pivotAnnotations,
@@ -93,8 +94,10 @@ import {
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
+  UPLOAD_WITHOUT_METADATA,
 } from "./constants";
 import {
+  extensionToFileTypeMap,
   getCanSaveUploadDraft,
   getUpload,
   getUploadFileNames,
@@ -103,6 +106,7 @@ import {
 import {
   ApplyTemplateAction,
   CancelUploadAction,
+  FileType,
   InitiateUploadAction,
   OpenUploadDraftAction,
   RetryUploadAction,
@@ -111,6 +115,7 @@ import {
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
+  UploadWithoutMetadataAction,
 } from "./types";
 
 const applyTemplateLogic = createLogic({
@@ -852,6 +857,65 @@ const submitFileMetadataUpdateLogic = createLogic({
   type: SUBMIT_FILE_METADATA_UPDATE,
 });
 
+const uploadWithoutMetadataLogic = createLogic({
+  process: async (
+    deps: ReduxLogicProcessDependenciesWithAction<UploadWithoutMetadataAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const filePaths = await determineFilesFromNestedPaths(deps.action.payload);
+
+    // Upload 25 files at a time to prevent performance issues in the case of
+    // uploads with many files.
+    const groupId = FileManagementSystem.createUniqueId();
+    for (const batch of chunk(filePaths, 25)) {
+      await Promise.all(
+        batch.map(async (filePath) => {
+          const fileName = basename(filePath);
+          try {
+            const request = {
+              file: {
+                disposition: "tape", // prevent czi -> ome.tiff conversions
+                fileType:
+                  extensionToFileTypeMap[extname(filePath).toLowerCase()] ||
+                  FileType.OTHER,
+                originalPath: filePath,
+                shouldBeInArchive: true,
+                shouldBeInLocal: true,
+              },
+              microscopy: {},
+            };
+            const response = await deps.fms.startUpload(filePath, request, {
+              groupId,
+            });
+
+            await deps.fms.uploadFile(
+              response.jobId,
+              request.file.originalPath,
+              request,
+              response.uploadDirectory,
+              handleUploadProgress(
+                [request.file.originalPath],
+                (progress: UploadProgressInfo) =>
+                  dispatch(updateUploadProgressInfo(response.jobId, progress))
+              )
+            );
+          } catch (err) {
+            if (!(err instanceof CopyCancelledError)) {
+              const error = `Upload ${fileName} failed: ${err.message}`;
+              deps.logger.error(`Upload failed`, err);
+              dispatch(uploadFailed(error, fileName));
+            }
+          }
+        })
+      );
+    }
+
+    done();
+  },
+  type: UPLOAD_WITHOUT_METADATA,
+});
+
 export default [
   addUploadFilesLogic,
   applyTemplateLogic,
@@ -864,4 +928,5 @@ export default [
   updateSubImagesLogic,
   updateUploadLogic,
   updateUploadRowsLogic,
+  uploadWithoutMetadataLogic,
 ];
