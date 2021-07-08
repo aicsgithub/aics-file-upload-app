@@ -16,7 +16,6 @@ interface Props<T extends {}> extends Row<T> {
  * sources like the copy progress updater.
  */
 function TableRow<T extends {}>(props: Props<T>) {
-  console.log(props.id, props.original);
   return (
     <div
       {...props.getRowProps({ style: props.rowStyle })}
@@ -45,7 +44,11 @@ const TableRowMemoized = React.memo(
     // Updates row after columns change
     prevProp.cells.length === nextProp.cells.length &&
     // Updates row after resizing
-    nextProp.cells.every((cell) => !cell.column.isResizing)
+    nextProp.cells.every(
+      (cell, index) =>
+        !cell.column.isResizing &&
+        isEqual(cell.column, prevProp.cells[index].column)
+    )
 ) as typeof TableRow;
 
 /**

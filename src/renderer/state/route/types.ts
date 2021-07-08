@@ -41,6 +41,6 @@ export interface ViewUploadsSucceededAction {
 }
 
 export interface Upload {
-  templateId: number;
+  templateId?: number;
   uploadMetadata: UploadStateBranch;
 }

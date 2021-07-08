@@ -88,6 +88,8 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
       // Similarly to the above property this comes from a plugin, useSortBy,
       // and prevents sorting from reseting after data is modified
       autoResetSortBy: false,
+      // Prevent selections from resetting on data changes
+      autoResetSelectedRows: false,
       // This comes from the useSortBy plugin and adds additional sorting
       // options as a function of the column's "sortType" specified.
       // This is currently necessary since the row values are arrays

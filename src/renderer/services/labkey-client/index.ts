@@ -66,10 +66,8 @@ export default class LabkeyClient extends HttpCacheClient {
     this.getColumnValues = this.getColumnValues.bind(this);
     this.getChannels = this.getChannels.bind(this);
     this.getTemplateHasBeenUsed = this.getTemplateHasBeenUsed.bind(this);
-    this.getPlateBarcodeAndAllImagingSessionIdsFromWellId = this.getPlateBarcodeAndAllImagingSessionIdsFromWellId.bind(
-      this
-    );
-    this.getImagingSessionIdsForBarcode = this.getImagingSessionIdsForBarcode.bind(
+    this.findPlateBarcodeByWellId = this.findPlateBarcodeByWellId.bind(this);
+    this.findImagingSessionIdsByPlateBarcode = this.findImagingSessionIdsByPlateBarcode.bind(
       this
     );
     this.getFileExistsByMD5AndName = this.getFileExistsByMD5AndName.bind(this);
@@ -338,9 +336,7 @@ export default class LabkeyClient extends HttpCacheClient {
     return response.rows.length > 0;
   }
 
-  public async getPlateBarcodeAndAllImagingSessionIdsFromWellId(
-    wellId: number
-  ): Promise<string> {
+  public async findPlateBarcodeByWellId(wellId: number): Promise<string> {
     const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Well", [
       `query.wellid~eq=${wellId}`,
     ]);
@@ -358,7 +354,7 @@ export default class LabkeyClient extends HttpCacheClient {
     return plateResponse.rows[0]?.BarCode;
   }
 
-  public async getImagingSessionIdsForBarcode(
+  public async findImagingSessionIdsByPlateBarcode(
     barcode: string
   ): Promise<Array<number | null>> {
     const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Plate", [

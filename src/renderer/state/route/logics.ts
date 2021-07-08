@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import { platform } from "os";
 
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, groupBy, isEmpty, uniq } from "lodash";
+import { castArray, difference, groupBy, isEmpty, omit, uniq } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -21,7 +21,6 @@ import {
   Lookup,
   ScalarType,
 } from "../../services/labkey-client/types";
-import MMSClient from "../../services/mms-client";
 import {
   MMSFileAnnotation,
   FSSResponseFile,
@@ -197,39 +196,6 @@ const resetUploadLogic = createLogic({
   },
 });
 
-const getPlateRelatedActions = async (
-  wellIds: number[],
-  labkeyClient: LabkeyClient,
-  mmsClient: MMSClient,
-  dispatch: ReduxLogicNextCb
-) => {
-  const actions: AnyAction[] = [];
-  wellIds = castArray(wellIds).map((w: string | number) =>
-    parseInt(w + "", 10)
-  );
-  // assume all wells have same barcode
-  const wellId = wellIds[0];
-  // we want to find the barcode associated with any well id found in this upload
-  const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
-    wellId
-  );
-  const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
-    barcode
-  );
-  const { plate, wells } = await getPlateInfo(
-    barcode,
-    imagingSessionIds,
-    mmsClient,
-    dispatch
-  );
-  actions.push(
-    selectBarcode(barcode, imagingSessionIds),
-    setPlate(plate, wells, imagingSessionIds)
-  );
-
-  return actions;
-};
-
 /*
   Convert from upload requests formatted for FSS transmission into the shape
   of the upload branch at the time of the initial upload the requests
@@ -253,7 +219,9 @@ function convertUploadRequestsToUploadStateBranch(
 
   let templateId: number | undefined = undefined;
   const uploadMetadata = files.reduce((uploadSoFar, file) => {
-    if (!file.customMetadata) {
+    templateId = file.customMetadata?.templateId || templateId;
+
+    if (!file.customMetadata?.annotations.length) {
       const key = getUploadRowKey({
         file: file.file.originalPath,
       });
@@ -266,7 +234,6 @@ function convertUploadRequestsToUploadStateBranch(
       };
     }
 
-    templateId = file.customMetadata.templateId || templateId;
     return file.customMetadata.annotations.reduce(
       (
         keyToMetadataSoFar: UploadStateBranch,
@@ -358,10 +325,6 @@ function convertUploadRequestsToUploadStateBranch(
     );
   }, {} as UploadStateBranch);
 
-  if (!templateId) {
-    throw new Error("Could not find the template used in the upload");
-  }
-
   return { templateId, uploadMetadata };
 }
 
@@ -427,52 +390,76 @@ const viewUploadsLogic = createLogic({
           };
         })
       );
-      const files = [...requests, ...fileIdsAsFiles];
-      const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
+      const uploadsToView = convertUploadRequestsToUploadStateBranch(
+        [...requests, ...fileIdsAsFiles],
+        state
+      );
+
+      let representativeBarcode: string | undefined = undefined;
+      const uploadsWithPlateInfo = await Object.entries(
+        uploadsToView.uploadMetadata
+      ).reduce(async (accum, [key, upload]) => {
+        const wellIds = upload[WELL_ANNOTATION_NAME];
+        if (!wellIds || isEmpty(wellIds)) {
+          return { ...(await accum), [key]: upload };
+        }
+        const barcode = await labkeyClient.findPlateBarcodeByWellId(wellIds[0]);
+        // Omit the well values if it is not from the same batch as the representative
+        if (!representativeBarcode || representativeBarcode === barcode) {
+          representativeBarcode = barcode;
+          return { ...(await accum), [key]: upload };
+        }
+        return {
+          ...(await accum),
+          [key]: omit(upload, WELL_ANNOTATION_NAME),
+        };
+      }, {} as Promise<UploadStateBranch>);
 
       const actions: AnyAction[] = [];
-      // if we have a well, we can get the barcode and other plate info. This will be necessary
-      // to display the well editor
-      let wellIds: any = Object.values(newUpload.uploadMetadata)[0]?.[
-        WELL_ANNOTATION_NAME
-      ];
-      if (!wellIds) {
+      if (!representativeBarcode) {
         actions.push(setHasNoPlateToUpload(true));
       } else {
-        wellIds = castArray(wellIds).map((w: string | number) =>
-          parseInt(w + "", 10)
+        // Any barcoded plate can be snapshot in time as that plate at a certain
+        // imaging session. The contents & images of the plates at that time (imaging session)
+        // may vary so the app needs to provide options for the user to choose between
+        const imagingSessionIds = await labkeyClient.findImagingSessionIdsByPlateBarcode(
+          representativeBarcode
         );
-        const plateRelatedActions = await getPlateRelatedActions(
-          wellIds,
-          labkeyClient,
+        const { plate, wells } = await getPlateInfo(
+          representativeBarcode,
+          imagingSessionIds,
           mmsClient,
           dispatch
         );
-        actions.push(...plateRelatedActions);
-      }
-
-      const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
-      if (!booleanAnnotationTypeId) {
-        throw new Error(
-          "Boolean annotation type id not found. Contact Software."
+        actions.push(
+          selectBarcode(representativeBarcode, imagingSessionIds),
+          setPlate(plate, wells, imagingSessionIds)
         );
       }
 
-      const { template, uploads } = await getApplyTemplateInfo(
-        newUpload.templateId,
-        mmsClient,
-        dispatch,
-        booleanAnnotationTypeId,
-        newUpload.uploadMetadata
-      );
-      const updateUploadsAction = setAppliedTemplate(template, uploads);
-      dispatch(
-        batchActions([
-          ...actions,
-          updateUploadsAction,
-          viewUploadsSucceeded(updateUploadsAction.payload.uploads),
-        ])
-      );
+      if (uploadsToView.templateId) {
+        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+        if (!booleanAnnotationTypeId) {
+          throw new Error(
+            "Boolean annotation type id not found. Contact Software."
+          );
+        }
+        const { template, uploads } = await getApplyTemplateInfo(
+          uploadsToView.templateId,
+          mmsClient,
+          dispatch,
+          booleanAnnotationTypeId,
+          uploadsWithPlateInfo
+        );
+        actions.push(
+          setAppliedTemplate(template, uploads),
+          viewUploadsSucceeded(uploads)
+        );
+      } else {
+        actions.push(viewUploadsSucceeded(uploadsWithPlateInfo));
+      }
+
+      dispatch(batchActions([...actions]));
     } catch (e) {
       dispatch(
         requestFailed(
