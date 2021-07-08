@@ -6,6 +6,7 @@ import { ListChildComponentProps } from "react-window";
 const styles = require("./styles.pcss");
 
 interface Props<T extends {}> extends Row<T> {
+  onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
   rowStyle: any;
 }
 
@@ -16,10 +17,21 @@ interface Props<T extends {}> extends Row<T> {
  * sources like the copy progress updater.
  */
 function TableRow<T extends {}>(props: Props<T>) {
+  const [isHighlighted, setIsHighlighted] = React.useState(false);
+
+  function onContextMenu() {
+    if (props.onContextMenu) {
+      setIsHighlighted(true);
+      props.onContextMenu(props, () => setIsHighlighted(false));
+    }
+  }
+
   return (
     <div
       {...props.getRowProps({ style: props.rowStyle })}
+      className={isHighlighted ? styles.highlighted : undefined}
       key={props.getRowProps().key}
+      onContextMenu={onContextMenu}
     >
       {props.cells.map((cell) => (
         <div
@@ -51,6 +63,12 @@ const TableRowMemoized = React.memo(
     )
 ) as typeof TableRow;
 
+interface ItemData<T extends {}> {
+  rows: Row<T>[];
+  prepareRow: (row: Row<T>) => void;
+  onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
+}
+
 /**
  * This renderer wrapper accepts props from react-window. This in combination with
  * the itemData prop given to react-window allows the app to determine which data to render
@@ -61,9 +79,11 @@ export default function TableRowRenderer({
   index,
   style,
   data,
-}: ListChildComponentProps) {
-  const { rows, prepareRow } = data;
+}: ListChildComponentProps<ItemData<any>>) {
+  const { rows, prepareRow, onContextMenu } = data;
   const row = rows[index];
   prepareRow(row);
-  return <TableRowMemoized {...row} rowStyle={style} />;
+  return (
+    <TableRowMemoized {...row} rowStyle={style} onContextMenu={onContextMenu} />
+  );
 }
