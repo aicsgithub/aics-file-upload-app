@@ -23,6 +23,7 @@ import {
 } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
 import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
+import { StartUploadResponse } from "../../services/fss-client";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
@@ -873,30 +874,49 @@ const uploadWithoutMetadataLogic = createLogic({
       return;
     }
 
+    // Perform initiate upload results all at once first so that jobs appear
+    // in the user uploads as in progress
+    const groupId = FileManagementSystem.createUniqueId();
+    const initiateUploadResults = await Promise.all(
+      filePaths.map(async (filePath) => {
+        const request = {
+          file: {
+            disposition: "tape", // prevent czi -> ome.tiff conversions
+            fileType:
+              extensionToFileTypeMap[extname(filePath).toLowerCase()] ||
+              FileType.OTHER,
+            originalPath: filePath,
+            shouldBeInArchive: true,
+            shouldBeInLocal: true,
+          },
+          microscopy: {},
+        };
+        try {
+          const response = await deps.fms.startUpload(filePath, request, {
+            groupId,
+          });
+          return { request, response };
+        } catch (err) {
+          const fileName = basename(filePath);
+          const error = `Upload ${fileName} failed: ${err.message}`;
+          dispatch(uploadFailed(error, fileName));
+          return null;
+        }
+      })
+    );
+
+    // Remove already failed uploads from list
+    const successfulResults = initiateUploadResults.filter((r) => !!r) as {
+      request: UploadRequest;
+      response: StartUploadResponse;
+    }[];
+
     // Upload 25 files at a time to prevent performance issues in the case of
     // uploads with many files.
-    const groupId = FileManagementSystem.createUniqueId();
-    for (const batch of chunk(filePaths, 25)) {
+    for (const batch of chunk(successfulResults, 25)) {
       await Promise.all(
-        batch.map(async (filePath) => {
-          const fileName = basename(filePath);
+        batch.map(async ({ request, response }) => {
           try {
-            const request = {
-              file: {
-                disposition: "tape", // prevent czi -> ome.tiff conversions
-                fileType:
-                  extensionToFileTypeMap[extname(filePath).toLowerCase()] ||
-                  FileType.OTHER,
-                originalPath: filePath,
-                shouldBeInArchive: true,
-                shouldBeInLocal: true,
-              },
-              microscopy: {},
-            };
-            const response = await deps.fms.startUpload(filePath, request, {
-              groupId,
-            });
-
             await deps.fms.uploadFile(
               response.jobId,
               request.file.originalPath,
@@ -910,6 +930,7 @@ const uploadWithoutMetadataLogic = createLogic({
             );
           } catch (err) {
             if (!(err instanceof CopyCancelledError)) {
+              const fileName = basename(request.file.originalPath);
               const error = `Upload ${fileName} failed: ${err.message}`;
               deps.logger.error(`Upload failed`, err);
               dispatch(uploadFailed(error, fileName));

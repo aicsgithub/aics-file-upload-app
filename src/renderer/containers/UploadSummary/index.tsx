@@ -1,10 +1,11 @@
-import { Button, Dropdown, Menu, Spin, Tooltip } from "antd";
-import { OpenDialogOptions, remote } from "electron";
+import { Button, Dropdown, Spin, Tooltip } from "antd";
+import { remote } from "electron";
 import { isEmpty, uniqBy } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Row } from "react-table";
 
+import NewUploadMenu from "../../components/NewUploadMenu";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,
@@ -21,16 +22,6 @@ import {
 import UploadTable from "../UploadTable";
 
 const styles = require("./styles.pcss");
-
-const OPEN_FILES_DIALOG_OPTIONS: OpenDialogOptions = {
-  properties: ["openFile", "multiSelections"],
-  title: "Browse for files to upload",
-};
-
-const OPEN_FOLDER_DIALOG_OPTIONS: OpenDialogOptions = {
-  properties: ["openDirectory"],
-  title: "Browse for a folder of files to upload",
-};
 
 /**
  * This component represents the "My Uploads" page for the user. The
@@ -115,9 +106,7 @@ export default function UploadSummary() {
     ]).popup();
   }
 
-  async function openFileBrowser(dialogOptions: OpenDialogOptions) {
-    const { filePaths } = await remote.dialog.showOpenDialog(dialogOptions);
-    console.log(filePaths);
+  function onUploadWithoutTemplate(filePaths: string[]) {
     // If cancel is clicked, this callback gets called and filePaths is undefined
     if (!isEmpty(filePaths)) {
       dispatch(uploadWithoutMetadata(filePaths));
@@ -125,22 +114,10 @@ export default function UploadSummary() {
   }
 
   const dropdownMenu = (
-    <Menu className={styles.menu}>
-      <Menu.Item disabled className={styles.menuDivider}>
-        Upload Without Metadata Template
-      </Menu.Item>
-      <Menu.Item onClick={() => openFileBrowser(OPEN_FILES_DIALOG_OPTIONS)}>
-        Files
-      </Menu.Item>
-      <Menu.Item onClick={() => openFileBrowser(OPEN_FOLDER_DIALOG_OPTIONS)}>
-        Folder
-      </Menu.Item>
-      <Menu.Item disabled className={styles.menuDivider}>
-        Upload With Metadata Template
-      </Menu.Item>
-      <Menu.Item onClick={() => dispatch(startNewUpload())}>Files</Menu.Item>
-      <Menu.Item onClick={() => dispatch(startNewUpload())}>Folder</Menu.Item>
-    </Menu>
+    <NewUploadMenu
+      onUploadWithTemplate={() => dispatch(startNewUpload())}
+      onUploadWithoutTemplate={onUploadWithoutTemplate}
+    />
   );
 
   return (
