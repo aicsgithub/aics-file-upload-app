@@ -863,7 +863,15 @@ const uploadWithoutMetadataLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const filePaths = await determineFilesFromNestedPaths(deps.action.payload);
+    let filePaths;
+    try {
+      filePaths = await determineFilesFromNestedPaths(deps.action.payload);
+    } catch (err) {
+      const error = `Failed resolving files: ${err.message}`;
+      dispatch(uploadFailed(error, deps.action.payload.join(", ")));
+      done();
+      return;
+    }
 
     // Upload 25 files at a time to prevent performance issues in the case of
     // uploads with many files.

@@ -1,4 +1,5 @@
 import { constants, promises, readdir as fsReaddir, stat as fsStat } from "fs";
+import { resolve } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
@@ -149,15 +150,6 @@ export const alphaOrderComparator = (a: string, b: string): number => {
   }
 
   return -1;
-};
-
-export const canUserRead = async (filePath: string): Promise<boolean> => {
-  try {
-    await promises.access(filePath, constants.R_OK);
-    return true;
-  } catch (permissionError) {
-    return false;
-  }
 };
 
 // every annotation will be stored in an array, regardless of whether it can have multiple values or not
@@ -400,6 +392,16 @@ export const ensureDraftGetsSaved = async (
   };
 };
 
+// Returns true if the user has read access to the file path given
+const canUserRead = async (filePath: string): Promise<boolean> => {
+  try {
+    await promises.access(filePath, constants.R_OK);
+    return true;
+  } catch (permissionError) {
+    return false;
+  }
+};
+
 // For each file path determines if the path leads to a directory
 // if so it extracts the file paths for the files within said directory
 // otherwise just returns the file path as is.
@@ -409,14 +411,17 @@ export async function determineFilesFromNestedPaths(
   const filePaths = await Promise.all(
     paths.flatMap(async (fullPath) => {
       const stats = await stat(fullPath);
-      if (stats.isDirectory()) {
+      if (!stats.isDirectory()) {
         return [fullPath];
       }
       const canRead = await canUserRead(fullPath);
       if (!canRead) {
-        return [fullPath];
+        throw new Error(`User does not have permission to read ${fullPath}`);
       }
-      return await readdir(fullPath);
+      const pathsUnderFolder = await readdir(fullPath, { withFileTypes: true });
+      return pathsUnderFolder
+        .filter((f) => f.isFile())
+        .map((f) => resolve(fullPath, f.name));
     })
   );
 

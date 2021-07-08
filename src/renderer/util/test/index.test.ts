@@ -1,4 +1,9 @@
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+
 import { expect } from "chai";
+import * as rimraf from "rimraf";
 import {
   createSandbox,
   SinonStubbedInstance,
@@ -10,6 +15,7 @@ import {
 import {
   alphaOrderComparator,
   convertToArray,
+  determineFilesFromNestedPaths,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   getPlateInfo,
@@ -144,6 +150,42 @@ describe("General utilities", () => {
     it("returns an array if passsed an array", () => {
       const result = convertToArray(["bob"]);
       expect(result).to.deep.equal(["bob"]);
+    });
+  });
+
+  describe("determineFilesFromNestedPaths", () => {
+    const MOCK_DIRECTORY = path.resolve(os.tmpdir(), "fuaMockTest");
+    const MOCK_FILE1 = path.resolve(MOCK_DIRECTORY, "first_file.txt");
+    const MOCK_FILE2 = path.resolve(MOCK_DIRECTORY, "second_file.txt");
+
+    before(async () => {
+      await fs.promises.mkdir(MOCK_DIRECTORY);
+      await fs.promises.writeFile(MOCK_FILE1, "some text");
+      await fs.promises.writeFile(MOCK_FILE2, "some other text");
+      await fs.promises.mkdir(path.resolve(MOCK_DIRECTORY, "unwanted folder"));
+    });
+
+    after(() => {
+      rimraf.sync(MOCK_DIRECTORY);
+    });
+
+    it("returns files as is", async () => {
+      // Act
+      const result = await determineFilesFromNestedPaths([MOCK_FILE1]);
+
+      // Assert
+      expect(result).to.deep.equal([MOCK_FILE1]);
+    });
+
+    it("extracts files underneath folders", async () => {
+      // Act
+      const result = await determineFilesFromNestedPaths([
+        MOCK_DIRECTORY,
+        MOCK_FILE1,
+      ]);
+
+      // Assert
+      expect(result).to.deep.equal([MOCK_FILE1, MOCK_FILE2]);
     });
   });
 

@@ -100,7 +100,7 @@ describe("Selection logics", () => {
       expect(getUpload(store.getState())).to.be.empty;
 
       // apply
-      store.dispatch(selections.actions.loadFiles(fileList));
+      store.dispatch(selections.actions.loadFiles([FILE_FULL_PATH]));
 
       // after
       await logicMiddleware.whenComplete();

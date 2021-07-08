@@ -67,7 +67,7 @@ const standardizeUploads = (uploadRequests: UploadRequest[]): UploadRequest[] =>
     customMetadata: {
       ...request.customMetadata,
       annotations: orderAnnotationValueRequests(
-        request.customMetadata.annotations
+        request.customMetadata?.annotations || []
       ),
     },
   }));
@@ -129,7 +129,7 @@ describe("Upload selectors", () => {
           },
         }),
       });
-      const unexpectedAnnotation = payload[0]?.customMetadata.annotations.find(
+      const unexpectedAnnotation = payload[0]?.customMetadata?.annotations.find(
         (a: { values: string[] }) => a.values.includes("Hello World")
       );
       expect(unexpectedAnnotation).to.be.undefined;
@@ -619,7 +619,7 @@ describe("Upload selectors", () => {
 
       const payload = getUploadRequests(state);
 
-      expect(payload[0].customMetadata.annotations[0].values[0]).to.equal(
+      expect(payload[0].customMetadata?.annotations[0].values[0]).to.equal(
         "356521111"
       );
     });
@@ -650,7 +650,7 @@ describe("Upload selectors", () => {
 
       const payload = getUploadRequests(state);
 
-      expect(payload[0].customMetadata.annotations[0].values[0]).to.equal(
+      expect(payload[0].customMetadata?.annotations[0].values[0]).to.equal(
         "121111"
       );
     });
