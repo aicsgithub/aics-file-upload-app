@@ -86,24 +86,26 @@ export default function UploadSummary() {
     setSelectedUploads([]);
   }
 
-  function onContextMenu() {
+  function onContextMenu(
+    row: Row<UploadSummaryTableRow>,
+    onCloseCallback: () => void
+  ) {
     remote.Menu.buildFromTemplate([
       {
         label: "View",
-        enabled: !!selectedUploads.length,
-        click: onView,
+        click: () => dispatch(viewUploads([row.original])),
       },
       {
         label: "Retry",
-        enabled: !!selectedUploads.length && areSelectedUploadsAllFailed,
-        click: onRetry,
+        enabled: row.original.status === JSSJobStatus.FAILED,
+        click: () => dispatch(retryUploads([row.original])),
       },
       {
         label: "Cancel",
-        enabled: !!selectedUploads.length && areSelectedUploadsAllInProgress,
-        click: onCancel,
+        enabled: IN_PROGRESS_STATUSES.includes(row.original.status),
+        click: () => dispatch(cancelUploads([row.original])),
       },
-    ]).popup();
+    ]).popup({ callback: onCloseCallback });
   }
 
   function onUploadWithoutTemplate(filePaths: string[]) {

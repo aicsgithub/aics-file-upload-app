@@ -30,7 +30,10 @@ const styles = require("./styles.pcss");
 
 interface Props {
   title?: string;
-  onContextMenu: () => void;
+  onContextMenu: (
+    row: Row<UploadSummaryTableRow>,
+    onCloseCallback: () => void
+  ) => void;
   onSelect: (
     rows: Row<UploadSummaryTableRow>[],
     isDeselecting: boolean
@@ -184,9 +187,13 @@ export default function UploadTable(props: Props) {
   );
 
   return (
-    <div className={styles.container} onContextMenu={props.onContextMenu}>
+    <div className={styles.container}>
       {props.title && <h3 className={styles.tableTitle}>{props.title}</h3>}
-      <Table className={styles.tableContainer} tableInstance={tableInstance} />
+      <Table
+        className={styles.tableContainer}
+        tableInstance={tableInstance}
+        onContextMenu={props.onContextMenu}
+      />
       {!tableInstance.rows.length && (
         <div className={styles.emptyContainer}>
           <Empty description={`No ${props.title} Found`} />

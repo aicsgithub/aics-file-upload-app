@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
-import { TableInstance } from "react-table";
+import { Row, TableInstance } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 
@@ -11,6 +11,7 @@ const styles = require("./styles.pcss");
 interface Props<T extends {}> {
   className?: string;
   tableInstance: TableInstance<T>;
+  onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
 }
 
 // From https://davidwalsh.name/detect-scrollbar-width
@@ -34,7 +35,7 @@ function getScrollBarWidth(): number {
   by the defaultColumn properties supplied to react-table.
 */
 export default function Table<T extends {}>(props: Props<T>) {
-  const { className, tableInstance } = props;
+  const { className, tableInstance, onContextMenu } = props;
 
   const scrollBarSize = React.useMemo(() => getScrollBarWidth(), []);
 
@@ -80,7 +81,7 @@ export default function Table<T extends {}>(props: Props<T>) {
           {({ height }) => (
             <FixedSizeList
               height={height}
-              itemData={{ rows, prepareRow }}
+              itemData={{ rows, prepareRow, onContextMenu }}
               itemCount={tableInstance.rows.length}
               itemSize={35}
               width={tableInstance.totalColumnsWidth + scrollBarSize}
