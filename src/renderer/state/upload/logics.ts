@@ -824,18 +824,42 @@ const submitFileMetadataUpdateLogic = createLogic({
     {
       getState,
       mmsClient,
+      jssClient,
     }: ReduxLogicProcessDependenciesWithAction<SubmitFileMetadataUpdateAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const selectedUploads = getSelectedUploads(getState());
     const combinedNames = selectedUploads.map((u) => u.jobName).join(", ");
+    const editFileMetadataRequests = getUploadRequests(getState());
     try {
-      const editFileMetadataRequests = getUploadRequests(getState());
       await Promise.all(
         editFileMetadataRequests.map((request) =>
           mmsClient.editFileMetadata(request.file.fileId, request)
         )
+      );
+      // This serves to update the "My Uploads" tables so that uploads without templates
+      // may now have templates after the edit
+      await Promise.all(
+        editFileMetadataRequests.map((request) => {
+          const matchingUpload = selectedUploads.find((u) =>
+            u.serviceFields?.result?.find(
+              (f) => f.fileId === request.file.fileId
+            )
+          );
+          if (!matchingUpload) {
+            dispatch(
+              editFileMetadataFailed(
+                `Could not update upload job for file ${request.file.fileName}`,
+                request.file.fileName || ""
+              )
+            );
+            return;
+          }
+          return jssClient.updateJob(matchingUpload.jobId, {
+            serviceFields: { files: [request] },
+          });
+        })
       );
     } catch (e) {
       const message = e?.response?.data?.error || e.message;

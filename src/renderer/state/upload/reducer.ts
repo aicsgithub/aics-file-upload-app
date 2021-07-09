@@ -4,8 +4,8 @@ import undoable, { UndoableOptions } from "redux-undo";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
-import { RESET_UPLOAD } from "../route/constants";
-import { ResetUploadAction } from "../route/types";
+import { RESET_UPLOAD, VIEW_UPLOADS_SUCCEEDED } from "../route/constants";
+import { ResetUploadAction, ViewUploadsSucceededAction } from "../route/types";
 import {
   SELECT_BARCODE,
   SET_HAS_NO_PLATE_TO_UPLOAD,
@@ -164,6 +164,16 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       { payload: { uploads } }: SetAppliedTemplateAction
     ) => ({
       ...uploads,
+    }),
+  },
+  [VIEW_UPLOADS_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is ViewUploadsSucceededAction =>
+      action.type === VIEW_UPLOADS_SUCCEEDED,
+    perform: (
+      _: UploadStateBranch,
+      { payload: { originalUploads } }: ViewUploadsSucceededAction
+    ) => ({
+      ...originalUploads,
     }),
   },
 };
