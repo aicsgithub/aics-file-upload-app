@@ -201,21 +201,6 @@ export const splitTrimAndFilter = (value = ""): any[] =>
     .map(trim)
     .filter((v) => !!v);
 
-export function makePosixPathCompatibleWithPlatform(
-  path: string,
-  platform: string
-): string {
-  let updatedPath = path;
-  // Replace forward-slashes with back-slashes on Windows
-  if (platform === "win32") {
-    updatedPath = path.replace(/\//g, "\\");
-    if (updatedPath.startsWith("\\allen")) {
-      updatedPath = `\\${updatedPath}`;
-    }
-  }
-  return updatedPath;
-}
-
 export const mergeChildPaths = (filePaths: string[]): string[] => {
   filePaths = uniq(filePaths);
 

@@ -28,8 +28,8 @@ import {
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   getPlateInfo,
-  makePosixPathCompatibleWithPlatform,
 } from "../../util";
+import makePosixPathCompatibleWithPlatform from "../../util/makePosixPathCompatibleWithPlatform";
 import { requestFailed } from "../actions";
 import {
   openSetMountPointNotification,

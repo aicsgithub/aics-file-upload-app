@@ -9,7 +9,7 @@ import * as uuid from "uuid";
 
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../types";
-import { makePosixPathCompatibleWithPlatform } from "../../util";
+import makePosixPathCompatibleWithPlatform from "../../util/makePosixPathCompatibleWithPlatform";
 import FileStorageClient, {
   FSSRequestFile,
   StartUploadResponse,

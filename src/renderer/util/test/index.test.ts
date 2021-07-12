@@ -14,7 +14,6 @@ import {
   getApplyTemplateInfo,
   getPlateInfo,
   getPowerOf1000,
-  makePosixPathCompatibleWithPlatform,
   splitTrimAndFilter,
 } from "../";
 import MMSClient from "../../services/mms-client";
@@ -41,6 +40,7 @@ import {
 } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getWellLabel } from "../index";
+import makePosixPathCompatibleWithPlatform from "../makePosixPathCompatibleWithPlatform";
 
 describe("General utilities", () => {
   const sandbox = createSandbox();
