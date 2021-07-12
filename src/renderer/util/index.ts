@@ -206,6 +206,7 @@ export function makePosixPathCompatibleWithPlatform(
   platform: string
 ): string {
   let updatedPath = path;
+  // Replace forward-slashes with back-slashes on Windows
   if (platform === "win32") {
     updatedPath = path.replace(/\//g, "\\");
     if (updatedPath.startsWith("\\allen")) {
