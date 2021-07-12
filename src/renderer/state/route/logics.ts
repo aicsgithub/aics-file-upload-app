@@ -23,14 +23,13 @@ import {
 } from "../../services/labkey-client/types";
 import MMSClient, { AnnotationValue } from "../../services/mms-client";
 import { FSSResponseFile, UploadRequest } from "../../services/types";
-import { getUploadRowKey } from "../../state/upload/constants";
 import { Duration } from "../../types";
 import {
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   getPlateInfo,
-  makePosixPathCompatibleWithPlatform,
 } from "../../util";
+import makePosixPathCompatibleWithPlatform from "../../util/makePosixPathCompatibleWithPlatform";
 import { requestFailed } from "../actions";
 import {
   openSetMountPointNotification,
@@ -72,6 +71,7 @@ import {
   clearUploadHistory,
   jumpToPastUpload,
 } from "../upload/actions";
+import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 

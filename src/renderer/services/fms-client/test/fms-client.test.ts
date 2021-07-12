@@ -205,6 +205,47 @@ describe("FileManagementSystem", () => {
       expect(jss.updateJob).to.have.been.calledTwice;
     });
 
+    it("tests Windows paths", async () => {
+      const originalPlatform = process.platform;
+      // Manually set the platform for this test
+      Object.defineProperty(process, "platform", { value: "win32" });
+
+      // Arrange
+      const jobId = "abcdefgh123";
+      const metadata = {
+        customMetadata: {
+          templateId: 9,
+          annotations: [],
+        },
+        file: { originalPath: pathToFakeFile, fileType: FileType.TEXT },
+      };
+      const expectedFSSResponse = { jobId, files: [] };
+      fss.uploadComplete.resolves(expectedFSSResponse);
+      fileCopier.copyToDestAndCalcMD5.resolves("md5");
+
+      // Act
+      const result = await fms.uploadFile(
+        jobId,
+        pathToFakeFile,
+        metadata,
+        fakeUploadDirectory
+      );
+
+      // Assert
+      expect(fileCopier.copyToDestAndCalcMD5).to.have.been.calledOnceWith(
+        "abcdefgh123",
+        pathToFakeFile,
+        // The forward-slashes should be replaced with back-slashes on Windows
+        fakeUploadDirectory.replace(/\//g, "\\")
+      );
+      expect(result).to.deep.equal(expectedFSSResponse);
+      expect(fss.uploadComplete).to.have.been.calledOnce;
+      expect(jss.updateJob).to.have.been.calledTwice;
+
+      // Restore original platform
+      Object.defineProperty(process, "platform", { value: originalPlatform });
+    });
+
     it("fails job if an error occurs while copying", () => {
       // Arrange
       const jobId = "abcdefgh123";

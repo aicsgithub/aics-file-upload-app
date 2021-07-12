@@ -12,9 +12,12 @@ import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../constants";
-import { JobStatusClient, MMSClient } from "../services";
-import ApplicationInfoService from "../services/application-info";
-import FileManagementSystem from "../services/fms-client";
+import {
+  ApplicationInfoService,
+  FileManagementSystem,
+  JobStatusClient,
+  MMSClient,
+} from "../services";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {

@@ -9,6 +9,7 @@ import * as uuid from "uuid";
 
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../types";
+import makePosixPathCompatibleWithPlatform from "../../util/makePosixPathCompatibleWithPlatform";
 import FileStorageClient, {
   FSSRequestFile,
   StartUploadResponse,
@@ -315,12 +316,10 @@ export default class FileManagementSystem {
       FileManagementSystem.DEFAULT_MOUNT_POINT,
       mountPoint
     );
-    if (process.platform === "win32") {
-      targetFolder = targetFolder.replace(/\//g, "\\");
-      if (targetFolder.startsWith("\\allen")) {
-        targetFolder = `\\${targetFolder}`;
-      }
-    }
+    targetFolder = makePosixPathCompatibleWithPlatform(
+      targetFolder,
+      process.platform
+    );
     try {
       // Update copy progress every 5 seconds
       const throttledProgress = throttle(
@@ -331,7 +330,7 @@ export default class FileManagementSystem {
       const md5 = await this.fileCopier.copyToDestAndCalcMD5(
         jobId,
         source,
-        dest,
+        targetFolder,
         throttledProgress
       );
       console.timeEnd(`Copy ${source}`);
