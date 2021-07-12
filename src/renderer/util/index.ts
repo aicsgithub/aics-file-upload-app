@@ -30,8 +30,8 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
-import { DragAndDropFileList } from "../state/types";
 import {
+  DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
