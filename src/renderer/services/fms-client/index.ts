@@ -331,7 +331,7 @@ export default class FileManagementSystem {
       const md5 = await this.fileCopier.copyToDestAndCalcMD5(
         jobId,
         source,
-        dest,
+        targetFolder,
         throttledProgress
       );
       console.timeEnd(`Copy ${source}`);
