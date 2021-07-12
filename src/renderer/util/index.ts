@@ -205,13 +205,14 @@ export function makePosixPathCompatibleWithPlatform(
   path: string,
   platform: string
 ): string {
+  let updatedPath = path;
   if (platform === "win32") {
-    path = path.replace(/\//g, "\\");
-    if (path.startsWith("\\allen")) {
-      path = `\\${path}`;
+    updatedPath = path.replace(/\//g, "\\");
+    if (updatedPath.startsWith("\\allen")) {
+      updatedPath = `\\${updatedPath}`;
     }
   }
-  return path;
+  return updatedPath;
 }
 
 export const mergeChildPaths = (filePaths: string[]): string[] => {
