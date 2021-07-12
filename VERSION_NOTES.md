@@ -1,5 +1,8 @@
 # Version Notes
 
+## 2.4.1 (07/12/21)
+- Bugfix: Fixed issue with incorrectly formatted file paths when uploading from Windows
+
 ## 2.4.0 (07/07/21)
 - Feature: Notifications when new app versions are available for download
 - Bugfix: Reworked how the app uploads files to improve performance when uploading many files
