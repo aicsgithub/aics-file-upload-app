@@ -13,8 +13,6 @@ import {
 } from "sinon";
 
 import {
-  alphaOrderComparator,
-  convertToArray,
   determineFilesFromNestedPaths,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
@@ -94,23 +92,6 @@ describe("General utilities", () => {
     });
   });
 
-  describe("alphaOrderComparator", () => {
-    it("should return 0 if strings are equal", () => {
-      const result = alphaOrderComparator("foo", "foo");
-      expect(result).to.equal(0);
-    });
-
-    it("should return 1 if a is alphabetically before b", () => {
-      const result = alphaOrderComparator("bar", "foo");
-      expect(result).to.equal(1);
-    });
-
-    it("should return -1 if a is alphabetically after b", () => {
-      const result = alphaOrderComparator("foo", "bar");
-      expect(result).to.equal(-1);
-    });
-  });
-
   describe("titleCase", () => {
     it("should return Cas9 when given Cas9", () => {
       const result = titleCase("Cas9");
@@ -123,33 +104,6 @@ describe("General utilities", () => {
     it('returns Cas99 when given "cas 9 9"', () => {
       const result = titleCase("cas 9 9");
       expect(result).to.equal("Cas99");
-    });
-  });
-
-  describe("convertToArray", () => {
-    it("returns an empty array given undefined", () => {
-      const result = convertToArray(undefined);
-      expect(result).to.deep.equal([]);
-    });
-    it("returns an empty array given null", () => {
-      const result = convertToArray(null);
-      expect(result).to.deep.equal([]);
-    });
-    it("returns an empty array given empty string", () => {
-      const result = convertToArray("");
-      expect(result).to.deep.equal([]);
-    });
-    it("returns an array length=1 array given 0", () => {
-      const result = convertToArray(0);
-      expect(result).to.deep.equal([0]);
-    });
-    it("returns an array length=1 array given false", () => {
-      const result = convertToArray(false);
-      expect(result).to.deep.equal([false]);
-    });
-    it("returns an array if passsed an array", () => {
-      const result = convertToArray(["bob"]);
-      expect(result).to.deep.equal(["bob"]);
     });
   });
 

@@ -184,10 +184,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       <DragAndDrop
         disabled={!!selectedUploads.length}
         overlayChildren={!Object.keys(uploads).length && !loading}
-        onDrop={(files) =>
-          this.props.loadFiles(Array.from(files, (file) => file.path))
-        }
-        onOpen={this.props.loadFiles}
+        onDrop={this.props.loadFiles}
         openDialogOptions={openDialogOptions}
       >
         <div className={styles.contentRoot}>

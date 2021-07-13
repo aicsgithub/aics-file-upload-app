@@ -6,9 +6,7 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import {
   memoize,
   omit,
-  castArray,
   difference,
-  isNil,
   startCase,
   trim,
   uniq,
@@ -26,7 +24,6 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
-import { DragAndDropFileList } from "../state/types";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
@@ -37,50 +34,6 @@ import {
 
 const stat = promisify(fsStat);
 const readdir = promisify(fsReaddir);
-
-export async function readTxtFile(
-  file: string,
-  handleError: (error: string) => void
-): Promise<string> {
-  try {
-    const notesBuffer = await promises.readFile(file);
-    const notes = notesBuffer.toString();
-    if (!notes) {
-      handleError("No notes found in file.");
-    }
-    return notes;
-  } catch (e) {
-    // It is possible for a user to select a directory
-    handleError("Invalid file or directory selected (.txt only)");
-    return "";
-  }
-}
-
-export async function onDrop(
-  files: DragAndDropFileList,
-  handleError: (error: string) => void
-): Promise<string> {
-  if (files.length > 1) {
-    throw new Error(`Unexpected number of files dropped: ${files.length}.`);
-  }
-  if (files.length < 1) {
-    return "";
-  }
-  return await readTxtFile(files[0].path, handleError);
-}
-
-export async function onOpen(
-  files: string[],
-  handleError: (error: string) => void
-): Promise<string> {
-  if (files.length > 1) {
-    throw new Error(`Unexpected number of files opened: ${files.length}.`);
-  }
-  if (files.length < 1) {
-    return "";
-  }
-  return await readTxtFile(files[0], handleError);
-}
 
 const MAX_ROWS = 26;
 
@@ -134,24 +87,6 @@ export const getWellLabelAndImagingSessionName = (
   return label;
 };
 
-/***
- * Returns number representing sort order of first string param compared to second string param
- * If a is alphabetically before b, returns 1.
- * If a is equal to b, returns 0.
- * If a is alphabetically after b, returns -1.
- * @param a string
- * @param b string
- */
-export const alphaOrderComparator = (a: string, b: string): number => {
-  if (a < b) {
-    return 1;
-  } else if (a === b) {
-    return 0;
-  }
-
-  return -1;
-};
-
 // every annotation will be stored in an array, regardless of whether it can have multiple values or not
 export const pivotAnnotations = (
   annotations: TemplateAnnotation[],
@@ -172,14 +107,6 @@ export const titleCase = (name?: string) => {
   const result = startCase(name);
   return result.replace(/\s([0-9]+)/g, "$1");
 };
-
-/**
- * Works like lodash's castArray except that if value is undefined, it returns
- * an empty array
- * @param value value to convert to an array
- */
-export const convertToArray = (value?: any): any[] =>
-  !isNil(value) && value !== "" ? castArray(value) : [];
 
 /**
  * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters

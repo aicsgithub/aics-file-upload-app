@@ -5,6 +5,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Row } from "react-table";
 
+import DragAndDrop from "../../components/DragAndDrop";
 import NewUploadMenu from "../../components/NewUploadMenu";
 import {
   IN_PROGRESS_STATUSES,
@@ -123,79 +124,85 @@ export default function UploadSummary() {
   );
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h2>My Uploads</h2>
-        <div className={styles.tableToolBar}>
-          <div>
-            <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
-              <Button
-                className={styles.tableToolBarButton}
-                onClick={onView}
-                disabled={isEmpty(selectedUploads)}
-                icon="file-search"
-              >
-                View
-              </Button>
-            </Tooltip>
-            <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
-              <Button
-                className={styles.tableToolBarButton}
-                onClick={onRetry}
-                disabled={
-                  isEmpty(selectedUploads) || !areSelectedUploadsAllFailed
-                }
-                icon="redo"
-              >
-                Retry
-              </Button>
-            </Tooltip>
-            <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
-              <Button
-                className={styles.tableToolBarButton}
-                onClick={onCancel}
-                disabled={
-                  isEmpty(selectedUploads) || !areSelectedUploadsAllInProgress
-                }
-                icon="stop"
-              >
-                Cancel
-              </Button>
-            </Tooltip>
+    <DragAndDrop
+      className={styles.dragAndDropBox}
+      overlayChildren={false}
+      onDrop={onUploadWithoutTemplate}
+    >
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h2>My Uploads</h2>
+          <div className={styles.tableToolBar}>
+            <div>
+              <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
+                <Button
+                  className={styles.tableToolBarButton}
+                  onClick={onView}
+                  disabled={isEmpty(selectedUploads)}
+                  icon="file-search"
+                >
+                  View
+                </Button>
+              </Tooltip>
+              <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
+                <Button
+                  className={styles.tableToolBarButton}
+                  onClick={onRetry}
+                  disabled={
+                    isEmpty(selectedUploads) || !areSelectedUploadsAllFailed
+                  }
+                  icon="redo"
+                >
+                  Retry
+                </Button>
+              </Tooltip>
+              <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
+                <Button
+                  className={styles.tableToolBarButton}
+                  onClick={onCancel}
+                  disabled={
+                    isEmpty(selectedUploads) || !areSelectedUploadsAllInProgress
+                  }
+                  icon="stop"
+                >
+                  Cancel
+                </Button>
+              </Tooltip>
+            </div>
+            <Dropdown
+              className={styles.newUploadButton}
+              overlay={dropdownMenu}
+              trigger={["click", "hover"]}
+            >
+              <Button icon="plus">Upload</Button>
+            </Dropdown>
           </div>
-          <Dropdown
-            className={styles.newUploadButton}
-            overlay={dropdownMenu}
-            trigger={["click", "hover"]}
-          >
-            <Button icon="plus">Upload</Button>
-          </Dropdown>
         </div>
-      </div>
-      <div className={styles.tableContainer}>
-        {isRequestingJobs ? (
-          <div className={styles.loadingContainer}>
-            <Spin size="large" />
-          </div>
-        ) : (
-          <>
-            {!!uploadsWithoutTemplates.length && (
+        <div className={styles.tableContainer}>
+          {isRequestingJobs ? (
+            <div className={styles.loadingContainer}>
+              <Spin size="large" />
+            </div>
+          ) : (
+            <>
+              {!!uploadsWithoutTemplates.length && (
+                <UploadTable
+                  title="Uploads Missing Metadata Templates"
+                  uploads={uploadsWithoutTemplates}
+                  onContextMenu={onContextMenu}
+                  onSelect={onSelect}
+                />
+              )}
               <UploadTable
-                title="Uploads Missing Metadata Templates"
-                uploads={uploadsWithoutTemplates}
+                title="Uploads With Metadata Templates"
+                uploads={uploadsWithTemplates}
                 onContextMenu={onContextMenu}
                 onSelect={onSelect}
               />
-            )}
-            <UploadTable
-              title="Uploads With Metadata Templates"
-              uploads={uploadsWithTemplates}
-              onContextMenu={onContextMenu}
-              onSelect={onSelect}
-            />
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </DragAndDrop>
   );
 }
