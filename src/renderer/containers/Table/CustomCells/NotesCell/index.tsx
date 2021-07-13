@@ -1,3 +1,5 @@
+import { promises } from "fs";
+
 import { Icon, Input, Modal, Tooltip } from "antd";
 import { OpenDialogOptions, remote } from "electron";
 import { castArray } from "lodash";
@@ -11,7 +13,6 @@ import { setAlert } from "../../../../state/feedback/actions";
 import { AlertType, DragAndDropFileList } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
-import { onDrop, onOpen } from "../../../../util";
 
 const styles = require("./styles.pcss");
 
@@ -71,6 +72,50 @@ function getContextMenuItems(dispatch: Dispatch, props: Props, notes: string) {
       label: "Delete",
     },
   ]);
+}
+
+async function readTxtFile(
+  file: string,
+  handleError: (error: string) => void
+): Promise<string> {
+  try {
+    const notesBuffer = await promises.readFile(file);
+    const notes = notesBuffer.toString();
+    if (!notes) {
+      handleError("No notes found in file.");
+    }
+    return notes;
+  } catch (e) {
+    // It is possible for a user to select a directory
+    handleError("Invalid file or directory selected (.txt only)");
+    return "";
+  }
+}
+
+async function onDrop(
+  files: DragAndDropFileList,
+  handleError: (error: string) => void
+): Promise<string> {
+  if (files.length > 1) {
+    throw new Error(`Unexpected number of files dropped: ${files.length}.`);
+  }
+  if (files.length < 1) {
+    return "";
+  }
+  return await readTxtFile(files[0].path, handleError);
+}
+
+async function onOpen(
+  files: string[],
+  handleError: (error: string) => void
+): Promise<string> {
+  if (files.length > 1) {
+    throw new Error(`Unexpected number of files opened: ${files.length}.`);
+  }
+  if (files.length < 1) {
+    return "";
+  }
+  return await readTxtFile(files[0], handleError);
 }
 
 /**

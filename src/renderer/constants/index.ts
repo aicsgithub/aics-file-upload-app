@@ -25,3 +25,7 @@ export const TIME_DISPLAY_CONFIG = Object.freeze({
   weekday: "short",
   year: "numeric",
 });
+
+export const CANCEL_BUTTON_INDEX = 0;
+export const DISCARD_BUTTON_INDEX = 1;
+export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;

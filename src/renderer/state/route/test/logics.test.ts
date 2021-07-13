@@ -8,16 +8,16 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import {
+  CANCEL_BUTTON_INDEX,
+  SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+  WELL_ANNOTATION_NAME,
+} from "../../../constants";
 import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import LabkeyClient from "../../../services/labkey-client";
 import MMSClient from "../../../services/mms-client";
-import {
-  CANCEL_BUTTON_INDEX,
-  SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
-} from "../../../util";
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";

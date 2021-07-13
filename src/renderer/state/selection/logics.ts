@@ -1,18 +1,16 @@
-import { basename, dirname } from "path";
+import { Stats, promises as fsPromises } from "fs";
+import { basename, dirname, resolve as resolvePath } from "path";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { createLogic } from "redux-logic";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import {
-  getPlateInfo,
-  getUploadFilePromise,
-  mergeChildPaths,
-} from "../../util";
+import { canUserRead, mergeChildPaths } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getPlateInfo } from "../stateHelpers";
 import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,
@@ -29,6 +27,7 @@ import {
 } from "../types";
 import { addUploadFiles, updateUploadRows } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
+import UploadFileImpl from "../UploadFileImpl";
 import { batchActions } from "../util";
 
 import { selectWells, setPlate } from "./actions";
@@ -84,6 +83,21 @@ const stageFilesAndStopLoading = async (
     );
     done();
   }
+};
+
+const getUploadFilePromise = async (
+  name: string,
+  path: string
+): Promise<UploadFile> => {
+  const fullPath = resolvePath(path, name);
+  const stats: Stats = await fsPromises.stat(fullPath);
+  const isDirectory = stats.isDirectory();
+  const canRead = await canUserRead(fullPath);
+  const file = new UploadFileImpl(name, path, isDirectory, canRead);
+  if (isDirectory && canRead) {
+    file.files = await Promise.all(await file.loadFiles());
+  }
+  return file;
 };
 
 const loadFilesLogic = createLogic({

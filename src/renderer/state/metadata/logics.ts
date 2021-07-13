@@ -10,7 +10,7 @@ import {
 } from "../../services/labkey-client/types";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
-import { getWithRetry } from "../feedback/util";
+import { getWithRetry } from "../stateHelpers";
 import {
   AsyncRequest,
   ReduxLogicDoneCb,

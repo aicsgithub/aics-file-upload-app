@@ -1,13 +1,11 @@
 import { expect } from "chai";
 import { AnyAction } from "redux";
-import { match, stub } from "sinon";
 
 import { APP_ID } from "../../constants";
 import { TypeToDescriptionMap } from "../types";
 import {
   batchActions,
   enableBatching,
-  handleUploadProgress,
   makeConstant,
   makeReducer,
 } from "../util";
@@ -154,46 +152,6 @@ describe("state utilities", () => {
       const result = batchingReducer(initialState, enableBeans);
       expect(result).to.deep.equal(reducer(initialState, enableBeans));
       expect(result).to.deep.equal(expectedState);
-    });
-  });
-  describe("handleUploadProgress", () => {
-    it("returns a function that calls postMessage with the correct stats over time", () => {
-      const onProgress = stub();
-      const copyProgressCb = handleUploadProgress(["a", "b"], onProgress);
-
-      copyProgressCb("a", 1, 12);
-      expect(
-        onProgress.calledWith(
-          match({
-            completedBytes: 1,
-            totalBytes: 12,
-          })
-        )
-      ).to.be.true;
-      onProgress.reset();
-
-      copyProgressCb("b", 2, 12);
-      expect(
-        onProgress.calledWith(
-          match({
-            completedBytes: 3,
-            totalBytes: 12,
-          })
-        )
-      ).to.be.true;
-      onProgress.reset();
-
-      // File stream has reported that 2 bytes of file "a" have been copied in total
-      copyProgressCb("a", 2, 12);
-      // 2 bytes for file "a", 2 bytes for file "b" = 4 bytes total copied
-      expect(
-        onProgress.calledWith(
-          match({
-            completedBytes: 4,
-            totalBytes: 12,
-          })
-        )
-      ).to.be.true;
     });
   });
 });

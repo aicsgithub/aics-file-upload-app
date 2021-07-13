@@ -24,12 +24,7 @@ import {
 import MMSClient, { AnnotationValue } from "../../services/mms-client";
 import { FSSResponseFile, UploadRequest } from "../../services/types";
 import { Duration } from "../../types";
-import {
-  ensureDraftGetsSaved,
-  getApplyTemplateInfo,
-  getPlateInfo,
-} from "../../util";
-import makePosixPathCompatibleWithPlatform from "../../util/makePosixPathCompatibleWithPlatform";
+import { makePosixPathCompatibleWithPlatform } from "../../util";
 import { requestFailed } from "../actions";
 import {
   openSetMountPointNotification,
@@ -52,6 +47,11 @@ import {
   setPlate,
 } from "../selection/actions";
 import { getMountPoint } from "../setting/selectors";
+import {
+  ensureDraftGetsSaved,
+  getApplyTemplateInfo,
+  getPlateInfo,
+} from "../stateHelpers";
 import { setAppliedTemplate } from "../template/actions";
 import {
   AsyncRequest,

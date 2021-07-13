@@ -33,7 +33,6 @@ import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
 import { Duration } from "../../types";
-import { getWellLabelAndImagingSessionName } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
@@ -51,6 +50,7 @@ import {
   getSelectedBarcode,
   getWellIdToWellMap,
 } from "../selection/selectors";
+import { getWellLabelAndImagingSessionName } from "../stateHelpers";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
   TemplateAnnotationWithTypeName,
