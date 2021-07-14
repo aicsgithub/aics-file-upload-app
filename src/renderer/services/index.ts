@@ -1,3 +1,4 @@
+export { default as ApplicationInfoService } from "./application-info";
 export { default as FileManagementSystem } from "./fms-client";
 export { default as FileStorageClient } from "./fss-client";
 export { default as JobStatusClient } from "./job-status-client";

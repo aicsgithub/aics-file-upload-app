@@ -18,9 +18,7 @@ import {
   getApplyTemplateInfo,
   getPlateInfo,
   getPowerOf1000,
-  makePosixPathCompatibleWithPlatform,
   splitTrimAndFilter,
-  titleCase,
 } from "../";
 import MMSClient from "../../services/mms-client";
 import {
@@ -46,6 +44,7 @@ import {
 } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getWellLabel } from "../index";
+import makePosixPathCompatibleWithPlatform from "../makePosixPathCompatibleWithPlatform";
 
 describe("General utilities", () => {
   const sandbox = createSandbox();
@@ -89,21 +88,6 @@ describe("General utilities", () => {
       const NONE = "Oops";
       const wellLabel = getWellLabel(undefined, NONE);
       expect(wellLabel).to.equal(NONE);
-    });
-  });
-
-  describe("titleCase", () => {
-    it("should return Cas9 when given Cas9", () => {
-      const result = titleCase("Cas9");
-      expect(result).to.equal("Cas9");
-    });
-    it("returns Cas99 when given cas99", () => {
-      const result = titleCase("cas99");
-      expect(result).to.equal("Cas99");
-    });
-    it('returns Cas99 when given "cas 9 9"', () => {
-      const result = titleCase("cas 9 9");
-      expect(result).to.equal("Cas99");
     });
   });
 

@@ -1,5 +1,14 @@
 # Version Notes
 
+## 2.4.1 (07/12/21)
+- Bugfix: Fixed issue with incorrectly formatted file paths when uploading from Windows
+
+## 2.4.0 (07/07/21)
+- Feature: Notifications when new app versions are available for download
+- Bugfix: Reworked how the app uploads files to improve performance when uploading many files
+- Bugfix: Fixed issue where values for annotations with underscores in their name didn't get saved on upload
+- Some behind-the-scenes technical rework
+
 ## 2.3.0 (05/31/21)
 - Feature: Simplified file bundling behavior for more control over retrying failures
 - Feature: Ability to edit existing annotations if they have not yet been used in an upload

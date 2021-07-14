@@ -3,15 +3,7 @@ import { resolve } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import {
-  memoize,
-  omit,
-  difference,
-  startCase,
-  trim,
-  uniq,
-  flatten,
-} from "lodash";
+import { memoize, omit, difference, trim, uniq, flatten } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
 import { ImagingSession } from "../services/labkey-client/types";
@@ -102,12 +94,6 @@ export const pivotAnnotations = (
   );
 };
 
-// start case almost works but adds spaces before numbers which we'll remove here
-export const titleCase = (name?: string) => {
-  const result = startCase(name);
-  return result.replace(/\s([0-9]+)/g, "$1");
-};
-
 /**
  * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters
  * out falsy values
@@ -119,19 +105,6 @@ export const splitTrimAndFilter = (value = ""): any[] =>
     .split(LIST_DELIMITER_SPLIT)
     .map(trim)
     .filter((v) => !!v);
-
-export function makePosixPathCompatibleWithPlatform(
-  path: string,
-  platform: string
-): string {
-  if (platform === "win32") {
-    path = path.replace(/\//g, "\\");
-    if (path.startsWith("\\allen")) {
-      path = `\\${path}`;
-    }
-  }
-  return path;
-}
 
 export interface PlateInfo {
   plate: ImagingSessionIdToPlateMap;
