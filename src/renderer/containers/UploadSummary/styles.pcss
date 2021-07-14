@@ -1,7 +1,13 @@
+.drag-and-drop-box {
+    height: 100%;
+    margin: 1em;
+    overflow: hidden;
+    width: 100%;
+}
+
 .container {
     position: relative;
     height: 100%;
-    margin: 1em;
     overflow: hidden;
     width: 100%;
 
@@ -17,6 +23,18 @@
     background-color: var(--brand-primary);
     color: #ffffff;
     margin-left: auto;
+}
+
+.menu > * {
+    padding-left: 15px;
+}
+
+.menu-divider {
+    cursor: default !important;
+    font-style: italic;
+    font-size: smaller;
+    padding-left: 5px;
+    user-select: none;
 }
 
 .table-tool-bar {

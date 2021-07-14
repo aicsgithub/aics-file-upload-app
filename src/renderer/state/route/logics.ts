@@ -417,7 +417,11 @@ const viewUploadsLogic = createLogic({
 
       const actions: AnyAction[] = [];
       if (!representativeBarcode) {
-        actions.push(setHasNoPlateToUpload(true));
+        // Without a template the user likely wasn't forced into chosing
+        // whether they had a plate or not so the app shouldn't pre-select it
+        if (uploadsToView.templateId) {
+          actions.push(setHasNoPlateToUpload(true));
+        }
       } else {
         // Any barcoded plate can be snapshot in time as that plate at a certain
         // imaging session. The contents & images of the plates at that time (imaging session)

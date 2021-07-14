@@ -1,23 +1,16 @@
-import {
-  constants,
-  promises,
-  readdir as fsReaddir,
-  stat as fsStat,
-  Stats,
-} from "fs";
-import { basename, dirname, resolve as resolvePath } from "path";
+import { constants, promises, readdir as fsReaddir, stat as fsStat } from "fs";
+import { resolve } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import {
   memoize,
   omit,
-  castArray,
   difference,
-  isNil,
   startCase,
   trim,
   uniq,
+  flatten,
 } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
@@ -31,62 +24,16 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
-import { DragAndDropFileList } from "../state/types";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
-  UploadFile,
   UploadStateBranch,
 } from "../state/types";
 
 const stat = promisify(fsStat);
 const readdir = promisify(fsReaddir);
-
-export async function readTxtFile(
-  file: string,
-  handleError: (error: string) => void
-): Promise<string> {
-  try {
-    const notesBuffer = await promises.readFile(file);
-    const notes = notesBuffer.toString();
-    if (!notes) {
-      handleError("No notes found in file.");
-    }
-    return notes;
-  } catch (e) {
-    // It is possible for a user to select a directory
-    handleError("Invalid file or directory selected (.txt only)");
-    return "";
-  }
-}
-
-export async function onDrop(
-  files: DragAndDropFileList,
-  handleError: (error: string) => void
-): Promise<string> {
-  if (files.length > 1) {
-    throw new Error(`Unexpected number of files dropped: ${files.length}.`);
-  }
-  if (files.length < 1) {
-    return "";
-  }
-  return await readTxtFile(files[0].path, handleError);
-}
-
-export async function onOpen(
-  files: string[],
-  handleError: (error: string) => void
-): Promise<string> {
-  if (files.length > 1) {
-    throw new Error(`Unexpected number of files opened: ${files.length}.`);
-  }
-  if (files.length < 1) {
-    return "";
-  }
-  return await readTxtFile(files[0], handleError);
-}
 
 const MAX_ROWS = 26;
 
@@ -140,33 +87,6 @@ export const getWellLabelAndImagingSessionName = (
   return label;
 };
 
-/***
- * Returns number representing sort order of first string param compared to second string param
- * If a is alphabetically before b, returns 1.
- * If a is equal to b, returns 0.
- * If a is alphabetically after b, returns -1.
- * @param a string
- * @param b string
- */
-export const alphaOrderComparator = (a: string, b: string): number => {
-  if (a < b) {
-    return 1;
-  } else if (a === b) {
-    return 0;
-  }
-
-  return -1;
-};
-
-export const canUserRead = async (filePath: string): Promise<boolean> => {
-  try {
-    await promises.access(filePath, constants.R_OK);
-    return true;
-  } catch (permissionError) {
-    return false;
-  }
-};
-
 // every annotation will be stored in an array, regardless of whether it can have multiple values or not
 export const pivotAnnotations = (
   annotations: TemplateAnnotation[],
@@ -187,14 +107,6 @@ export const titleCase = (name?: string) => {
   const result = startCase(name);
   return result.replace(/\s([0-9]+)/g, "$1");
 };
-
-/**
- * Works like lodash's castArray except that if value is undefined, it returns
- * an empty array
- * @param value value to convert to an array
- */
-export const convertToArray = (value?: any): any[] =>
-  !isNil(value) && value !== "" ? castArray(value) : [];
 
 /**
  * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters
@@ -220,19 +132,6 @@ export function makePosixPathCompatibleWithPlatform(
   }
   return path;
 }
-
-export const mergeChildPaths = (filePaths: string[]): string[] => {
-  filePaths = uniq(filePaths);
-
-  return filePaths.filter((filePath) => {
-    const otherFilePaths = filePaths.filter(
-      (otherFilePath) => otherFilePath !== filePath
-    );
-    return !otherFilePaths.find((otherFilePath) =>
-      filePath.startsWith(otherFilePath)
-    );
-  });
-};
 
 export interface PlateInfo {
   plate: ImagingSessionIdToPlateMap;
@@ -420,70 +319,41 @@ export const ensureDraftGetsSaved = async (
   };
 };
 
-export class UploadFileImpl implements UploadFile {
-  public name: string;
-  public path: string;
-  // this will get populated once the folder is expanded
-  public files: UploadFile[] = [];
-  public readonly isDirectory: boolean;
-  public readonly canRead: boolean;
-
-  constructor(
-    name: string,
-    path: string,
-    isDirectory: boolean,
-    canRead: boolean
-  ) {
-    this.name = name;
-    this.path = path;
-    this.isDirectory = isDirectory;
-    this.canRead = canRead;
+// Returns true if the user has read access to the file path given
+const canUserRead = async (filePath: string): Promise<boolean> => {
+  try {
+    await promises.access(filePath, constants.R_OK);
+    return true;
+  } catch (permissionError) {
+    return false;
   }
-
-  get fullPath(): string {
-    return resolvePath(this.path, this.name);
-  }
-
-  public async loadFiles(): Promise<Array<Promise<UploadFile>>> {
-    if (!this.isDirectory) {
-      return Promise.reject("Not a directory");
-    }
-    const fullPath = resolvePath(this.path, this.name);
-    if (!this.canRead) {
-      return Promise.reject(
-        `You do not have permission to view this file/directory: ${fullPath}.`
-      );
-    }
-
-    const files: string[] = await readdir(this.fullPath);
-    return files.map(async (file: string) => {
-      const filePath = resolvePath(this.fullPath, file);
-      const stats: Stats = await stat(filePath);
-      const canRead = await canUserRead(filePath);
-      return new UploadFileImpl(
-        basename(filePath),
-        dirname(filePath),
-        stats.isDirectory(),
-        canRead
-      );
-    });
-  }
-}
-
-export const getUploadFilePromise = async (
-  name: string,
-  path: string
-): Promise<UploadFile> => {
-  const fullPath = resolvePath(path, name);
-  const stats: Stats = await stat(fullPath);
-  const isDirectory = stats.isDirectory();
-  const canRead = await canUserRead(fullPath);
-  const file = new UploadFileImpl(name, path, isDirectory, canRead);
-  if (isDirectory && canRead) {
-    file.files = await Promise.all(await file.loadFiles());
-  }
-  return file;
 };
+
+// For each file path determines if the path leads to a directory
+// if so it extracts the file paths for the files within said directory
+// otherwise just returns the file path as is.
+export async function determineFilesFromNestedPaths(
+  paths: string[]
+): Promise<string[]> {
+  const filePaths = await Promise.all(
+    paths.flatMap(async (fullPath) => {
+      const stats = await stat(fullPath);
+      if (!stats.isDirectory()) {
+        return [fullPath];
+      }
+      const canRead = await canUserRead(fullPath);
+      if (!canRead) {
+        throw new Error(`User does not have permission to read ${fullPath}`);
+      }
+      const pathsUnderFolder = await readdir(fullPath, { withFileTypes: true });
+      return pathsUnderFolder
+        .filter((f) => f.isFile())
+        .map((f) => resolve(fullPath, f.name));
+    })
+  );
+
+  return uniq(flatten(filePaths));
+}
 
 /**
  * Returns largest factor of 1000 for num

@@ -556,5 +556,20 @@ describe("Route logics", () => {
 
       expect(actions.includesMatch(expectedAction)).to.be.true;
     });
+
+    it("does not set no plate selected if no template was found", async () => {
+      // Arrange
+      stubMethods({});
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+
+      // Act
+      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(actions.includesMatch(setHasNoPlateToUpload(true))).to.be.false;
+    });
   });
 });

@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import { Icon, Input, Modal, Tooltip } from "antd";
 import { OpenDialogOptions, remote } from "electron";
 import { castArray } from "lodash";
@@ -8,10 +10,9 @@ import { Dispatch } from "redux";
 
 import DragAndDrop from "../../../../components/DragAndDrop";
 import { setAlert } from "../../../../state/feedback/actions";
-import { AlertType, DragAndDropFileList } from "../../../../state/types";
+import { AlertType } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
-import { onDrop, onOpen } from "../../../../util";
 
 const styles = require("./styles.pcss");
 
@@ -73,6 +74,31 @@ function getContextMenuItems(dispatch: Dispatch, props: Props, notes: string) {
   ]);
 }
 
+async function readTextFile(
+  filePaths: string[],
+  onErrorCallback: (error: string) => void
+): Promise<string> {
+  if (filePaths.length > 1) {
+    onErrorCallback(`Unexpected number of files dropped: ${filePaths.length}.`);
+    return "";
+  }
+  if (filePaths.length < 1) {
+    return "";
+  }
+  try {
+    const notesBuffer = await fs.promises.readFile(filePaths[0]);
+    const notes = notesBuffer.toString();
+    if (!notes) {
+      onErrorCallback("No notes found in file.");
+    }
+    return notes;
+  } catch (err) {
+    // It is possible for a user to select a directory
+    onErrorCallback("Invalid file or directory selected (.txt only)");
+    return "";
+  }
+}
+
 /**
   This component is for rendering notes related to files and managing different
   modes of editing them. It also contains static methods for reading
@@ -89,8 +115,8 @@ function NotesCell(props: Props) {
   );
   const note = notes.length ? notes[0] : undefined;
 
-  async function onFileDrop(files: DragAndDropFileList) {
-    const droppedNotes = await onDrop(files, (error) =>
+  async function onDrop(filePaths: string[]) {
+    const notes = await readTextFile(filePaths, (error) =>
       dispatch(
         setAlert({
           message: error,
@@ -98,19 +124,7 @@ function NotesCell(props: Props) {
         })
       )
     );
-    setNotes([droppedNotes]);
-  }
-
-  async function onFileOpen(files: string[]) {
-    const openedNotes = await onOpen(files, (error) =>
-      dispatch(
-        setAlert({
-          message: error,
-          type: AlertType.WARN,
-        })
-      )
-    );
-    setNotes([openedNotes]);
+    setNotes([notes]);
   }
 
   function onOk() {
@@ -146,11 +160,7 @@ function NotesCell(props: Props) {
         okText={props.column.isReadOnly ? "Done" : "Save"}
       >
         {isEditing ? (
-          <DragAndDrop
-            onDrop={onFileDrop}
-            onOpen={onFileOpen}
-            openDialogOptions={openDialogOptions}
-          >
+          <DragAndDrop onDrop={onDrop} openDialogOptions={openDialogOptions}>
             <TextArea
               className={styles.useFullWidth}
               onChange={(e) => setNotes([e.target.value])}
@@ -162,8 +172,7 @@ function NotesCell(props: Props) {
               <strong>Note:</strong> Notes must be file type .txt
             </p>
             <DragAndDrop
-              onDrop={onFileDrop}
-              onOpen={onFileOpen}
+              onDrop={onDrop}
               openDialogOptions={openDialogOptions}
             />
           </DragAndDrop>

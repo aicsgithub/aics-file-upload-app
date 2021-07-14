@@ -259,6 +259,7 @@ export type ModalName = "openTemplate" | "templateEditor";
 
 export enum Page {
   AddCustomData = "AddCustomData",
+  NewUploadButton = "NewUploadButton",
   Notifications = "Notifications",
   Settings = "Settings",
   UploadSummary = "UploadSummary",
@@ -312,16 +313,6 @@ export interface ImagingSessionIdToPlateMap {
 
 export interface ImagingSessionIdToWellsMap {
   [imagingSessionId: number]: WellResponse[];
-}
-
-export interface UploadFile {
-  name: string;
-  path: string;
-  files: UploadFile[];
-  fullPath: string;
-  canRead: boolean;
-  isDirectory: boolean;
-  loadFiles(): Promise<Array<Promise<UploadFile>>>;
 }
 
 export interface AnnotationDraft extends Audited {
@@ -429,16 +420,6 @@ export interface RequestFailedAction {
     requestType: AsyncRequest | string;
   };
   type: string;
-}
-
-export interface DragAndDropFileList {
-  readonly length: number;
-  [index: number]: DragAndDropFile;
-}
-
-export interface DragAndDropFile {
-  readonly name: string;
-  readonly path: string;
 }
 
 // Matches a Job but the created date is represented as a string

@@ -4,7 +4,7 @@ import { isEmpty } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { openFilesFromDialog } from "../../../state/selection/actions";
+import { loadFiles } from "../../../state/selection/actions";
 import { getIsExistingUpload } from "../../../state/selection/selectors";
 
 const styles = require("./styles.pcss");
@@ -32,7 +32,7 @@ export default function TableFooter() {
     );
     // If cancel is clicked, this callback gets called and filenames is undefined
     if (!isEmpty(filenames)) {
-      dispatch(openFilesFromDialog(filenames));
+      dispatch(loadFiles(filenames));
     }
   }
 

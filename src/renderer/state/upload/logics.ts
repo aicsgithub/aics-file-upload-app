@@ -1,4 +1,4 @@
-import { basename } from "path";
+import { basename, extname } from "path";
 
 import {
   castArray,
@@ -23,10 +23,12 @@ import {
 } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
 import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
+import { StartUploadResponse } from "../../services/fss-client";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
 import {
+  determineFilesFromNestedPaths,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   pivotAnnotations,
@@ -93,8 +95,10 @@ import {
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
+  UPLOAD_WITHOUT_METADATA,
 } from "./constants";
 import {
+  extensionToFileTypeMap,
   getCanSaveUploadDraft,
   getUpload,
   getUploadFileNames,
@@ -103,6 +107,7 @@ import {
 import {
   ApplyTemplateAction,
   CancelUploadAction,
+  FileType,
   InitiateUploadAction,
   OpenUploadDraftAction,
   RetryUploadAction,
@@ -111,6 +116,7 @@ import {
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
+  UploadWithoutMetadataAction,
 } from "./types";
 
 const applyTemplateLogic = createLogic({
@@ -818,18 +824,42 @@ const submitFileMetadataUpdateLogic = createLogic({
     {
       getState,
       mmsClient,
+      jssClient,
     }: ReduxLogicProcessDependenciesWithAction<SubmitFileMetadataUpdateAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const selectedUploads = getSelectedUploads(getState());
     const combinedNames = selectedUploads.map((u) => u.jobName).join(", ");
+    const editFileMetadataRequests = getUploadRequests(getState());
     try {
-      const editFileMetadataRequests = getUploadRequests(getState());
       await Promise.all(
         editFileMetadataRequests.map((request) =>
           mmsClient.editFileMetadata(request.file.fileId, request)
         )
+      );
+      // This serves to update the "My Uploads" tables so that uploads without templates
+      // may now have templates after the edit
+      await Promise.all(
+        editFileMetadataRequests.map((request) => {
+          const matchingUpload = selectedUploads.find((u) =>
+            u.serviceFields?.result?.find(
+              (f) => f.fileId === request.file.fileId
+            )
+          );
+          if (!matchingUpload) {
+            dispatch(
+              editFileMetadataFailed(
+                `Could not update upload job for file ${request.file.fileName}`,
+                request.file.fileName || ""
+              )
+            );
+            return;
+          }
+          return jssClient.updateJob(matchingUpload.jobId, {
+            serviceFields: { files: [request] },
+          });
+        })
       );
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
@@ -852,6 +882,93 @@ const submitFileMetadataUpdateLogic = createLogic({
   type: SUBMIT_FILE_METADATA_UPDATE,
 });
 
+const uploadWithoutMetadataLogic = createLogic({
+  process: async (
+    deps: ReduxLogicProcessDependenciesWithAction<UploadWithoutMetadataAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    let filePaths;
+    try {
+      filePaths = await determineFilesFromNestedPaths(deps.action.payload);
+    } catch (err) {
+      const error = `Failed resolving files: ${err.message}`;
+      dispatch(uploadFailed(error, deps.action.payload.join(", ")));
+      done();
+      return;
+    }
+
+    // Perform initiate upload results all at once first so that jobs appear
+    // in the user uploads as in progress
+    const groupId = FileManagementSystem.createUniqueId();
+    const initiateUploadResults = await Promise.all(
+      filePaths.map(async (filePath) => {
+        const request = {
+          file: {
+            disposition: "tape", // prevent czi -> ome.tiff conversions
+            fileType:
+              extensionToFileTypeMap[extname(filePath).toLowerCase()] ||
+              FileType.OTHER,
+            originalPath: filePath,
+            shouldBeInArchive: true,
+            shouldBeInLocal: true,
+          },
+          microscopy: {},
+        };
+        try {
+          const response = await deps.fms.startUpload(filePath, request, {
+            groupId,
+          });
+          return { request, response };
+        } catch (err) {
+          const fileName = basename(filePath);
+          const error = `Upload ${fileName} failed: ${err.message}`;
+          dispatch(uploadFailed(error, fileName));
+          return null;
+        }
+      })
+    );
+
+    // Remove already failed uploads from list
+    const successfulResults = initiateUploadResults.filter((r) => !!r) as {
+      request: UploadRequest;
+      response: StartUploadResponse;
+    }[];
+
+    // Upload 25 files at a time to prevent performance issues in the case of
+    // uploads with many files.
+    for (const batch of chunk(successfulResults, 25)) {
+      await Promise.all(
+        batch.map(async ({ request, response }) => {
+          try {
+            await deps.fms.uploadFile(
+              response.jobId,
+              request.file.originalPath,
+              request,
+              response.uploadDirectory,
+              handleUploadProgress(
+                [request.file.originalPath],
+                (progress: UploadProgressInfo) =>
+                  dispatch(updateUploadProgressInfo(response.jobId, progress))
+              )
+            );
+          } catch (err) {
+            if (!(err instanceof CopyCancelledError)) {
+              const fileName = basename(request.file.originalPath);
+              const error = `Upload ${fileName} failed: ${err.message}`;
+              deps.logger.error(`Upload failed`, err);
+              dispatch(uploadFailed(error, fileName));
+            }
+          }
+        })
+      );
+    }
+
+    done();
+  },
+  type: UPLOAD_WITHOUT_METADATA,
+});
+
 export default [
   addUploadFilesLogic,
   applyTemplateLogic,
@@ -864,4 +981,5 @@ export default [
   updateSubImagesLogic,
   updateUploadLogic,
   updateUploadRowsLogic,
+  uploadWithoutMetadataLogic,
 ];
