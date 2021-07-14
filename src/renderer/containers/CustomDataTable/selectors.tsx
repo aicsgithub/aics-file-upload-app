@@ -10,7 +10,7 @@ import {
 import { ColumnType } from "../../services/labkey-client/types";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
 import {
-  getIsSelectedJobInFlight,
+  getAreSelectedUploadsInFlight,
   getSelectedBarcode,
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
@@ -120,7 +120,7 @@ export const getTemplateColumnsForTable = createSelector(
 );
 
 export const getColumnsForTable = createSelector(
-  [getTemplateColumnsForTable, getIsSelectedJobInFlight],
+  [getTemplateColumnsForTable, getAreSelectedUploadsInFlight],
   (templateColumns, isReadOnly): CustomColumn[] => {
     if (isReadOnly) {
       const columns = templateColumns.map((column) => ({

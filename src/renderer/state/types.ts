@@ -163,13 +163,6 @@ export enum AsyncRequest {
   REQUEST_ANNOTATION_USAGE = "REQUEST_ANNOTATION_USAGE",
 }
 
-export enum JobFilter {
-  All = "All",
-  Failed = "Failed",
-  InProgress = "In Progress",
-  Successful = "Successful",
-}
-
 export interface PageToIndexMap {
   [page: string]: number;
 }
@@ -209,8 +202,7 @@ export interface JobStateBranch {
   copyProgress: {
     [jobId: string]: UploadProgressInfo;
   };
-  // Represents which filter has been selected on the Upload Summary page
-  jobFilter: JobFilter;
+  lastSelectedUpload?: { id: string; index: number };
 }
 
 // Map of the output of getUploadRowKey to the FileModel
@@ -252,7 +244,7 @@ export interface MetadataStateBranch {
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
-  originalUpload?: UploadStateBranch;
+  originalUploads?: UploadStateBranch;
   templates: LabkeyTemplate[];
   units: Unit[];
   // Gets updated every time app changes pages.
@@ -270,6 +262,7 @@ export type ModalName = "openTemplate" | "templateEditor";
 
 export enum Page {
   AddCustomData = "AddCustomData",
+  NewUploadButton = "NewUploadButton",
   Notifications = "Notifications",
   Settings = "Settings",
   UploadSummary = "UploadSummary",
@@ -307,7 +300,7 @@ export interface UploadTabSelections {
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
   hasNoPlateToUpload: boolean;
-  job?: JSSJob<UploadServiceFields>;
+  uploads: JSSJob<UploadServiceFields>[];
   massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
   rowsSelectedForDragEvent?: UploadRowTableId[];
@@ -323,16 +316,6 @@ export interface ImagingSessionIdToPlateMap {
 
 export interface ImagingSessionIdToWellsMap {
   [imagingSessionId: number]: WellResponse[];
-}
-
-export interface UploadFile {
-  name: string;
-  path: string;
-  files: UploadFile[];
-  fullPath: string;
-  canRead: boolean;
-  isDirectory: boolean;
-  loadFiles(): Promise<Array<Promise<UploadFile>>>;
 }
 
 export interface AnnotationDraft extends Audited {
@@ -442,20 +425,11 @@ export interface RequestFailedAction {
   type: string;
 }
 
-export interface DragAndDropFileList {
-  readonly length: number;
-  [index: number]: DragAndDropFile;
-}
-
-export interface DragAndDropFile {
-  readonly name: string;
-  readonly path: string;
-}
-
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
-  // used by antd's Table component to uniquely identify rows
-  key: string;
+  fileId?: string;
+  filePath?: string;
+  template?: string;
   progress?: UploadProgressInfo;
 }
 

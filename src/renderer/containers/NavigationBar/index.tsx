@@ -7,6 +7,7 @@ import { selectPage, selectView } from "../../state/route/actions";
 import { getView } from "../../state/route/selectors";
 import { Page } from "../../state/types";
 import { getUpload } from "../../state/upload/selectors";
+import NewUploadModal from "../NewUploadModal";
 import NotificationViewer from "../NotificationViewer";
 import SettingsModal from "../SettingsModal";
 
@@ -31,21 +32,29 @@ export default function NavigationBar() {
     };
   }, [dispatch]);
 
+  function onSelectUpload() {
+    if (isUploadJobInProgress) {
+      dispatch(selectPage(Page.AddCustomData));
+    } else {
+      dispatch(selectView(Page.NewUploadButton));
+    }
+  }
+
   return (
     <div className={styles.container}>
       <NotificationViewer isSelected={view === Page.Notifications} />
       <NavigationButton
         icon="upload"
-        isSelected={view === Page.AddCustomData}
-        onSelect={() => dispatch(selectPage(Page.AddCustomData))}
-        title={isUploadJobInProgress ? "Current Upload" : "New Upload"}
+        isSelected={[Page.AddCustomData, Page.NewUploadButton].includes(view)}
+        onSelect={onSelectUpload}
+        title={isUploadJobInProgress ? "Current Upload" : "+Upload"}
       />
       <NavigationButton
         icon="profile"
         iconTheme="filled"
         isSelected={view === Page.UploadSummary}
         onSelect={() => dispatch(selectPage(Page.UploadSummary))}
-        title="Upload Status"
+        title="My Uploads"
       />
       <NavigationButton
         icon="setting"
@@ -54,6 +63,7 @@ export default function NavigationBar() {
         onSelect={() => dispatch(selectView(Page.Settings))}
         title="Settings"
       />
+      <NewUploadModal visible={view === Page.NewUploadButton} />
       <SettingsModal visible={view === Page.Settings} />
     </div>
   );

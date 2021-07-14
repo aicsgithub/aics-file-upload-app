@@ -2,7 +2,6 @@ import { GridCell } from "../../entities";
 import { CellPopulation, Solution } from "../../services/mms-client/types";
 import {
   AutoSaveAction,
-  DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   MassEditRow,
@@ -26,12 +25,7 @@ export interface Well {
   solutions: Solution[];
 }
 
-export interface LoadFilesFromDragAndDropAction extends AutoSaveAction {
-  payload: DragAndDropFileList;
-  type: string;
-}
-
-export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
+export interface LoadFilesAction extends AutoSaveAction {
   payload: string[];
   type: string;
 }

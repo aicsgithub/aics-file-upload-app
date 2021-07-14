@@ -1,20 +1,20 @@
 import { JSSJob } from "../../services/job-status-client/types";
 import { BaseServiceFields } from "../../services/types";
-import { JobFilter, UploadProgressInfo } from "../types";
+import { UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
 import {
   RECEIVE_JOB_INSERT,
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
-  SELECT_JOB_FILTER,
+  SET_LAST_SELECTED_UPLOAD,
 } from "./constants";
 import {
   ReceiveJobsAction,
   ReceiveJobInsertAction,
-  SelectJobFilterAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
+  SetLastSelectedUploadAction,
 } from "./types";
 
 export function receiveJobs(uploadJobs: JSSJob[] = []): ReceiveJobsAction {
@@ -42,10 +42,13 @@ export function receiveJobUpdate<T extends BaseServiceFields = any>(
   };
 }
 
-export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
+export function setLastSelectedUpload(row?: {
+  id: string;
+  index: number;
+}): SetLastSelectedUploadAction {
   return {
-    payload: jobFilter,
-    type: SELECT_JOB_FILTER,
+    payload: row,
+    type: SET_LAST_SELECTED_UPLOAD,
   };
 }
 

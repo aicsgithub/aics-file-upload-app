@@ -10,10 +10,9 @@ import { ActionCreator } from "redux";
 
 import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import DragAndDrop from "../../components/DragAndDrop";
-import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+import { JSSJob } from "../../services/job-status-client/types";
 import {
   BarcodePrefix,
   LabkeyTemplate,
@@ -37,27 +36,25 @@ import { CreateBarcodeAction } from "../../state/metadata/types";
 import { closeUpload } from "../../state/route/actions";
 import { CloseUploadAction } from "../../state/route/types";
 import {
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
+  loadFiles,
   selectBarcode,
   setHasNoPlateToUpload,
 } from "../../state/selection/actions";
 import {
   getSelectedBarcode,
-  getSelectedJob,
   getHasNoPlateToUpload,
-  getIsSelectedJobInFlight,
+  getAreSelectedUploadsInFlight,
+  getSelectedUploads,
 } from "../../state/selection/selectors";
 import {
-  LoadFilesFromDragAndDropAction,
-  LoadFilesFromOpenDialogAction,
+  LoadFilesAction,
   SelectBarcodeAction,
   SetHasNoPlateToUploadAction,
 } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AsyncRequest, DragAndDropFileList, State } from "../../state/types";
+import { AsyncRequest, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,
@@ -123,14 +120,11 @@ interface Props {
   isReadOnly: boolean;
   initiateUpload: ActionCreator<InitiateUploadAction>;
   loading: boolean;
-  loadFilesFromDragAndDrop: (
-    files: DragAndDropFileList
-  ) => LoadFilesFromDragAndDropAction;
-  openFilesFromDialog: (files: string[]) => LoadFilesFromOpenDialogAction;
+  loadFiles: ActionCreator<LoadFilesAction>;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
-  selectedJob?: JSSJob<UploadServiceFields>;
+  selectedUploads: JSSJob<UploadServiceFields>[];
   selectedJobIsLoading: boolean;
   setAlert: ActionCreator<SetAlertAction>;
   setHasNoPlateToUpload: ActionCreator<SetHasNoPlateToUploadAction>;
@@ -179,7 +173,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     const {
       canSubmit,
       loading,
-      selectedJob,
+      selectedUploads,
       selectedJobIsLoading,
       templateIsLoading,
       uploadError,
@@ -188,16 +182,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     } = this.props;
     return (
       <DragAndDrop
-        disabled={Boolean(selectedJob)}
+        disabled={!!selectedUploads.length}
         overlayChildren={!Object.keys(uploads).length && !loading}
-        onDrop={this.props.loadFilesFromDragAndDrop}
-        onOpen={this.props.openFilesFromDialog}
+        onDrop={this.props.loadFiles}
         openDialogOptions={openDialogOptions}
       >
         <div className={styles.contentRoot}>
           <div className={styles.contentAbs}>
             <div className={styles.contentContainer}>
-              {selectedJob && <JobOverviewDisplay job={selectedJob} />}
               {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
               {templateIsLoading || selectedJobIsLoading ? (
                 <div className={styles.spinContainer}>
@@ -244,7 +236,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 Loading&nbsp;
                 <Icon type="loading" className={styles.loading} spin={true} />
               </>
-            ) : selectedJob ? (
+            ) : selectedUploads.length ? (
               "Update"
             ) : (
               "Upload"
@@ -428,7 +420,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
       selectedBarcode,
       hasNoPlateToUpload,
-      selectedJob,
+      selectedUploads,
       submitFileMetadataUpdate,
       initiateUpload,
     } = this.props;
@@ -439,7 +431,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors.length === 0 &&
       (selectedBarcode || hasNoPlateToUpload)
     ) {
-      if (selectedJob && selectedJob.status === JSSJobStatus.SUCCEEDED) {
+      if (selectedUploads.length) {
         submitFileMetadataUpdate();
       } else {
         initiateUpload();
@@ -455,7 +447,7 @@ function mapStateToProps(state: State) {
     booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
     canSubmit: getCanSubmitUpload(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
-    isReadOnly: getIsSelectedJobInFlight(state),
+    isReadOnly: getAreSelectedUploadsInFlight(state),
     hasNoPlateToUpload: getHasNoPlateToUpload(state),
     loading: getIsLoading(state),
     templateIsLoading: getRequestsInProgressContains(
@@ -467,7 +459,7 @@ function mapStateToProps(state: State) {
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
     selectedBarcode: getSelectedBarcode(state),
-    selectedJob: getSelectedJob(state),
+    selectedUploads: getSelectedUploads(state),
     templates: getTemplates(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
@@ -481,8 +473,7 @@ const dispatchToPropsMap = {
   closeUpload,
   createBarcode,
   initiateUpload,
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
+  loadFiles,
   removeUploads,
   selectBarcode,
   setAlert,

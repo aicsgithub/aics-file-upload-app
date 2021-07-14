@@ -1,0 +1,33 @@
+.container {
+    display: flex;
+    font-size: 8px;
+    justify-content: space-evenly;
+    height: 100%;
+    width: 100%;
+}
+
+.success {
+    color: var(--success);
+}
+
+.failed {
+    color: var(--error);
+}
+
+.unrecoverable {
+    color: var(--unrecoverable);
+}
+
+.success, .failed, .unrecoverable {
+    font-size: 16px;
+    margin: auto;
+}
+
+.active-info > p {
+    margin: 0;
+}
+
+/* Colors the status circle */
+.safe-to-close > div > svg > path:last-child {
+    stroke: var(--success) !important;
+}

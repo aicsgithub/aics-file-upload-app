@@ -2,18 +2,18 @@ import { orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import {
-  FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
   JSSJob,
-  SUCCESSFUL_STATUS,
   UploadStage,
 } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
-import { JobFilter, State, UploadSummaryTableRow } from "../types";
+import { getTemplateIdToName } from "../metadata/selectors";
+import { State, UploadSummaryTableRow } from "../types";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
-export const getJobFilter = (state: State) => state.job.jobFilter;
-export const getCopyProgress = (state: State) => state.job.copyProgress;
+export const getJobIdToCopyProgress = (state: State) => state.job.copyProgress;
+export const getLastSelectedUpload = (state: State) =>
+  state.job.lastSelectedUpload;
 
 export const getJobIdToUploadJobMap = createSelector(
   [getUploadJobs],
@@ -24,45 +24,16 @@ export const getJobIdToUploadJobMap = createSelector(
     }, new Map<string, JSSJob<UploadServiceFields>>())
 );
 
-function getStatusesFromFilter(jobFilter: JobFilter): string[] {
-  switch (jobFilter) {
-    case JobFilter.Successful:
-      return [SUCCESSFUL_STATUS];
-    case JobFilter.Failed:
-      return FAILED_STATUSES;
-    case JobFilter.InProgress:
-      return IN_PROGRESS_STATUSES;
-    default:
-      return [...FAILED_STATUSES, SUCCESSFUL_STATUS, ...IN_PROGRESS_STATUSES];
-  }
-}
-
-export const getFilteredJobs = createSelector(
-  [getUploadJobs, getJobFilter],
-  (uploadJobs, jobFilter): JSSJob[] => {
-    const statuses = getStatusesFromFilter(jobFilter);
-    return uploadJobs.filter((job) => statuses.includes(job.status));
-  }
-);
-
-export const getUploadGroupToUploads = createSelector(
-  [getFilteredJobs],
-  (jobs): { [groupId: string]: JSSJob<UploadServiceFields>[] } =>
-    jobs.reduce(
-      (groupIdToJobs, job) => ({
-        ...groupIdToJobs,
-        [job.serviceFields?.groupId || ""]: [
-          ...(groupIdToJobs[job.serviceFields?.groupId || ""] || []),
-          job,
-        ],
-      }),
-      {} as { [groupId: string]: JSSJob[] }
-    )
-);
-
-export const getJobsForTable = createSelector(
-  [getFilteredJobs, getCopyProgress, getUploadGroupToUploads],
-  (uploadJobs, copyProgress, groupIdToJobs): UploadSummaryTableRow[] => {
+export const getUploadsByTemplateUsage = createSelector(
+  [getUploadJobs, getJobIdToCopyProgress, getTemplateIdToName],
+  (
+    uploadJobs,
+    jobIdToCopyProgress,
+    templateIdToName
+  ): {
+    uploadsWithTemplates: UploadSummaryTableRow[];
+    uploadsWithoutTemplates: UploadSummaryTableRow[];
+  } => {
     const replacedJobIdSet = uploadJobs.reduce((setSoFar, job) => {
       if (job.serviceFields?.originalJobId) {
         setSoFar.add(job.serviceFields.originalJobId);
@@ -70,28 +41,36 @@ export const getJobsForTable = createSelector(
       return setSoFar;
     }, new Set());
 
-    return orderBy(uploadJobs, ["modified"], ["desc"])
+    const uploadsWithTemplates: UploadSummaryTableRow[] = [];
+    const uploadsWithoutTemplates: UploadSummaryTableRow[] = [];
+    orderBy(uploadJobs, ["created"], ["desc"])
       .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
-      .map((job) => ({
-        ...job,
-        key: job.jobId,
-        created: new Date(job.created),
-        modified: new Date(job.modified),
-        progress: copyProgress[job.jobId],
-        serviceFields: {
-          ...job.serviceFields,
-          files: job.serviceFields?.groupId
-            ? groupIdToJobs[job.serviceFields.groupId].flatMap(
-                (j) => j?.serviceFields?.files || []
-              )
-            : job.serviceFields?.files || [],
-          result: job.serviceFields?.groupId
-            ? groupIdToJobs[job.serviceFields.groupId].flatMap(
-                (j) => j?.serviceFields?.result || []
-              )
-            : job.serviceFields?.result || [],
-        },
-      })) as UploadSummaryTableRow[];
+      .forEach((job) => {
+        const upload: UploadSummaryTableRow = {
+          ...job,
+          created: new Date(job.created),
+          modified: new Date(job.modified),
+          progress: jobIdToCopyProgress[job.jobId],
+          fileId: job.serviceFields?.result
+            ?.map((file) => file.fileId)
+            .join(", "),
+          filePath: job.serviceFields?.result
+            ?.map((file) => file.readPath)
+            .join(", "),
+          template:
+            templateIdToName[
+              job.serviceFields?.files?.[0]?.customMetadata?.templateId || 0
+            ],
+        };
+
+        if (job.serviceFields?.files?.[0]?.customMetadata) {
+          uploadsWithTemplates.push(upload);
+        } else {
+          uploadsWithoutTemplates.push(upload);
+        }
+      });
+
+    return { uploadsWithTemplates, uploadsWithoutTemplates };
   }
 );
 

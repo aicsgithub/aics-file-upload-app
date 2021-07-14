@@ -6,7 +6,7 @@ import { State, FileModel, FileModelId, UploadSummaryTableRow } from "../types";
 
 import {
   APPLY_TEMPLATE,
-  CANCEL_UPLOAD,
+  CANCEL_UPLOADS,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
   CLEAR_UPLOAD_DRAFT,
@@ -21,7 +21,7 @@ import {
   JUMP_TO_UPLOAD,
   OPEN_UPLOAD_DRAFT,
   REPLACE_UPLOAD,
-  RETRY_UPLOAD,
+  RETRY_UPLOADS,
   SAVE_UPLOAD_DRAFT,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   SUBMIT_FILE_METADATA_UPDATE,
@@ -32,6 +32,7 @@ import {
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
   ADD_UPLOAD_FILES,
+  UPLOAD_WITHOUT_METADATA,
 } from "./constants";
 import {
   AddUploadFilesAction,
@@ -63,6 +64,7 @@ import {
   UploadFailedAction,
   UploadTableRow,
   UploadSucceededAction,
+  UploadWithoutMetadataAction,
 } from "./types";
 
 export function addUploadFiles(
@@ -157,6 +159,15 @@ export function uploadFailed(
   };
 }
 
+export function uploadWithoutMetadata(
+  filePaths: string[]
+): UploadWithoutMetadataAction {
+  return {
+    payload: filePaths,
+    type: UPLOAD_WITHOUT_METADATA,
+  };
+}
+
 export function applyTemplate(templateId: number): ApplyTemplateAction {
   return {
     payload: templateId,
@@ -196,10 +207,12 @@ export function updateUploadRows(
   };
 }
 
-export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
+export function cancelUploads(
+  jobs: UploadSummaryTableRow[]
+): CancelUploadAction {
   return {
-    payload: job,
-    type: CANCEL_UPLOAD,
+    payload: jobs,
+    type: CANCEL_UPLOADS,
   };
 }
 
@@ -225,10 +238,10 @@ export function cancelUploadFailed(
   };
 }
 
-export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
+export function retryUploads(jobs: UploadSummaryTableRow[]): RetryUploadAction {
   return {
-    payload: job,
-    type: RETRY_UPLOAD,
+    payload: jobs,
+    type: RETRY_UPLOADS,
   };
 }
 

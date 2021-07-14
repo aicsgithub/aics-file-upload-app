@@ -2,7 +2,6 @@ import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { GridCell } from "../../entities";
 import { OpenTemplateEditorAction } from "../feedback/types";
 import {
-  DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   MassEditRow,
@@ -16,7 +15,6 @@ import {
   CLOSE_SUB_FILE_SELECTION_MODAL,
   JUMP_TO_PAST_SELECTION,
   LOAD_FILES,
-  OPEN_FILES,
   OPEN_SUB_FILE_SELECTION_MODAL,
   REMOVE_ROW_FROM_DRAG_EVENT,
   SELECT_BARCODE,
@@ -36,8 +34,7 @@ import {
   ClearSelectionHistoryAction,
   CloseSubFileSelectionModalAction,
   JumpToPastSelectionAction,
-  LoadFilesFromDragAndDropAction,
-  LoadFilesFromOpenDialogAction,
+  LoadFilesAction,
   OpenSubFileSelectionModalAction,
   RemoveRowFromDragEventAction,
   SelectBarcodeAction,
@@ -51,23 +48,11 @@ import {
   UpdateMassEditRowAction,
 } from "./types";
 
-export function loadFilesFromDragAndDrop(
-  files: DragAndDropFileList
-): LoadFilesFromDragAndDropAction {
+export function loadFiles(files: string[]): LoadFilesAction {
   return {
     autoSave: true,
     payload: files,
     type: LOAD_FILES,
-  };
-}
-
-export function openFilesFromDialog(
-  files: string[]
-): LoadFilesFromOpenDialogAction {
-  return {
-    autoSave: true,
-    payload: files,
-    type: OPEN_FILES,
   };
 }
 

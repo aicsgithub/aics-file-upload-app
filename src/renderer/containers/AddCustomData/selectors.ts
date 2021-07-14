@@ -4,7 +4,7 @@ import { createSelector } from "reselect";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { getOriginalUpload } from "../../state/metadata/selectors";
-import { getSelectedJob } from "../../state/selection/selectors";
+import { getSelectedUploads } from "../../state/selection/selectors";
 import { AsyncRequest, UploadStateBranch } from "../../state/types";
 import { getUpload, getUploadFileNames } from "../../state/upload/selectors";
 
@@ -20,13 +20,13 @@ export const getUploadInProgress = createSelector(
 );
 
 export const getCanSubmitUpload = createSelector(
-  [getUpload, getOriginalUpload, getSelectedJob],
+  [getUpload, getSelectedUploads, getOriginalUpload],
   (
     upload: UploadStateBranch,
-    originalUpload?: UploadStateBranch,
-    selectedJob?: JSSJob
+    selectedUploads: JSSJob[],
+    originalUpload?: UploadStateBranch
   ): boolean => {
-    if (selectedJob && selectedJob.status !== JSSJobStatus.SUCCEEDED) {
+    if (selectedUploads.some((u) => u.status !== JSSJobStatus.SUCCEEDED)) {
       return false;
     }
     if (!originalUpload) {

@@ -4,8 +4,8 @@ import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
 import { RESET_HISTORY } from "../metadata/constants";
-import { OPEN_JOB_AS_UPLOAD, RESET_UPLOAD } from "../route/constants";
-import { OpenJobAsUploadAction, ResetUploadAction } from "../route/types";
+import { VIEW_UPLOADS, RESET_UPLOAD } from "../route/constants";
+import { ViewUploadsAction, ResetUploadAction } from "../route/types";
 import {
   SelectionStateBranch,
   TypeToDescriptionMap,
@@ -68,7 +68,7 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
   imagingSessionId: undefined,
   imagingSessionIds: [],
   hasNoPlateToUpload: false,
-  job: undefined,
+  uploads: [],
   massEditRow: undefined,
   plate: {},
   selectedWells: [],
@@ -275,12 +275,12 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       rowsSelectedForDragEvent: undefined,
     }),
   },
-  [OPEN_JOB_AS_UPLOAD]: {
-    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
-      action.type === OPEN_JOB_AS_UPLOAD,
-    perform: (state: SelectionStateBranch, action: OpenJobAsUploadAction) => ({
+  [VIEW_UPLOADS]: {
+    accepts: (action: AnyAction): action is ViewUploadsAction =>
+      action.type === VIEW_UPLOADS,
+    perform: (state: SelectionStateBranch, action: ViewUploadsAction) => ({
       ...state,
-      job: action.payload,
+      uploads: action.payload,
     }),
   },
   [UPDATE_MASS_EDIT_ROW]: {

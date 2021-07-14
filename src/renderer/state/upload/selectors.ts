@@ -593,7 +593,7 @@ const getAnnotations = (
   });
 };
 
-const extensionToFileTypeMap: { [index: string]: FileType } = {
+export const extensionToFileTypeMap: { [index: string]: FileType } = {
   ".csv": FileType.CSV,
   ".czexp": FileType.ZEISS_CONFIG_FILE,
   ".czi": FileType.IMAGE,

@@ -4,18 +4,15 @@ import { OpenDialogOptions, remote } from "electron";
 import { isEmpty } from "lodash";
 import * as React from "react";
 
-import { DragAndDropFileList } from "../../state/types";
-
 const styles = require("../../components/DragAndDrop/style.pcss");
 
 interface DragAndDropProps {
   children?: React.ReactNode | React.ReactNodeArray;
   disabled?: boolean;
-  openDialogOptions: OpenDialogOptions;
+  openDialogOptions?: OpenDialogOptions;
   className?: string;
   overlayChildren?: boolean;
-  onDrop: (files: DragAndDropFileList) => void;
-  onOpen?: (files: string[]) => void;
+  onDrop: (files: string[]) => void;
 }
 
 interface DragAndDropState {
@@ -103,18 +100,12 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
 
   // Opens native file explorer
   private onBrowse = async (): Promise<void> => {
-    const { onOpen } = this.props;
-    if (!onOpen) {
-      throw new Error(
-        "Browsing for a file is not configured. Contact Software"
-      );
-    }
     const { filePaths: filenames } = await remote.dialog.showOpenDialog(
-      this.props.openDialogOptions
+      this.props.openDialogOptions || {}
     );
     // If cancel is clicked, this callback gets called and filenames is undefined
     if (filenames && !isEmpty(filenames)) {
-      onOpen(filenames);
+      this.props.onDrop(filenames);
     }
   };
 
@@ -152,7 +143,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
       // Prevent drag and drop events from stacking (like notes over upload job page)
       e.stopPropagation();
       this.setState({ dragEnterCount: 0 });
-      this.props.onDrop(e.dataTransfer.files);
+      this.props.onDrop(Array.from(e.dataTransfer.files, (f) => f.path));
     }
   };
 

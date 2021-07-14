@@ -4,8 +4,8 @@ import undoable, { UndoableOptions } from "redux-undo";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
-import { RESET_UPLOAD } from "../route/constants";
-import { ResetUploadAction } from "../route/types";
+import { RESET_UPLOAD, VIEW_UPLOADS_SUCCEEDED } from "../route/constants";
+import { ResetUploadAction, ViewUploadsSucceededAction } from "../route/types";
 import {
   SELECT_BARCODE,
   SET_HAS_NO_PLATE_TO_UPLOAD,
@@ -27,7 +27,7 @@ import {
   JUMP_TO_PAST_UPLOAD,
   JUMP_TO_UPLOAD,
   REPLACE_UPLOAD,
-  RETRY_UPLOAD,
+  RETRY_UPLOADS,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
   UPDATE_UPLOADS,
@@ -166,6 +166,16 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       ...uploads,
     }),
   },
+  [VIEW_UPLOADS_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is ViewUploadsSucceededAction =>
+      action.type === VIEW_UPLOADS_SUCCEEDED,
+    perform: (
+      _: UploadStateBranch,
+      { payload: { originalUploads } }: ViewUploadsSucceededAction
+    ) => ({
+      ...originalUploads,
+    }),
+  },
 };
 
 const upload = makeReducer<UploadStateBranch>(actionToConfigMap, initialState);
@@ -177,7 +187,7 @@ const options: UndoableOptions = {
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
     CLEAR_UPLOAD_HISTORY,
-    RETRY_UPLOAD,
+    RETRY_UPLOADS,
   ]),
   initTypes: [RESET_HISTORY],
   jumpToPastType: JUMP_TO_PAST_UPLOAD,

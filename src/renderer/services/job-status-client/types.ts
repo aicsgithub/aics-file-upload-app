@@ -138,6 +138,11 @@ export const IN_PROGRESS_STATUSES = [
   JSSJobStatus.WAITING,
   JSSJobStatus.WORKING,
 ];
+export const JOB_STATUSES = [
+  SUCCESSFUL_STATUS,
+  ...FAILED_STATUSES,
+  ...IN_PROGRESS_STATUSES,
+];
 
 export type BasicType = boolean | number | string | Date | undefined | null;
 export interface JSSServiceFields {

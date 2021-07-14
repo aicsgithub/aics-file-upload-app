@@ -1,3 +1,7 @@
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+
 import { expect } from "chai";
 import { keys } from "lodash";
 import * as moment from "moment";
@@ -47,14 +51,14 @@ import { AsyncRequest, FileModel, Page, State } from "../../types";
 import {
   addUploadFiles,
   applyTemplate,
-  cancelUpload,
+  cancelUploads,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
   initiateUpload,
   initiateUploadFailed,
   openUploadDraft,
-  retryUpload,
+  retryUploads,
   saveUploadDraft,
   saveUploadDraftSuccess,
   submitFileMetadataUpdate,
@@ -62,6 +66,7 @@ import {
   updateUpload,
   updateUploadRows,
   uploadFailed,
+  uploadWithoutMetadata,
 } from "../actions";
 import {
   getUploadRowKey,
@@ -281,7 +286,7 @@ describe("Upload logics", () => {
       ).to.be.true;
     });
   });
-  describe("retryUploadLogic", () => {
+  describe("retryUploadsLogic", () => {
     it("calls fms.retryUpload if no missing info on job", async () => {
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
@@ -289,8 +294,11 @@ describe("Upload logics", () => {
         uploadLogics
       );
 
-      const uploadJob = { ...mockFailedUploadJob, jobName: "bar", key: "foo" };
-      store.dispatch(retryUpload(uploadJob));
+      const uploadJob = {
+        ...mockFailedUploadJob,
+        jobName: "bar",
+      };
+      store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(fms.retryUpload.called).to.be.true;
@@ -303,8 +311,10 @@ describe("Upload logics", () => {
         uploadLogics
       );
 
-      const uploadJob = { ...mockFailedUploadJob, key: "foo" };
-      store.dispatch(retryUpload(uploadJob));
+      const uploadJob = {
+        ...mockFailedUploadJob,
+      };
+      store.dispatch(retryUploads([uploadJob]));
       await logicMiddleware.whenComplete();
 
       expect(
@@ -1560,7 +1570,7 @@ describe("Upload logics", () => {
         ...nonEmptyStateForInitiatingUpload,
         selection: getMockStateWithHistory({
           ...mockState.selection.present,
-          job: mockSuccessfulUploadJob,
+          uploads: [mockSuccessfulUploadJob],
         }),
         upload: getMockStateWithHistory({
           cat: catUpload,
@@ -1611,8 +1621,22 @@ describe("Upload logics", () => {
         )
       ).to.be.true;
     });
+
+    it("updates jss job with new updates", async () => {
+      // Arrange
+      const { logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      // Act
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(jssClient.updateJob.calledOnce).to.be.true;
+    });
   });
-  describe("cancelUpload", () => {
+  describe("cancelUploads", () => {
     it("dispatches cancel success action upon successful cancellation", async () => {
       // Arrange
       const { actions, logicMiddleware, store } = createMockReduxStore(
@@ -1622,7 +1646,7 @@ describe("Upload logics", () => {
       );
 
       // Act
-      store.dispatch(cancelUpload({ ...mockJob, key: "myJob" }));
+      store.dispatch(cancelUploads([{ ...mockJob }]));
       await logicMiddleware.whenComplete();
 
       // Assert
@@ -1641,7 +1665,7 @@ describe("Upload logics", () => {
       fms.cancelUpload.rejects(new Error(errorMessage));
 
       // Act
-      store.dispatch(cancelUpload({ ...mockJob, key: "myJob" }));
+      store.dispatch(cancelUploads([{ ...mockJob }]));
       await logicMiddleware.whenComplete();
 
       // Assert
@@ -1653,6 +1677,83 @@ describe("Upload logics", () => {
           )
         )
       ).to.be.true;
+    });
+  });
+
+  describe("uploadWithoutMetadata", () => {
+    const filePaths = [
+      path.resolve(os.tmpdir(), "uploadWithMetadata1"),
+      path.resolve(os.tmpdir(), "uploadWithMetadata2"),
+    ];
+
+    before(async () => {
+      await Promise.all(
+        filePaths.map((filePath, index) => {
+          return fs.promises.writeFile(filePath, `some text ${index}`);
+        })
+      );
+    });
+
+    beforeEach(() => {
+      fms.startUpload.resolves({
+        jobId: "abc123",
+        uploadDirectory: "/some/fake/path",
+      });
+    });
+
+    afterEach(() => {
+      fms.startUpload.restore();
+      fms.uploadFile.restore();
+    });
+
+    after(async () => {
+      await Promise.all(
+        filePaths.map((filePath) => {
+          return fs.promises.unlink(filePath);
+        })
+      );
+    });
+
+    it("uploads files", async () => {
+      // Arrange
+      const { logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload,
+        mockReduxLogicDeps,
+        uploadLogics
+      );
+
+      // Act
+      store.dispatch(uploadWithoutMetadata(filePaths));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(fms.startUpload.callCount).to.be.equal(filePaths.length);
+      expect(fms.uploadFile.callCount).to.be.equal(filePaths.length);
+    });
+
+    it("alerts user with uploadFailed action upon failure", async () => {
+      // Arrange
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload,
+        mockReduxLogicDeps,
+        uploadLogics
+      );
+      const error = "fake error";
+      fms.uploadFile.rejects(new Error(error));
+
+      // Act
+      store.dispatch(uploadWithoutMetadata(filePaths));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      filePaths.forEach((filePath) => {
+        const fileName = path.basename(filePath);
+        expect(
+          actions.includesMatch(
+            uploadFailed(`Upload ${fileName} failed: ${error}`, fileName)
+          )
+        ).to.be.true;
+      });
     });
   });
 });

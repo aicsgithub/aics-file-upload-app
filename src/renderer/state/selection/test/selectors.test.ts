@@ -24,7 +24,7 @@ import { State } from "../../types";
 import {
   getAllPlates,
   getAllWells,
-  getIsSelectedJobInFlight,
+  getAreSelectedUploadsInFlight,
   getMassEditRowAsTableRow,
   getSelectedImagingSession,
   getSelectedPlate,
@@ -451,10 +451,10 @@ describe("Selections selectors", () => {
     });
   });
 
-  describe("getIsSelectedJobInFlight", () => {
+  describe("getAreSelectedUploadsInFlight", () => {
     it("returns false without job selected", () => {
       // Act
-      const result = getIsSelectedJobInFlight(mockState);
+      const result = getAreSelectedUploadsInFlight(mockState);
 
       // Assert
       expect(result).to.be.false;
@@ -467,13 +467,15 @@ describe("Selections selectors", () => {
           ...mockState,
           selection: getMockStateWithHistory({
             ...mockSelection,
-            job: {
-              ...mockJob,
-              status,
-            },
+            uploads: [
+              {
+                ...mockJob,
+                status,
+              },
+            ],
           }),
         };
-        const result = getIsSelectedJobInFlight(state);
+        const result = getAreSelectedUploadsInFlight(state);
 
         // Assert
         expect(result).to.be.false;
@@ -493,13 +495,15 @@ describe("Selections selectors", () => {
           ...mockState,
           selection: getMockStateWithHistory({
             ...mockSelection,
-            job: {
-              ...mockJob,
-              status,
-            },
+            uploads: [
+              {
+                ...mockJob,
+                status,
+              },
+            ],
           }),
         };
-        const result = getIsSelectedJobInFlight(state);
+        const result = getAreSelectedUploadsInFlight(state);
 
         // Assert
         expect(result).to.be.true;

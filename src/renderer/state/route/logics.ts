@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import { platform } from "os";
 
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, groupBy, isEmpty, uniq } from "lodash";
+import { castArray, difference, groupBy, isEmpty, omit, uniq } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -21,8 +21,11 @@ import {
   Lookup,
   ScalarType,
 } from "../../services/labkey-client/types";
-import MMSClient, { AnnotationValue } from "../../services/mms-client";
-import { FSSResponseFile, UploadRequest } from "../../services/types";
+import {
+  MMSFileAnnotation,
+  FSSResponseFile,
+  UploadRequest,
+} from "../../services/types";
 import { Duration } from "../../types";
 import {
   ensureDraftGetsSaved,
@@ -75,13 +78,9 @@ import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { openJobAsUploadSucceeded, resetUpload, selectPage } from "./actions";
-import {
-  CLOSE_UPLOAD,
-  OPEN_JOB_AS_UPLOAD,
-  START_NEW_UPLOAD,
-} from "./constants";
-import { OpenJobAsUploadAction, Upload } from "./types";
+import { resetUpload, selectPage, viewUploadsSucceeded } from "./actions";
+import { CLOSE_UPLOAD, START_NEW_UPLOAD, VIEW_UPLOADS } from "./constants";
+import { Upload, ViewUploadsAction } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
 const getFileMenu = (menu: Menu): MenuItem | undefined =>
@@ -197,39 +196,6 @@ const resetUploadLogic = createLogic({
   },
 });
 
-const getPlateRelatedActions = async (
-  wellIds: number[],
-  labkeyClient: LabkeyClient,
-  mmsClient: MMSClient,
-  dispatch: ReduxLogicNextCb
-) => {
-  const actions: AnyAction[] = [];
-  wellIds = castArray(wellIds).map((w: string | number) =>
-    parseInt(w + "", 10)
-  );
-  // assume all wells have same barcode
-  const wellId = wellIds[0];
-  // we want to find the barcode associated with any well id found in this upload
-  const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
-    wellId
-  );
-  const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
-    barcode
-  );
-  const { plate, wells } = await getPlateInfo(
-    barcode,
-    imagingSessionIds,
-    mmsClient,
-    dispatch
-  );
-  actions.push(
-    selectBarcode(barcode, imagingSessionIds),
-    setPlate(plate, wells, imagingSessionIds)
-  );
-
-  return actions;
-};
-
 /*
   Convert from upload requests formatted for FSS transmission into the shape
   of the upload branch at the time of the initial upload the requests
@@ -253,9 +219,26 @@ function convertUploadRequestsToUploadStateBranch(
 
   let templateId: number | undefined = undefined;
   const uploadMetadata = files.reduce((uploadSoFar, file) => {
-    templateId = file.customMetadata.templateId || templateId;
+    templateId = file.customMetadata?.templateId || templateId;
+
+    if (!file.customMetadata?.annotations.length) {
+      const key = getUploadRowKey({
+        file: file.file.originalPath,
+      });
+      return {
+        ...uploadSoFar,
+        [key]: {
+          file: file.file.originalPath,
+          fileId: file.fileId,
+        },
+      };
+    }
+
     return file.customMetadata.annotations.reduce(
-      (keyToMetadataSoFar: UploadStateBranch, annotation: AnnotationValue) => {
+      (
+        keyToMetadataSoFar: UploadStateBranch,
+        annotation: MMSFileAnnotation
+      ) => {
         const key = getUploadRowKey({
           file: file.file.originalPath,
           ...annotation,
@@ -342,10 +325,6 @@ function convertUploadRequestsToUploadStateBranch(
     );
   }, {} as UploadStateBranch);
 
-  if (!templateId) {
-    throw new Error("Could not find the template used in the upload");
-  }
-
   return { templateId, uploadMetadata };
 }
 
@@ -362,17 +341,16 @@ const RELEVANT_FILE_COLUMNS = [
   "ModifiedBy",
 ];
 
-const openJobAsUploadLogic = createLogic({
+const viewUploadsLogic = createLogic({
   process: async (
     {
-      action,
       ctx,
       getApplicationMenu,
       getState,
       labkeyClient,
       logger,
       mmsClient,
-    }: ReduxLogicProcessDependenciesWithAction<OpenJobAsUploadAction>,
+    }: ReduxLogicProcessDependenciesWithAction<ViewUploadsAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -386,73 +364,106 @@ const openJobAsUploadLogic = createLogic({
       );
 
       // Second, we fetch the file metadata
-      let files = action.payload.serviceFields?.files;
-      if (!files || ctx.fileIds) {
-        files = await Promise.all(
-          ctx.fileIds.map(async (fileId: string) => {
-            const [labkeyFileMetadata, customMetadata] = await Promise.all([
-              labkeyClient.selectFirst<LabKeyFileMetadata>(
-                LK_SCHEMA.FMS,
-                "File",
-                RELEVANT_FILE_COLUMNS,
-                [LabkeyClient.createFilter("FileId", fileId)]
-              ),
-              mmsClient.getFileMetadata(fileId),
-            ]);
-            return {
-              ...labkeyFileMetadata,
-              fileId,
-              customMetadata,
-              file: { originalPath: labkeyFileMetadata.localFilePath },
-            };
-          })
-        );
-      }
-      const newUpload = convertUploadRequestsToUploadStateBranch(files, state);
+      const { requests, fileIds } = ctx as {
+        requests: UploadRequest[];
+        fileIds: string[];
+      };
+      const fileIdsAsFiles: UploadRequest[] = await Promise.all(
+        fileIds.map(async (fileId: string) => {
+          const [labkeyFileMetadata, customMetadata] = await Promise.all([
+            labkeyClient.selectFirst<LabKeyFileMetadata>(
+              LK_SCHEMA.FMS,
+              "File",
+              RELEVANT_FILE_COLUMNS,
+              [LabkeyClient.createFilter("FileId", fileId)]
+            ),
+            mmsClient.getFileMetadata(fileId),
+          ]);
+          return {
+            ...labkeyFileMetadata,
+            fileId,
+            customMetadata,
+            file: {
+              originalPath: labkeyFileMetadata.localFilePath as string,
+              fileType: labkeyFileMetadata.fileType,
+            },
+          };
+        })
+      );
+      const uploadsToView = convertUploadRequestsToUploadStateBranch(
+        [...requests, ...fileIdsAsFiles],
+        state
+      );
+
+      let representativeBarcode: string | undefined = undefined;
+      const uploadsWithPlateInfo = await Object.entries(
+        uploadsToView.uploadMetadata
+      ).reduce(async (accum, [key, upload]) => {
+        const wellIds = upload[WELL_ANNOTATION_NAME];
+        if (!wellIds || isEmpty(wellIds)) {
+          return { ...(await accum), [key]: upload };
+        }
+        const barcode = await labkeyClient.findPlateBarcodeByWellId(wellIds[0]);
+        // Omit the well values if it is not from the same batch as the representative
+        if (!representativeBarcode || representativeBarcode === barcode) {
+          representativeBarcode = barcode;
+          return { ...(await accum), [key]: upload };
+        }
+        return {
+          ...(await accum),
+          [key]: omit(upload, WELL_ANNOTATION_NAME),
+        };
+      }, {} as Promise<UploadStateBranch>);
 
       const actions: AnyAction[] = [];
-      // if we have a well, we can get the barcode and other plate info. This will be necessary
-      // to display the well editor
-      let wellIds: any = Object.values(newUpload.uploadMetadata)[0]?.[
-        WELL_ANNOTATION_NAME
-      ];
-      if (!wellIds) {
-        actions.push(setHasNoPlateToUpload(true));
+      if (!representativeBarcode) {
+        // Without a template the user likely wasn't forced into chosing
+        // whether they had a plate or not so the app shouldn't pre-select it
+        if (uploadsToView.templateId) {
+          actions.push(setHasNoPlateToUpload(true));
+        }
       } else {
-        wellIds = castArray(wellIds).map((w: string | number) =>
-          parseInt(w + "", 10)
+        // Any barcoded plate can be snapshot in time as that plate at a certain
+        // imaging session. The contents & images of the plates at that time (imaging session)
+        // may vary so the app needs to provide options for the user to choose between
+        const imagingSessionIds = await labkeyClient.findImagingSessionIdsByPlateBarcode(
+          representativeBarcode
         );
-        const plateRelatedActions = await getPlateRelatedActions(
-          wellIds,
-          labkeyClient,
+        const { plate, wells } = await getPlateInfo(
+          representativeBarcode,
+          imagingSessionIds,
           mmsClient,
           dispatch
         );
-        actions.push(...plateRelatedActions);
-      }
-
-      const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
-      if (!booleanAnnotationTypeId) {
-        throw new Error(
-          "Boolean annotation type id not found. Contact Software."
+        actions.push(
+          selectBarcode(representativeBarcode, imagingSessionIds),
+          setPlate(plate, wells, imagingSessionIds)
         );
       }
 
-      const { template, uploads } = await getApplyTemplateInfo(
-        newUpload.templateId,
-        mmsClient,
-        dispatch,
-        booleanAnnotationTypeId,
-        newUpload.uploadMetadata
-      );
-      const updateUploadsAction = setAppliedTemplate(template, uploads);
-      dispatch(
-        batchActions([
-          ...actions,
-          updateUploadsAction,
-          openJobAsUploadSucceeded(updateUploadsAction.payload.uploads),
-        ])
-      );
+      if (uploadsToView.templateId) {
+        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+        if (!booleanAnnotationTypeId) {
+          throw new Error(
+            "Boolean annotation type id not found. Contact Software."
+          );
+        }
+        const { template, uploads } = await getApplyTemplateInfo(
+          uploadsToView.templateId,
+          mmsClient,
+          dispatch,
+          booleanAnnotationTypeId,
+          uploadsWithPlateInfo
+        );
+        actions.push(
+          setAppliedTemplate(template, uploads),
+          viewUploadsSucceeded(uploads)
+        );
+      } else {
+        actions.push(viewUploadsSucceeded(uploadsWithPlateInfo));
+      }
+
+      dispatch(batchActions([...actions]));
     } catch (e) {
       dispatch(
         requestFailed(
@@ -463,9 +474,9 @@ const openJobAsUploadLogic = createLogic({
     }
     done();
   },
-  type: OPEN_JOB_AS_UPLOAD,
+  type: VIEW_UPLOADS,
   validate: async (
-    deps: ReduxLogicTransformDependenciesWithAction<OpenJobAsUploadAction>,
+    deps: ReduxLogicTransformDependenciesWithAction<ViewUploadsAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -485,32 +496,39 @@ const openJobAsUploadLogic = createLogic({
       return;
     }
 
-    // Validate the job passed in as the action payload
-    const { payload: job } = action;
-    if (
-      job.status === JSSJobStatus.SUCCEEDED &&
-      job.serviceFields?.result &&
-      Array.isArray(job?.serviceFields?.result) &&
-      !isEmpty(job?.serviceFields?.result)
-    ) {
-      const originalFileIds = job.serviceFields.result.map(
-        ({ fileId }: FSSResponseFile) => fileId
-      );
-      const deletedFileIds = job.serviceFields.deletedFileIds
-        ? castArray(job.serviceFields.deletedFileIds)
-        : [];
-      ctx.fileIds = difference(originalFileIds, deletedFileIds);
-      if (isEmpty(ctx.fileIds)) {
-        reject(setErrorAlert("All files in this upload have been deleted!"));
-      } else {
-        next(action);
-      }
-    } else if (job.serviceFields?.files && !isEmpty(job.serviceFields?.files)) {
+    // Validate the uploads passed in as the action payload
+    ctx.fileIds = [];
+    ctx.requests = [];
+    try {
+      action.payload.forEach((upload) => {
+        if (
+          upload.status === JSSJobStatus.SUCCEEDED &&
+          upload.serviceFields?.result &&
+          Array.isArray(upload?.serviceFields?.result)
+        ) {
+          const originalFileIds = upload.serviceFields.result.map(
+            ({ fileId }: FSSResponseFile) => fileId
+          );
+          const deletedFileIds = upload.serviceFields.deletedFileIds
+            ? castArray(upload.serviceFields.deletedFileIds)
+            : [];
+          const fileIds = difference(originalFileIds, deletedFileIds);
+          ctx.fileIds = [...ctx.fileIds, ...fileIds];
+        } else if (
+          upload.serviceFields?.files &&
+          !isEmpty(upload.serviceFields?.files)
+        ) {
+          ctx.requests = [...ctx.requests, ...upload.serviceFields?.files];
+        } else {
+          throw new Error(`Upload ${upload.jobName} has missing information`);
+        }
+      });
+
       next(action);
-    } else {
-      reject(setErrorAlert("upload has missing information"));
+    } catch (error) {
+      reject(setErrorAlert(error.message || "Failed to open uploads"));
     }
   },
 });
 
-export default [openJobAsUploadLogic, resetUploadLogic];
+export default [viewUploadsLogic, resetUploadLogic];

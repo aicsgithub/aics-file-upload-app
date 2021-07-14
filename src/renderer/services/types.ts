@@ -61,19 +61,19 @@ export interface ImageModelBase {
 }
 
 // This is used for the POST request to mms for creating file metadata
-export interface CustomFileAnnotationRequest extends ImageModelBase {
+export interface MMSFileAnnotation extends ImageModelBase {
   annotationId: number;
   values: string[];
 }
 
 // This is used for the POST request to mms for creating file metadata
-export interface CustomFileMetadataRequest {
-  annotations: CustomFileAnnotationRequest[];
+export interface MMSFile {
+  annotations: MMSFileAnnotation[];
   templateId?: number;
 }
 
 export interface UploadRequest {
-  customMetadata: CustomFileMetadataRequest;
+  customMetadata?: MMSFile;
   fileType?: string;
   file: FileMetadataBlock;
   [id: string]: any;

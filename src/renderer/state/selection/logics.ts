@@ -1,15 +1,9 @@
-import { basename, dirname } from "path";
-
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { createLogic } from "redux-logic";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import {
-  getPlateInfo,
-  getUploadFilePromise,
-  mergeChildPaths,
-} from "../../util";
+import { determineFilesFromNestedPaths, getPlateInfo } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { getBooleanAnnotationTypeId } from "../metadata/selectors";
@@ -17,14 +11,13 @@ import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,
   AsyncRequest,
-  DragAndDropFileList,
   MassEditRow,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
-  UploadFile,
   UploadRowTableId,
 } from "../types";
 import { addUploadFiles, updateUploadRows } from "../upload/actions";
@@ -35,7 +28,6 @@ import { selectWells, setPlate } from "./actions";
 import {
   APPLY_MASS_EDIT,
   LOAD_FILES,
-  OPEN_FILES,
   SELECT_BARCODE,
   SELECT_WELLS,
   START_MASS_EDIT,
@@ -48,82 +40,37 @@ import {
   getRowsSelectedForMassEdit,
   getWellsWithModified,
 } from "./selectors";
-
-const stageFilesAndStopLoading = async (
-  uploadFilePromises: Array<Promise<UploadFile>>,
-  dispatch: ReduxLogicNextCb,
-  done: ReduxLogicDoneCb
-) => {
-  try {
-    const uploadFiles = await Promise.all(uploadFilePromises);
-    // If the file drag/dropped is a folder directory just immediately grab the files underneath it
-    // otherwise use the files drag/dropped as normal
-    const filesToUpload =
-      uploadFiles.length === 1 && uploadFiles[0].isDirectory
-        ? uploadFiles.flatMap((file) => file.files)
-        : uploadFiles;
-
-    dispatch(stopLoading());
-    dispatch(
-      addUploadFiles(
-        filesToUpload
-          .filter((file) => !file.isDirectory)
-          .map((file) => ({ file: file.fullPath }))
-      )
-    );
-    done();
-  } catch (e) {
-    dispatch(
-      batchActions([
-        stopLoading(),
-        setAlert({
-          message: `Encountered error while resolving files: ${e}`,
-          type: AlertType.ERROR,
-        }),
-      ])
-    );
-    done();
-  }
-};
+import { LoadFilesAction } from "./types";
 
 const loadFilesLogic = createLogic({
   process: async (
-    { action }: ReduxLogicProcessDependencies,
+    deps: ReduxLogicProcessDependenciesWithAction<LoadFilesAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     dispatch(startLoading());
-    const filesToLoad: DragAndDropFileList = action.payload;
+    try {
+      const filePaths = await determineFilesFromNestedPaths(
+        deps.action.payload
+      );
+      dispatch(stopLoading());
+      dispatch(addUploadFiles(filePaths.map((file) => ({ file }))));
+      done();
+    } catch (e) {
+      dispatch(
+        batchActions([
+          stopLoading(),
+          setAlert({
+            message: `Encountered error while resolving files: ${e}`,
+            type: AlertType.ERROR,
+          }),
+        ])
+      );
+    }
 
-    const uploadFilePromises: Array<Promise<
-      UploadFile
-    >> = Array.from(filesToLoad, (fileToLoad) =>
-      getUploadFilePromise(fileToLoad.name, dirname(fileToLoad.path))
-    );
-
-    await stageFilesAndStopLoading(uploadFilePromises, dispatch, done);
+    done();
   },
   type: LOAD_FILES,
-});
-
-const openFilesLogic = createLogic({
-  process: async (
-    { action }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    dispatch(startLoading());
-    const filesToLoad: string[] = mergeChildPaths(action.payload);
-
-    const uploadFilePromises: Array<Promise<
-      UploadFile
-    >> = filesToLoad.map((filePath: string) =>
-      getUploadFilePromise(basename(filePath), dirname(filePath))
-    );
-
-    await stageFilesAndStopLoading(uploadFilePromises, dispatch, done);
-  },
-  type: OPEN_FILES,
 });
 
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) =>
@@ -269,7 +216,6 @@ const stopCellDragLogic = createLogic({
 export default [
   applyMassEditLogic,
   loadFilesLogic,
-  openFilesLogic,
   selectBarcodeLogic,
   selectWellsLogic,
   startMassEditLogic,

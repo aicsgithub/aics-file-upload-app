@@ -26,13 +26,13 @@ import {
   RequestMetadataAction,
 } from "../metadata/types";
 import {
-  OPEN_JOB_AS_UPLOAD,
-  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
+  VIEW_UPLOADS,
+  VIEW_UPLOADS_SUCCEEDED,
   RESET_UPLOAD,
 } from "../route/constants";
 import {
-  OpenJobAsUploadAction,
-  OpenJobAsUploadSucceededAction,
+  ViewUploadsAction,
+  ViewUploadsSucceededAction,
   ResetUploadAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
@@ -68,7 +68,7 @@ import {
 } from "../types";
 import {
   APPLY_TEMPLATE,
-  CANCEL_UPLOAD,
+  CANCEL_UPLOADS,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
   EDIT_FILE_METADATA_FAILED,
@@ -76,7 +76,7 @@ import {
   INITIATE_UPLOAD,
   INITIATE_UPLOAD_FAILED,
   INITIATE_UPLOAD_SUCCEEDED,
-  RETRY_UPLOAD,
+  RETRY_UPLOADS,
   SUBMIT_FILE_METADATA_UPDATE,
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
@@ -383,9 +383,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [OPEN_JOB_AS_UPLOAD]: {
-    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
-      action.type === OPEN_JOB_AS_UPLOAD,
+  [VIEW_UPLOADS]: {
+    accepts: (action: AnyAction): action is ViewUploadsAction =>
+      action.type === VIEW_UPLOADS,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: uniq([
@@ -495,33 +495,39 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [RETRY_UPLOAD]: {
+  [RETRY_UPLOADS]: {
     accepts: (action: AnyAction): action is RetryUploadAction =>
-      action.type === RETRY_UPLOAD,
+      action.type === RETRY_UPLOADS,
     perform: (
       state: FeedbackStateBranch,
-      { payload: job }: RetryUploadAction
+      { payload: uploads }: RetryUploadAction
     ) => ({
       ...state,
-      alert: getInfoAlert(`Retrying upload ${job.jobName}`),
+      alert: getInfoAlert(
+        `Retrying upload ${uploads.map((u) => u.jobName).join(", ")}`
+      ),
       requestsInProgress: addRequestToInProgress(
         state,
-        `${AsyncRequest.UPLOAD}-${job.jobName}`
+        `${AsyncRequest.UPLOAD}-${uploads.map((u) => u.jobName).join(", ")}`
       ),
     }),
   },
-  [CANCEL_UPLOAD]: {
+  [CANCEL_UPLOADS]: {
     accepts: (action: AnyAction): action is CancelUploadAction =>
-      action.type === CANCEL_UPLOAD,
+      action.type === CANCEL_UPLOADS,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { jobName } }: CancelUploadAction
+      { payload: uploads }: CancelUploadAction
     ) => ({
       ...state,
-      alert: getInfoAlert(`Cancelling upload ${jobName}`),
+      alert: getInfoAlert(
+        `Cancelling upload ${uploads.map((u) => u.jobName).join(", ")}`
+      ),
       requestsInProgress: addRequestToInProgress(
         state,
-        `${AsyncRequest.CANCEL_UPLOAD}-${jobName}`
+        `${AsyncRequest.CANCEL_UPLOAD}-${uploads
+          .map((u) => u.jobName)
+          .join(", ")}`
       ),
     }),
   },
@@ -625,9 +631,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [OPEN_JOB_AS_UPLOAD_SUCCEEDED]: {
-    accepts: (action: AnyAction): action is OpenJobAsUploadSucceededAction =>
-      action.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED,
+  [VIEW_UPLOADS_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is ViewUploadsSucceededAction =>
+      action.type === VIEW_UPLOADS_SUCCEEDED,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: removeRequestFromInProgress(

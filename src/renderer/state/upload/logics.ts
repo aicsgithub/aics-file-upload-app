@@ -1,4 +1,4 @@
-import { basename } from "path";
+import { basename, extname } from "path";
 
 import {
   castArray,
@@ -23,10 +23,12 @@ import {
 } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
 import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
+import { StartUploadResponse } from "../../services/fss-client";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
 import {
+  determineFilesFromNestedPaths,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   pivotAnnotations,
@@ -40,13 +42,13 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
-import { closeUpload, openJobAsUpload, resetUpload } from "../route/actions";
+import { closeUpload, viewUploads, resetUpload } from "../route/actions";
 import {
   handleStartingNewUploadJob,
   resetHistoryActions,
 } from "../route/logics";
 import { updateMassEditRow } from "../selection/actions";
-import { getMassEditRow, getSelectedJob } from "../selection/selectors";
+import { getMassEditRow, getSelectedUploads } from "../selection/selectors";
 import { getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -82,19 +84,21 @@ import {
 import {
   ADD_UPLOAD_FILES,
   APPLY_TEMPLATE,
-  CANCEL_UPLOAD,
+  CANCEL_UPLOADS,
   getUploadRowKey,
   INITIATE_UPLOAD,
   isSubImageOnlyRow,
   OPEN_UPLOAD_DRAFT,
-  RETRY_UPLOAD,
+  RETRY_UPLOADS,
   SAVE_UPLOAD_DRAFT,
   SUBMIT_FILE_METADATA_UPDATE,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
+  UPLOAD_WITHOUT_METADATA,
 } from "./constants";
 import {
+  extensionToFileTypeMap,
   getCanSaveUploadDraft,
   getUpload,
   getUploadFileNames,
@@ -103,6 +107,7 @@ import {
 import {
   ApplyTemplateAction,
   CancelUploadAction,
+  FileType,
   InitiateUploadAction,
   OpenUploadDraftAction,
   RetryUploadAction,
@@ -111,6 +116,7 @@ import {
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
+  UploadWithoutMetadataAction,
 } from "./types";
 
 const applyTemplateLogic = createLogic({
@@ -270,7 +276,7 @@ const initiateUploadLogic = createLogic({
   warnTimeout: 0,
 });
 
-export const cancelUploadLogic = createLogic({
+export const cancelUploadsLogic = createLogic({
   process: async (
     {
       action,
@@ -280,25 +286,29 @@ export const cancelUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const job = action.payload;
-    try {
-      await fms.cancelUpload(job.jobId);
-      dispatch(cancelUploadSucceeded(job.jobName || ""));
-    } catch (e) {
-      logger.error(`Cancel upload failed`, e);
-      dispatch(
-        cancelUploadFailed(
-          job.jobName || "",
-          `Cancel upload ${job.jobName} failed: ${e.message}`
-        )
-      );
-    }
+    const jobs = action.payload;
+    await Promise.all(
+      jobs.map(async (job) => {
+        try {
+          await fms.cancelUpload(job.jobId);
+          dispatch(cancelUploadSucceeded(job.jobName || ""));
+        } catch (e) {
+          logger.error(`Cancel upload failed`, e);
+          dispatch(
+            cancelUploadFailed(
+              job.jobName || "",
+              `Cancel upload ${job.jobName} failed: ${e.message}`
+            )
+          );
+        }
+      })
+    );
     done();
   },
-  type: CANCEL_UPLOAD,
+  type: CANCEL_UPLOADS,
 });
 
-const retryUploadLogic = createLogic({
+const retryUploadsLogic = createLogic({
   process: async (
     {
       action,
@@ -308,25 +318,29 @@ const retryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const job = action.payload;
-    const fileNames =
-      job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
-    try {
-      await fms.retryUpload(job.jobId, (jobId) =>
-        handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
-          dispatch(updateUploadProgressInfo(jobId, progress))
-        )
-      );
-    } catch (e) {
-      if (!(e instanceof CopyCancelledError)) {
-        const error = `Retry upload ${job.jobName} failed: ${e.message}`;
-        logger.error(`Retry for jobId=${job.jobId} failed`, e);
-        dispatch(uploadFailed(error, job.jobName || ""));
-      }
-    }
+    const jobs = action.payload;
+    await Promise.all(
+      jobs.map(async (job) => {
+        const fileNames =
+          job.serviceFields?.files.map(({ file }) => file.fileName || "") || [];
+        try {
+          await fms.retryUpload(job.jobId, (jobId) =>
+            handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
+              dispatch(updateUploadProgressInfo(jobId, progress))
+            )
+          );
+        } catch (e) {
+          if (!(e instanceof CopyCancelledError)) {
+            const error = `Retry upload ${job.jobName} failed: ${e.message}`;
+            logger.error(`Retry for jobId=${job.jobId} failed`, e);
+            dispatch(uploadFailed(error, job.jobName || ""));
+          }
+        }
+      })
+    );
     done();
   },
-  type: RETRY_UPLOAD,
+  type: RETRY_UPLOADS,
   warnTimeout: 0,
 });
 
@@ -790,11 +804,11 @@ const openUploadLogic = createLogic({
 
     try {
       ctx.draft = JSON.parse((await readFile(ctx.filePath, "utf8")) as string);
-      const selectedJob = getSelectedJob(ctx.draft);
-      if (selectedJob) {
-        // If a selectedJob exists on the draft, we know that the upload has been submitted before
-        // and we actually want to edit it. This will go through the openJobAsUpload logics instead.
-        reject(openJobAsUpload(selectedJob));
+      const selectedUploads = getSelectedUploads(ctx.draft);
+      if (selectedUploads.length) {
+        // If selectedUploads exists on the draft, we know that the upload has been submitted before
+        // and we actually want to edit it. This will go through the viewUploads logics instead.
+        reject(viewUploads(selectedUploads));
       } else {
         next(action);
       }
@@ -810,29 +824,47 @@ const submitFileMetadataUpdateLogic = createLogic({
     {
       getState,
       mmsClient,
+      jssClient,
     }: ReduxLogicProcessDependenciesWithAction<SubmitFileMetadataUpdateAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    let selectedJob;
+    const selectedUploads = getSelectedUploads(getState());
+    const combinedNames = selectedUploads.map((u) => u.jobName).join(", ");
+    const editFileMetadataRequests = getUploadRequests(getState());
     try {
-      selectedJob = getSelectedJob(getState());
-      const editFileMetadataRequests = getUploadRequests(getState());
-      if (!selectedJob) {
-        throw new Error("Could not determine which job is selected for update");
-      }
       await Promise.all(
         editFileMetadataRequests.map((request) =>
           mmsClient.editFileMetadata(request.file.fileId, request)
         )
       );
+      // This serves to update the "My Uploads" tables so that uploads without templates
+      // may now have templates after the edit
+      await Promise.all(
+        editFileMetadataRequests.map((request) => {
+          const matchingUpload = selectedUploads.find((u) =>
+            u.serviceFields?.result?.find(
+              (f) => f.fileId === request.file.fileId
+            )
+          );
+          if (!matchingUpload) {
+            dispatch(
+              editFileMetadataFailed(
+                `Could not update upload job for file ${request.file.fileName}`,
+                request.file.fileName || ""
+              )
+            );
+            return;
+          }
+          return jssClient.updateJob(matchingUpload.jobId, {
+            serviceFields: { files: [request] },
+          });
+        })
+      );
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
       dispatch(
-        editFileMetadataFailed(
-          "Could not edit file: " + message,
-          selectedJob?.jobName || ""
-        )
+        editFileMetadataFailed("Could not edit file: " + message, combinedNames)
       );
       done();
       return;
@@ -840,7 +872,7 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     dispatch(
       batchActions([
-        editFileMetadataSucceeded(selectedJob.jobName || ""),
+        editFileMetadataSucceeded(combinedNames),
         closeUpload(),
         resetUpload(),
       ])
@@ -850,16 +882,104 @@ const submitFileMetadataUpdateLogic = createLogic({
   type: SUBMIT_FILE_METADATA_UPDATE,
 });
 
+const uploadWithoutMetadataLogic = createLogic({
+  process: async (
+    deps: ReduxLogicProcessDependenciesWithAction<UploadWithoutMetadataAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    let filePaths;
+    try {
+      filePaths = await determineFilesFromNestedPaths(deps.action.payload);
+    } catch (err) {
+      const error = `Failed resolving files: ${err.message}`;
+      dispatch(uploadFailed(error, deps.action.payload.join(", ")));
+      done();
+      return;
+    }
+
+    // Perform initiate upload results all at once first so that jobs appear
+    // in the user uploads as in progress
+    const groupId = FileManagementSystem.createUniqueId();
+    const initiateUploadResults = await Promise.all(
+      filePaths.map(async (filePath) => {
+        const request = {
+          file: {
+            disposition: "tape", // prevent czi -> ome.tiff conversions
+            fileType:
+              extensionToFileTypeMap[extname(filePath).toLowerCase()] ||
+              FileType.OTHER,
+            originalPath: filePath,
+            shouldBeInArchive: true,
+            shouldBeInLocal: true,
+          },
+          microscopy: {},
+        };
+        try {
+          const response = await deps.fms.startUpload(filePath, request, {
+            groupId,
+          });
+          return { request, response };
+        } catch (err) {
+          const fileName = basename(filePath);
+          const error = `Upload ${fileName} failed: ${err.message}`;
+          dispatch(uploadFailed(error, fileName));
+          return null;
+        }
+      })
+    );
+
+    // Remove already failed uploads from list
+    const successfulResults = initiateUploadResults.filter((r) => !!r) as {
+      request: UploadRequest;
+      response: StartUploadResponse;
+    }[];
+
+    // Upload 25 files at a time to prevent performance issues in the case of
+    // uploads with many files.
+    for (const batch of chunk(successfulResults, 25)) {
+      await Promise.all(
+        batch.map(async ({ request, response }) => {
+          try {
+            await deps.fms.uploadFile(
+              response.jobId,
+              request.file.originalPath,
+              request,
+              response.uploadDirectory,
+              handleUploadProgress(
+                [request.file.originalPath],
+                (progress: UploadProgressInfo) =>
+                  dispatch(updateUploadProgressInfo(response.jobId, progress))
+              )
+            );
+          } catch (err) {
+            if (!(err instanceof CopyCancelledError)) {
+              const fileName = basename(request.file.originalPath);
+              const error = `Upload ${fileName} failed: ${err.message}`;
+              deps.logger.error(`Upload failed`, err);
+              dispatch(uploadFailed(error, fileName));
+            }
+          }
+        })
+      );
+    }
+
+    done();
+  },
+  type: UPLOAD_WITHOUT_METADATA,
+});
+
 export default [
   addUploadFilesLogic,
   applyTemplateLogic,
-  cancelUploadLogic,
+  cancelUploadsLogic,
   initiateUploadLogic,
   openUploadLogic,
-  retryUploadLogic,
+  retryUploadsLogic,
   saveUploadDraftLogic,
   submitFileMetadataUpdateLogic,
   updateSubImagesLogic,
   updateUploadLogic,
   updateUploadRowsLogic,
+  uploadWithoutMetadataLogic,
 ];

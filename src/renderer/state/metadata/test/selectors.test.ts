@@ -14,6 +14,7 @@ import {
   getBooleanAnnotationTypeId,
   getLookupAnnotationTypeId,
   getNotesAnnotation,
+  getTemplateIdToName,
   getUniqueBarcodeSearchResults,
   getWellAnnotation,
 } from "../selectors";
@@ -54,6 +55,45 @@ describe("Metadata selectors", () => {
         barcode: barcode2,
         imagingSessionIds: [null],
       });
+    });
+  });
+
+  describe("getTemplateIdToName", () => {
+    it("indexes templates by their ids", () => {
+      // Arrange
+      const state = {
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          templates: [
+            { Name: "First", TemplateId: 1, Version: 1 },
+            { Name: "First", TemplateId: 2, Version: 2 },
+            { Name: "Another One", TemplateId: 7, Version: 4 },
+          ],
+        },
+      };
+      const expected = {
+        1: "First (V1)",
+        2: "First (V2)",
+        7: "Another One (V4)",
+      };
+
+      // Act
+      const actual = getTemplateIdToName(state);
+
+      // Assert
+      expect(actual).to.be.deep.equal(expected);
+    });
+
+    it("produces empty object when no templates found", () => {
+      // Arrange
+      const state = { ...mockState };
+
+      // Act
+      const actual = getTemplateIdToName(state);
+
+      // Assert
+      expect(actual).to.be.empty;
     });
   });
 

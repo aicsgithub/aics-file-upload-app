@@ -13,6 +13,9 @@
     background-color: var(--app-foreground-color);
     /* Variable located in styles/variables */
     border-right: var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
     overflow-x: auto;
     padding-bottom: 2px;
 }
@@ -24,8 +27,10 @@
 
 .table-cell {
     height: 35px;
+    overflow: hidden;
     padding: 0;
     margin: 0;
+    text-overflow: ellipsis;
 }
 
 .table-cell:hover {
@@ -39,4 +44,45 @@
     max-height: 105px;
     overflow: hidden;
     user-select: none;
+}
+
+.table-header-container {
+    display: flex;
+    justify-content: center;
+}
+
+.table-body {
+    flex-grow: 1;
+    min-height: 35px;
+}
+
+.table-footer {
+    border-left: var(--border);
+    border-top: var(--border);
+    padding-right: 4px;
+    text-align: right;
+}
+
+.selection-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.selection-menu > * {
+    margin-left: 0 !important;
+}
+
+.filter {
+    position: absolute;
+    right: 0;
+    margin: 4px 4px 0 0;
+}
+
+.highlighted {
+    border: 1px solid var(--brand-primary);
+    height: 35px;
+}
+
+.highlighted > * {
+    height: 33px;
 }

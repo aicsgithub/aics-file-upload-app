@@ -1,6 +1,6 @@
 import { JSSJob } from "../../services/job-status-client/types";
 import { BaseServiceFields } from "../../services/types";
-import { JobFilter, UploadProgressInfo } from "../types";
+import { UploadProgressInfo } from "../types";
 
 export interface ReceiveJobsAction {
   payload: JSSJob[];
@@ -17,8 +17,8 @@ export interface ReceiveJobUpdateAction<T extends BaseServiceFields = any> {
   type: string;
 }
 
-export interface SelectJobFilterAction {
-  payload: JobFilter;
+export interface SetLastSelectedUploadAction {
+  payload?: { id: string; index: number };
   type: string;
 }
 

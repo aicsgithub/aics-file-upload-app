@@ -1,13 +1,13 @@
 import { AnyAction } from "redux";
 
 import {
-  OPEN_JOB_AS_UPLOAD,
-  OPEN_JOB_AS_UPLOAD_SUCCEEDED,
+  VIEW_UPLOADS,
+  VIEW_UPLOADS_SUCCEEDED,
   RESET_UPLOAD,
 } from "../route/constants";
 import {
-  OpenJobAsUploadAction,
-  OpenJobAsUploadSucceededAction,
+  ViewUploadsAction,
+  ViewUploadsSucceededAction,
   ResetUploadAction,
 } from "../route/types";
 import { MetadataStateBranch, TypeToDescriptionMap } from "../types";
@@ -146,23 +146,23 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
     }),
   },
   // this is necessary because we are sharing the upload tab
-  [OPEN_JOB_AS_UPLOAD]: {
-    accepts: (action: AnyAction): action is OpenJobAsUploadAction =>
-      action.type === OPEN_JOB_AS_UPLOAD,
+  [VIEW_UPLOADS]: {
+    accepts: (action: AnyAction): action is ViewUploadsAction =>
+      action.type === VIEW_UPLOADS,
     perform: (state: MetadataStateBranch) => ({
       ...state,
       currentUploadFilePath: undefined,
     }),
   },
-  [OPEN_JOB_AS_UPLOAD_SUCCEEDED]: {
-    accepts: (action: AnyAction): action is OpenJobAsUploadSucceededAction =>
-      action.type === OPEN_JOB_AS_UPLOAD_SUCCEEDED,
+  [VIEW_UPLOADS_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is ViewUploadsSucceededAction =>
+      action.type === VIEW_UPLOADS_SUCCEEDED,
     perform: (
       state: MetadataStateBranch,
-      { payload: { originalUpload } }: OpenJobAsUploadSucceededAction
+      { payload: { originalUploads } }: ViewUploadsSucceededAction
     ) => ({
       ...state,
-      originalUpload,
+      originalUploads,
     }),
   },
   [SAVE_UPLOAD_DRAFT_SUCCESS]: {

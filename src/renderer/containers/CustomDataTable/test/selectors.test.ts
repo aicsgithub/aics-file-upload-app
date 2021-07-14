@@ -145,7 +145,7 @@ describe("CustomDataTable selectors", () => {
         },
         selection: getMockStateWithHistory({
           ...mockSelection,
-          job: mockJob,
+          uploads: [mockJob],
         }),
         template: {
           ...mockTemplateStateBranch,
