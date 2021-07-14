@@ -185,15 +185,15 @@ describe("Route logics", () => {
   };
 
   describe("resetUploadLogic", () => {
-    it("goes to UploadSummary page given user clicks Save Upload Draft from dialog", async () => {
+    it("goes to MyUploads page given user clicks Save Upload Draft from dialog", async () => {
       const showSaveDialogStub = stub().resolves({
         cancelled: false,
         filePath: "/bar",
       });
       sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
       await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.UploadSummary,
+        Page.UploadWithTemplate,
+        Page.MyUploads,
         closeUpload,
         2
       );
@@ -201,8 +201,8 @@ describe("Route logics", () => {
     });
     it("stays on current page given 'Cancel' clicked from dialog", async () => {
       await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.AddCustomData,
+        Page.UploadWithTemplate,
+        Page.UploadWithTemplate,
         closeUpload,
         0
       );
@@ -289,8 +289,8 @@ describe("Route logics", () => {
         },
         route: {
           ...mockState.route,
-          page: Page.UploadSummary,
-          view: Page.UploadSummary,
+          page: Page.MyUploads,
+          view: Page.MyUploads,
         },
         selection: getMockStateWithHistory({
           ...mockState.selection.present,
@@ -434,8 +434,8 @@ describe("Route logics", () => {
       );
 
       let state = store.getState();
-      expect(getPage(state)).to.equal(Page.UploadSummary);
-      expect(getView(state)).to.equal(Page.UploadSummary);
+      expect(getPage(state)).to.equal(Page.MyUploads);
+      expect(getView(state)).to.equal(Page.MyUploads);
       expect(getFileMetadataForJob(state)).to.be.undefined;
       expect(getUpload(state)).to.be.empty;
       expect(getAppliedTemplate(state)).to.be.undefined;
@@ -444,8 +444,8 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       state = store.getState();
-      expect(getPage(state)).to.equal(Page.AddCustomData);
-      expect(getView(state)).to.equal(Page.AddCustomData);
+      expect(getPage(state)).to.equal(Page.UploadWithTemplate);
+      expect(getView(state)).to.equal(Page.UploadWithTemplate);
       expect(getUpload(state)).to.deep.equal({
         [getUploadRowKey({ file: fileMetadata.localFilePath || "" })]: {
           file: fileMetadata.localFilePath,

@@ -3,7 +3,7 @@ import { mount } from "enzyme";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import UploadSummary from "..";
+import MyUploadsPage from "..";
 import { createMockReduxStore } from "../../../state/test/configure-mock-store";
 import {
   mockFailedUploadJob,
@@ -12,7 +12,7 @@ import {
 } from "../../../state/test/mocks";
 import { AsyncRequest } from "../../../state/types";
 
-describe("<UploadSummary />", () => {
+describe("<MyUploadsPage />", () => {
   it("renders spinner while loading data", () => {
     // Arrange
     const { store } = createMockReduxStore({
@@ -26,7 +26,7 @@ describe("<UploadSummary />", () => {
     // Act
     const wrapper = mount(
       <Provider store={store}>
-        <UploadSummary />
+        <MyUploadsPage />
       </Provider>
     );
 
@@ -51,7 +51,7 @@ describe("<UploadSummary />", () => {
     // Act
     const wrapper = mount(
       <Provider store={store}>
-        <UploadSummary />
+        <MyUploadsPage />
       </Provider>
     );
 
@@ -80,7 +80,7 @@ describe("<UploadSummary />", () => {
     // Act
     const wrapper = mount(
       <Provider store={store}>
-        <UploadSummary />
+        <MyUploadsPage />
       </Provider>
     );
 
@@ -109,7 +109,7 @@ describe("<UploadSummary />", () => {
     // Act
     const wrapper = mount(
       <Provider store={store}>
-        <UploadSummary />
+        <MyUploadsPage />
       </Provider>
     );
 

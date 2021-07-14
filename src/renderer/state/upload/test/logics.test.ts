@@ -185,8 +185,8 @@ describe("Upload logics", () => {
         {
           ...nonEmptyStateForInitiatingUpload,
           route: {
-            page: Page.AddCustomData,
-            view: Page.AddCustomData,
+            page: Page.UploadWithTemplate,
+            view: Page.UploadWithTemplate,
           },
           setting: {
             ...nonEmptyStateForInitiatingUpload.setting,

@@ -77,20 +77,20 @@ describe("Selection logics", () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
         route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
+          page: Page.UploadWithTemplate,
+          view: Page.UploadWithTemplate,
         },
       });
 
       // before
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
+      expect(getPage(store.getState())).to.equal(Page.UploadWithTemplate);
 
       // apply
       store.dispatch(selections.actions.loadFiles(fileList));
 
       // after
       await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
+      expect(getPage(store.getState())).to.equal(Page.UploadWithTemplate);
     });
 
     it("sets files up for upload", async () => {

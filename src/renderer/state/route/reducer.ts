@@ -27,8 +27,8 @@ import {
 } from "./types";
 
 export const initialState: RouteStateBranch = {
-  page: Page.UploadSummary,
-  view: Page.UploadSummary,
+  page: Page.MyUploads,
+  view: Page.MyUploads,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
@@ -53,8 +53,8 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       action.type === CLOSE_UPLOAD,
     perform: (state: RouteStateBranch) => ({
       ...state,
-      page: Page.UploadSummary,
-      view: Page.UploadSummary,
+      page: Page.MyUploads,
+      view: Page.MyUploads,
     }),
   },
   [START_NEW_UPLOAD]: {
@@ -62,8 +62,8 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       action.type === START_NEW_UPLOAD,
     perform: (state: RouteStateBranch) => ({
       ...state,
-      page: Page.AddCustomData,
-      view: Page.AddCustomData,
+      page: Page.UploadWithTemplate,
+      view: Page.UploadWithTemplate,
     }),
   },
   [INITIATE_UPLOAD_SUCCEEDED]: {
@@ -71,8 +71,8 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (state: RouteStateBranch) => ({
       ...state,
-      page: Page.UploadSummary,
-      view: Page.UploadSummary,
+      page: Page.MyUploads,
+      view: Page.MyUploads,
     }),
   },
   [SELECT_PAGE]: {

@@ -261,11 +261,11 @@ export interface MetadataStateBranch {
 export type ModalName = "openTemplate" | "templateEditor";
 
 export enum Page {
-  AddCustomData = "AddCustomData",
+  UploadWithTemplate = "UploadWithTemplate",
   NewUploadButton = "NewUploadButton",
   Notifications = "Notifications",
   Settings = "Settings",
-  UploadSummary = "UploadSummary",
+  MyUploads = "MyUploads",
 }
 
 export interface RouteStateBranch {

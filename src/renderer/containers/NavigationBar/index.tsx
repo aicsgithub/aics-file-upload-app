@@ -34,7 +34,7 @@ export default function NavigationBar() {
 
   function onSelectUpload() {
     if (isUploadJobInProgress) {
-      dispatch(selectPage(Page.AddCustomData));
+      dispatch(selectPage(Page.UploadWithTemplate));
     } else {
       dispatch(selectView(Page.NewUploadButton));
     }
@@ -45,15 +45,17 @@ export default function NavigationBar() {
       <NotificationViewer isSelected={view === Page.Notifications} />
       <NavigationButton
         icon="upload"
-        isSelected={[Page.AddCustomData, Page.NewUploadButton].includes(view)}
+        isSelected={[Page.UploadWithTemplate, Page.NewUploadButton].includes(
+          view
+        )}
         onSelect={onSelectUpload}
         title={isUploadJobInProgress ? "Current Upload" : "+Upload"}
       />
       <NavigationButton
         icon="profile"
         iconTheme="filled"
-        isSelected={view === Page.UploadSummary}
-        onSelect={() => dispatch(selectPage(Page.UploadSummary))}
+        isSelected={view === Page.MyUploads}
+        onSelect={() => dispatch(selectPage(Page.MyUploads))}
         title="My Uploads"
       />
       <NavigationButton

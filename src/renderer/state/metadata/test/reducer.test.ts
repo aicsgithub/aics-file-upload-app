@@ -52,10 +52,10 @@ describe("metadata reducer", () => {
     it("updates page history", () => {
       const result = reducer(
         initialState,
-        updatePageHistory(Page.AddCustomData, 1, 2, 3)
+        updatePageHistory(Page.UploadWithTemplate, 1, 2, 3)
       );
-      expect(result.history.selection[Page.AddCustomData]).to.equal(1);
-      expect(result.history.upload[Page.AddCustomData]).to.equal(2);
+      expect(result.history.selection[Page.UploadWithTemplate]).to.equal(1);
+      expect(result.history.upload[Page.UploadWithTemplate]).to.equal(2);
     });
   });
   describe("clearFileMetadataForJob", () => {

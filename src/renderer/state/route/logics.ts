@@ -136,7 +136,7 @@ export const handleStartingNewUploadJob = (
   getApplicationMenu: () => Menu | null
 ): AnyAction[] => {
   const actions: AnyAction[] = [
-    selectPage(Page.AddCustomData),
+    selectPage(Page.UploadWithTemplate),
     clearUploadDraft(),
     clearUploadHistory(),
     clearSelectionHistory(),
