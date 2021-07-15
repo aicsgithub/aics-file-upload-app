@@ -263,9 +263,7 @@ export const getApplyTemplateInfo = async (
   );
   return { template, uploads };
 };
-export const CANCEL_BUTTON_INDEX = 0;
-export const DISCARD_BUTTON_INDEX = 1;
-export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
+
 /**
  * Helper function for logics that need to ensure that user has a chance
  * to save their upload before the upload potentially gets updated.
@@ -288,6 +286,10 @@ export const ensureDraftGetsSaved = async (
   cancelled: boolean; // User decides they want to continue working on the current upload draft
   filePath?: string; // Where user saved the upload draft
 }> => {
+  const CANCEL_BUTTON_INDEX = 0;
+  const DISCARD_BUTTON_INDEX = 1;
+  const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
+
   const { dialog, getState, writeFile } = deps;
 
   // if currentUploadFilePath is set, user is working on a upload draft that

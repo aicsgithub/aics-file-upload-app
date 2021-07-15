@@ -20,10 +20,6 @@ import { getAlert } from "../../feedback/selectors";
 import { getFileMetadataForJob } from "../../metadata/selectors";
 import { setHasNoPlateToUpload } from "../../selection/actions";
 import { getSelectedPlate } from "../../selection/selectors";
-import {
-  CANCEL_BUTTON_INDEX,
-  SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
-} from "../../stateHelpers";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -306,6 +302,11 @@ describe("Route logics", () => {
         upload: getMockStateWithHistory({}),
       };
     });
+
+    // These button indexes are hardcoded into `stateHelpers.ensureDraftGetsSaved()`
+    const CANCEL_BUTTON_INDEX = 0;
+    const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
+
     it("doesn't do anything if user cancels action when asked to save current draft", async () => {
       stubMethods({
         showMessageBox: stub().resolves({ response: CANCEL_BUTTON_INDEX }),
@@ -317,11 +318,10 @@ describe("Route logics", () => {
       store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
-      expect(actions.includesMatch({ type: "ignore" })).to.be.true;
-      expect(actions.list.find((a) => a.type === VIEW_UPLOADS_SUCCEEDED)).to.be
-        .undefined;
-      expect(actions.list.find((a) => a.type === REQUEST_FAILED)).to.be
-        .undefined;
+      const actionTypes = actions.list.map((a) => a.type);
+      expect(actionTypes).to.include("ignore");
+      expect(actionTypes).not.to.include(VIEW_UPLOADS_SUCCEEDED);
+      expect(actionTypes).not.to.include(REQUEST_FAILED);
     });
     it("shows save dialog if user has another draft open", async () => {
       const showSaveDialog = stub().resolves({
