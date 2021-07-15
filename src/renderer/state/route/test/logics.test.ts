@@ -14,16 +14,16 @@ import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import LabkeyClient from "../../../services/labkey-client";
 import MMSClient from "../../../services/mms-client";
-import {
-  CANCEL_BUTTON_INDEX,
-  SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
-} from "../../../util";
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
 import { getFileMetadataForJob } from "../../metadata/selectors";
 import { setHasNoPlateToUpload } from "../../selection/actions";
 import { getSelectedPlate } from "../../selection/selectors";
+import {
+  CANCEL_BUTTON_INDEX,
+  SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+} from "../../stateHelpers";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {

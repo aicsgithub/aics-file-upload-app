@@ -3,10 +3,11 @@ import { createLogic } from "redux-logic";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import { determineFilesFromNestedPaths, getPlateInfo } from "../../util";
+import { determineFilesFromNestedPaths } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getPlateInfo } from "../stateHelpers";
 import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,

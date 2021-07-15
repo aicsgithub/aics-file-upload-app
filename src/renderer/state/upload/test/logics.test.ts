@@ -21,10 +21,10 @@ import { StartUploadResponse } from "../../../services/fss-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { ColumnType } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
-import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
+import { CANCEL_BUTTON_INDEX } from "../../stateHelpers";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
