@@ -1,7 +1,7 @@
 import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import {
   Annotation,
   AnnotationOption,
@@ -111,8 +111,8 @@ const getAnnotation = (annotationName: string) =>
     return annotations.find((a) => a.name === annotationName);
   });
 
-export const getNotesAnnotation = getAnnotation(NOTES_ANNOTATION_NAME);
-export const getWellAnnotation = getAnnotation(WELL_ANNOTATION_NAME);
+export const getNotesAnnotation = getAnnotation(AnnotationName.NOTES);
+export const getWellAnnotation = getAnnotation(AnnotationName.WELL);
 
 export const getAnnotationsWithAnnotationOptions = createSelector(
   [getAnnotations, getAnnotationOptions],

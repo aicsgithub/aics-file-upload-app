@@ -5,9 +5,13 @@ export const LONG_DATETIME_FORMAT = "lll";
 export const LIST_DELIMITER_SPLIT = ",";
 export const LIST_DELIMITER_JOIN = ", ";
 
-export const CHANNEL_ANNOTATION_NAME = "Channel Type";
-export const WELL_ANNOTATION_NAME = "Well";
-export const NOTES_ANNOTATION_NAME = "Notes";
+export enum AnnotationName {
+  CHANNEL_TYPE = "Channel Type",
+  NOTES = "Notes",
+  IMAGING_SESSION = "Imaging Session",
+  PLATE_BARCODE = "Plate Barcode",
+  WELL = "Well",
+}
 
 // This was calculated by finding an element with the main font size (18px), getting the clientWidth
 // and dividing by the number of characters.

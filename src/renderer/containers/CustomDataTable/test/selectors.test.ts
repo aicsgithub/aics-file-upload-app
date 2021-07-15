@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
   getMockStateWithHistory,
@@ -73,7 +73,7 @@ describe("CustomDataTable selectors", () => {
       const expected = [
         {
           accessor: "wellLabels",
-          id: WELL_ANNOTATION_NAME,
+          id: AnnotationName.WELL,
           Cell: WellCell,
           // This description was pulled from LK 03/22/21
           description:

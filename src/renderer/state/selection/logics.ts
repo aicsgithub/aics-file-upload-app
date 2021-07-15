@@ -1,7 +1,7 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { createLogic } from "redux-logic";
 
-import { NOTES_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { GridCell } from "../../entities";
 import { determineFilesFromNestedPaths, getPlateInfo } from "../../util";
 import { requestFailed } from "../actions";
@@ -163,7 +163,7 @@ const applyMassEditLogic = createLogic({
       (row, [key, value]) => ({
         ...row,
         // Exclude empty values
-        ...((value.length || key === NOTES_ANNOTATION_NAME) && {
+        ...((value.length || key === AnnotationName.NOTES) && {
           [key]: value,
         }),
       }),

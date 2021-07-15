@@ -11,7 +11,7 @@ import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../constants";
+import { AnnotationName } from "../constants";
 import {
   ApplicationInfoService,
   FileManagementSystem,
@@ -222,8 +222,8 @@ export interface FileModelId {
 // Metadata associated with a file
 export interface FileModel extends FileModelId {
   // Known custom annotations
-  [WELL_ANNOTATION_NAME]?: number[];
-  [NOTES_ANNOTATION_NAME]?: string[];
+  [AnnotationName.WELL]?: number[];
+  [AnnotationName.NOTES]?: string[];
   // Any other annotations will be generically added
   [annotationName: string]: any;
 }

@@ -28,7 +28,7 @@ import CustomDataTable from "../CustomDataTable";
 
 import PageFooter from "./PageFooter";
 
-const styles = require("./style.pcss");
+const styles = require("./styles.pcss");
 
 const openDialogOptions: OpenDialogOptions = {
   properties: ["openFile", "multiSelections"],

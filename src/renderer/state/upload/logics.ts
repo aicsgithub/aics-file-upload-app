@@ -15,12 +15,7 @@ import {
 import { isDate, isMoment } from "moment";
 import { createLogic } from "redux-logic";
 
-import {
-  CHANNEL_ANNOTATION_NAME,
-  LIST_DELIMITER_SPLIT,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../constants";
+import { AnnotationName, LIST_DELIMITER_SPLIT } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
 import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
 import { StartUploadResponse } from "../../services/fss-client";
@@ -455,9 +450,9 @@ const updateSubImagesLogic = createLogic({
     if (!isEmpty(subImages)) {
       update[fileRowKey] = {
         ...uploads[fileRowKey],
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
         ...(channelIds.length && {
-          [CHANNEL_ANNOTATION_NAME]: channelIds,
+          [AnnotationName.CHANNEL_TYPE]: channelIds,
         }),
       };
     }
@@ -474,11 +469,11 @@ const updateSubImagesLogic = createLogic({
         update[key] = {
           channelId,
           file: fileRow.file,
-          [NOTES_ANNOTATION_NAME]: [],
+          [AnnotationName.NOTES]: [],
           positionIndex: undefined,
           scene: undefined,
           subImageName: undefined,
-          [WELL_ANNOTATION_NAME]: [],
+          [AnnotationName.WELL]: [],
           ...additionalAnnotations,
         };
       });
@@ -497,8 +492,8 @@ const updateSubImagesLogic = createLogic({
         update[subImageOnlyRowKey] = {
           channelId: undefined,
           file: fileRow.file,
-          [NOTES_ANNOTATION_NAME]: [],
-          [WELL_ANNOTATION_NAME]: [],
+          [AnnotationName.NOTES]: [],
+          [AnnotationName.WELL]: [],
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
         };
@@ -521,8 +516,8 @@ const updateSubImagesLogic = createLogic({
           update[key] = {
             channelId,
             file: fileRow.file,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
             [subImageKey]: subImageValue,
             ...additionalAnnotations,
           };

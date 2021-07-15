@@ -8,7 +8,7 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import FileManagementSystem from "../../../services/fms-client";
 import LabkeyClient from "../../../services/labkey-client";
 import {
@@ -228,7 +228,7 @@ describe("Metadata logics", () => {
     it("sets lookupOptions given OK response", async () => {
       labkeyClient.getOptionsForLookup.resolves(mockLookupOptions);
       await runRequestSucceededTest(
-        retrieveOptionsForLookup(WELL_ANNOTATION_NAME),
+        retrieveOptionsForLookup(AnnotationName.WELL),
         receiveMetadata(
           { Well: mockLookupOptions },
           AsyncRequest.GET_OPTIONS_FOR_LOOKUP

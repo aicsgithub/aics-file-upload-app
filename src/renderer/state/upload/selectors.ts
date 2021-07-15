@@ -21,13 +21,11 @@ import * as moment from "moment";
 import { createSelector } from "reselect";
 
 import {
-  CHANNEL_ANNOTATION_NAME,
+  AnnotationName,
   DAY_AS_MS,
   HOUR_AS_MS,
   LIST_DELIMITER_SPLIT,
   MINUTE_AS_MS,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
 } from "../../constants";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
@@ -108,7 +106,7 @@ export const getUploadWithCalculatedData = createSelector(
     wellIdToWell: Map<number, WellResponse>
   ): DisplayUploadStateBranch =>
     Object.entries(uploads).reduce((accum, [key, metadata]) => {
-      const wellIds = metadata[WELL_ANNOTATION_NAME] || [];
+      const wellIds = metadata[AnnotationName.WELL] || [];
       return {
         ...accum,
         [key]: {
@@ -137,9 +135,9 @@ const convertToUploadJobRow = (
   return {
     ...metadata,
     subRows,
-    [CHANNEL_ANNOTATION_NAME]: channelIds,
-    [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME] || [],
-    [WELL_ANNOTATION_NAME]: metadata[WELL_ANNOTATION_NAME] || [],
+    [AnnotationName.CHANNEL_TYPE]: channelIds,
+    [AnnotationName.NOTES]: metadata[AnnotationName.NOTES] || [],
+    [AnnotationName.WELL]: metadata[AnnotationName.WELL] || [],
     positionIndexes,
     scenes,
     subImageNames,
@@ -502,8 +500,8 @@ export const getUploadValidationErrors = createSelector(
         const requiredAnnotationsThatDontHaveValues = requiredAnnotations.filter(
           (annotation) => !annotationHasValueMap[annotation]
         );
-        if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
-          requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);
+        if (!annotationHasValueMap[AnnotationName.WELL] && shouldHaveWells) {
+          requiredAnnotationsThatDontHaveValues.push(AnnotationName.WELL);
         }
 
         if (requiredAnnotationsThatDontHaveValues.length) {
@@ -625,7 +623,7 @@ export const getUploadRequests = createSelector(
       // wellIds in the microscopy block. Since a file may have 1 or more scenes and channels
       // per file, we set these values to a uniq list of all of the values found across each "dimension"
       const wellIds = uniq(
-        flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || [])
+        flatMap(metadata, (m) => m[AnnotationName.WELL] || [])
       ).filter((w) => !!w);
       return {
         customMetadata: {

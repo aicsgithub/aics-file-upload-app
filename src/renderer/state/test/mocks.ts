@@ -1,6 +1,6 @@
 import { StateWithHistory } from "redux-undo";
 
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { GridCell } from "../../entities";
 import {
   JSSJob,
@@ -88,7 +88,7 @@ export const mockWellAnnotation: Annotation = {
   annotationTypeId: 6,
   description: "Well associated with this file",
   exposeToFileUploadApp: true,
-  name: WELL_ANNOTATION_NAME,
+  name: AnnotationName.WELL,
   "annotationTypeId/Name": ColumnType.LOOKUP,
 };
 
@@ -98,7 +98,7 @@ export const mockNotesAnnotation: Annotation = {
   annotationTypeId: 1,
   description: "Other information",
   exposeToFileUploadApp: true,
-  name: NOTES_ANNOTATION_NAME,
+  name: AnnotationName.NOTES,
   "annotationTypeId/Name": ColumnType.TEXT,
 };
 
@@ -242,21 +242,21 @@ export const mockWellUpload: UploadStateBranch = {
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file1",
     key: getUploadRowKey({ file: "/path/to/file1" }),
-    [WELL_ANNOTATION_NAME]: [1],
+    [AnnotationName.WELL]: [1],
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
     barcode: "1235",
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file2",
     key: getUploadRowKey({ file: "/path/to/file2" }),
-    [WELL_ANNOTATION_NAME]: [2],
+    [AnnotationName.WELL]: [2],
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
     barcode: "1236",
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3" }),
-    [WELL_ANNOTATION_NAME]: [1, 2, 3],
+    [AnnotationName.WELL]: [1, 2, 3],
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
     barcode: "1236",
@@ -264,7 +264,7 @@ export const mockWellUpload: UploadStateBranch = {
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 }),
     positionIndex: 1,
-    [WELL_ANNOTATION_NAME]: [1, 2],
+    [AnnotationName.WELL]: [1, 2],
   },
 };
 
@@ -372,7 +372,7 @@ export const mockTemplateWithManyValues: Template = {
       annotationTypeId: 1,
       description:
         "Additional information that doesn't align well with other annotations",
-      name: NOTES_ANNOTATION_NAME,
+      name: AnnotationName.NOTES,
       required: true,
     },
   ],

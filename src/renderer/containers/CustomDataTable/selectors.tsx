@@ -2,13 +2,12 @@ import { basename } from "path";
 
 import { createSelector } from "reselect";
 
-import {
-  MAIN_FONT_WIDTH,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../constants";
+import { MAIN_FONT_WIDTH, AnnotationName } from "../../constants";
 import { ColumnType } from "../../services/labkey-client/types";
-import { getAnnotationTypes } from "../../state/metadata/selectors";
+import {
+  getAnnotations,
+  getAnnotationTypes,
+} from "../../state/metadata/selectors";
 import {
   getAreSelectedUploadsInFlight,
   getSelectedBarcode,
@@ -16,6 +15,7 @@ import {
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getTextWidth } from "../../util";
 import FilenameCell from "../Table/CustomCells/FilenameCell";
+import ImagingSessionCell from "../Table/CustomCells/ImagingSessionCell";
 import NotesCell from "../Table/CustomCells/NotesCell";
 import SelectionCell from "../Table/CustomCells/SelectionCell";
 import WellCell from "../Table/CustomCells/WellCell";
@@ -34,7 +34,7 @@ const SELECTION_COLUMN: CustomColumn = {
 
 const WELL_COLUMN: CustomColumn = {
   accessor: "wellLabels",
-  id: WELL_ANNOTATION_NAME,
+  id: AnnotationName.WELL,
   Cell: WellCell,
   // This description was pulled from LK 03/22/21
   description: "A well on a plate (that has been entered into the Plate UI)",
@@ -53,7 +53,7 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
       basename(a.original.file).localeCompare(basename(b.original.file)),
   },
   {
-    accessor: NOTES_ANNOTATION_NAME,
+    accessor: AnnotationName.NOTES,
     Cell: NotesCell,
     description: "Any additional text data (not ideal for querying)",
     maxWidth: 50,
@@ -95,27 +95,65 @@ function getColumnWidthForType(column: string, type?: ColumnType): number {
 }
 
 export const getTemplateColumnsForTable = createSelector(
-  [getAnnotationTypes, getAppliedTemplate, getSelectedBarcode],
-  (annotationTypes, template, hasPlate): CustomColumn[] => {
+  [getAnnotationTypes, getAppliedTemplate, getSelectedBarcode, getAnnotations],
+  (annotationTypes, template, hasPlate, annotations): CustomColumn[] => {
     if (!template) {
       return [];
     }
-    return [
-      ...(hasPlate ? [WELL_COLUMN] : []),
-      ...template.annotations.map((annotation) => {
-        const type = annotationTypes.find(
-          (type) => type.annotationTypeId === annotation.annotationTypeId
-        )?.name;
-        return {
-          type,
-          accessor: annotation.name,
-          description: annotation.description,
-          dropdownValues: annotation.annotationOptions,
-          isRequired: annotation.required,
-          width: getColumnWidthForType(annotation.name, type),
-        };
-      }),
-    ];
+
+    const templateAnnotations = [...template.annotations];
+    const plateBarcodeAnnotation = annotations.find(
+      (a) => a.name === AnnotationName.PLATE_BARCODE
+    );
+    if (plateBarcodeAnnotation) {
+      templateAnnotations.push({ ...plateBarcodeAnnotation, required: false });
+    }
+
+    const columns: CustomColumn[] = template.annotations.map((annotation) => {
+      const type = annotationTypes.find(
+        (type) => type.annotationTypeId === annotation.annotationTypeId
+      )?.name;
+      return {
+        type,
+        accessor: annotation.name,
+        description: annotation.description,
+        dropdownValues: annotation.annotationOptions,
+        isRequired: annotation.required,
+        width: getColumnWidthForType(annotation.name, type),
+      };
+    });
+
+    // TODO: Could refactor so that the triggers these rely on just add the annotation
+    // into the template then when encountering those columns here swap out their Cell
+    // property to be the custom cell needed
+
+    // TODO: Remove the logic to pull in a plate via the well
+
+    // If the user has selected a plate barcode on any row add the well column in
+    if (hasPlate) {
+      const wellAnnotation = annotations.find(
+        (a) => a.name === AnnotationName.WELL
+      );
+      columns.push({
+        ...WELL_COLUMN,
+        description: wellAnnotation?.description || WELL_COLUMN.description,
+      });
+
+      // If the any plates the user has selected have included an imaging session add it
+      if (true) {
+        const imagingSessionAnnotation = annotations.find(
+          (a) => a.name === AnnotationName.IMAGING_SESSION
+        );
+        columns.push({
+          accessor: AnnotationName.IMAGING_SESSION,
+          Cell: ImagingSessionCell,
+          description: imagingSessionAnnotation?.description || "loading",
+          width: 100,
+        });
+      }
+    }
+
+    return columns;
   }
 );
 

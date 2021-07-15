@@ -4,7 +4,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
-import { WELL_ANNOTATION_NAME } from "../../../../constants";
+import { AnnotationName } from "../../../../constants";
 import { getSelectedWellIds } from "../../../../state/selection/selectors";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
@@ -22,7 +22,7 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
   const dispatch = useDispatch();
   const selectedWells = useSelector(getSelectedWellIds);
   const [isEditing, setIsEditing] = React.useState(false);
-  const associatedWells = props.row.original[WELL_ANNOTATION_NAME] || [];
+  const associatedWells = props.row.original[AnnotationName.WELL] || [];
 
   // Disable association button if no wells are selected or if
   // all of the wells have already been associated with
@@ -40,7 +40,7 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
   function onAssociate() {
     dispatch(
       updateUpload(props.row.id, {
-        [WELL_ANNOTATION_NAME]: uniq([...associatedWells, ...selectedWells]),
+        [AnnotationName.WELL]: uniq([...associatedWells, ...selectedWells]),
       })
     );
   }
@@ -48,7 +48,7 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
   function onDissociate() {
     dispatch(
       updateUpload(props.row.id, {
-        [WELL_ANNOTATION_NAME]: without(associatedWells, ...selectedWells),
+        [AnnotationName.WELL]: without(associatedWells, ...selectedWells),
       })
     );
   }
@@ -65,6 +65,7 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
             className={styles.associateBtn}
             disabled={isAssociatiateButtonDisabled}
           >
+            {/* TODO: Make this dismiss the modal */}
             Associate
           </Button>
           <Button

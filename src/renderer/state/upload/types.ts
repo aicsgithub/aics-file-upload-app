@@ -1,8 +1,4 @@
-import {
-  CHANNEL_ANNOTATION_NAME,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../constants";
+import { AnnotationName } from "../../constants";
 import { JSSJob } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
 import {
@@ -70,13 +66,13 @@ export interface UploadTableRow extends FileModel {
   subImageNames: string[];
 
   // Keeps track of all channelIds - used only on the top-level row
-  [CHANNEL_ANNOTATION_NAME]: string[];
+  [AnnotationName.CHANNEL_TYPE]: string[];
 
   // notes associated with the file
-  [NOTES_ANNOTATION_NAME]?: string[];
+  [AnnotationName.NOTES]?: string[];
 
   // all wellIds associated with this file model
-  [WELL_ANNOTATION_NAME]?: number[];
+  [AnnotationName.WELL]?: number[];
 
   // human readable identifier of well, such as "A1"
   wellLabels: string[];

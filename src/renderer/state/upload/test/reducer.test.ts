@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import { resetUpload } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import { UploadStateBranch } from "../../types";
@@ -15,12 +15,12 @@ describe("upload reducer", () => {
       foo: {
         barcode: "1234",
         file: "/path",
-        [WELL_ANNOTATION_NAME]: [1, 2],
+        [AnnotationName.WELL]: [1, 2],
       },
       bar: {
         barcode: "1235",
         file: "/path2",
-        [WELL_ANNOTATION_NAME]: [1, 2],
+        [AnnotationName.WELL]: [1, 2],
       },
     };
   });
@@ -28,7 +28,7 @@ describe("upload reducer", () => {
     it("does not change anything if key doesn't exist on upload", () => {
       const result = reducer(
         getMockStateWithHistory({}),
-        updateUpload("foo", { [WELL_ANNOTATION_NAME]: [1, 2] })
+        updateUpload("foo", { [AnnotationName.WELL]: [1, 2] })
       );
       const { present } = result;
       expect(present).to.be.empty;
@@ -36,10 +36,10 @@ describe("upload reducer", () => {
     it("updates upload at key specified", () => {
       const result = reducer(
         getMockStateWithHistory(uploads),
-        updateUpload("foo", { [WELL_ANNOTATION_NAME]: [3] })
+        updateUpload("foo", { [AnnotationName.WELL]: [3] })
       );
       const { present } = result;
-      expect(present.foo[WELL_ANNOTATION_NAME]).to.deep.equal([3]);
+      expect(present.foo[AnnotationName.WELL]).to.deep.equal([3]);
     });
   });
   describe("replaceUpload", () => {
@@ -47,7 +47,7 @@ describe("upload reducer", () => {
       const uploadPartial = {
         barcode: "5678",
         file: "/path2",
-        [WELL_ANNOTATION_NAME]: [9],
+        [AnnotationName.WELL]: [9],
       };
       const draft = {
         ...mockState,

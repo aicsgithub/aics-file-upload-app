@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
   CellPopulation,
@@ -519,7 +519,7 @@ describe("Selections selectors", () => {
       const massEditRow = {
         CellLine: ["AICS-0"],
         Color: ["Blue", "Green"],
-        [WELL_ANNOTATION_NAME]: [wellId1, wellId2],
+        [AnnotationName.WELL]: [wellId1, wellId2],
       };
       const rowsSelectedForMassEdit = ["1", "39", "62"];
       const state = {

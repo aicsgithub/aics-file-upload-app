@@ -2,7 +2,7 @@ import { omit } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
-import { WELL_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { RESET_UPLOAD, VIEW_UPLOADS_SUCCEEDED } from "../route/constants";
 import { ResetUploadAction, ViewUploadsSucceededAction } from "../route/types";
@@ -68,7 +68,7 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           ...nextState,
           [key]: {
             ...metadata,
-            [WELL_ANNOTATION_NAME]: undefined,
+            [AnnotationName.WELL]: undefined,
           },
         }),
         {} as UploadStateBranch
@@ -84,7 +84,7 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           ...nextState,
           [key]: {
             ...metadata,
-            [WELL_ANNOTATION_NAME]: undefined,
+            [AnnotationName.WELL]: undefined,
           },
         }),
         {} as UploadStateBranch

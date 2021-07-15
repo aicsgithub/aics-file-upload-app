@@ -8,7 +8,7 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
@@ -451,7 +451,7 @@ describe("Route logics", () => {
           file: fileMetadata.localFilePath,
           fileId: "dog",
           "Favorite Color": ["Blue", "Green"],
-          [WELL_ANNOTATION_NAME]: ["A1", "B6"],
+          [AnnotationName.WELL]: ["A1", "B6"],
           channelId: undefined,
           fovId: undefined,
           positionIndex: undefined,

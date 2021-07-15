@@ -2,7 +2,7 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
-import { WELL_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { GridCell } from "../../entities";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
@@ -249,7 +249,7 @@ export const getMassEditRowAsTableRow = createSelector(
   ): MassEditRow => ({
     ...(massEditRow && massEditRow),
     [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit?.length,
-    wellLabels: (massEditRow?.[WELL_ANNOTATION_NAME] || []).map((id: number) =>
+    wellLabels: (massEditRow?.[AnnotationName.WELL] || []).map((id: number) =>
       getWellLabelAndImagingSessionName(
         id,
         imagingSessions,

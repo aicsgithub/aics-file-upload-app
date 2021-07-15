@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import {
   getMockStateWithHistory,
   mockSelection,
@@ -95,7 +95,7 @@ describe("AddCustomData selectors", () => {
           foo: {
             barcode: "1234",
             file: "foo",
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
         }),
       });

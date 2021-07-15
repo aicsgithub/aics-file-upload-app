@@ -9,16 +9,17 @@ import {
   submitFileMetadataUpdate,
 } from "../../../state/upload/actions";
 import { getUploadValidationErrors } from "../../../state/upload/selectors";
-import { getCanSubmitUpload } from "../selectors";
+import { getCanSubmitUpload, getIsUploadInProgress } from "../selectors";
 
-const styles = require("./style.pcss");
+const styles = require("./styles.pcss");
 
 interface Props {
   onSubmit: () => void;
 }
 
 /**
- * TODO
+ * Component responsible for rendering the button footer of the
+ * UploadWithTemplatePage.
  */
 export default function PageFooter(props: Props) {
   const dispatch = useDispatch();
@@ -58,7 +59,7 @@ export default function PageFooter(props: Props) {
         {isUploadInProgress ? (
           <>
             Loading&nbsp;
-            <Icon type="loading" className={styles.loading} spin={true} />
+            <Icon type="loading" spin={true} />
           </>
         ) : selectedUploads.length ? (
           "Update"

@@ -10,7 +10,7 @@ import {
   DAY_AS_MS,
   HOUR_AS_MS,
   MINUTE_AS_MS,
-  WELL_ANNOTATION_NAME,
+  AnnotationName,
 } from "../../constants";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
@@ -399,7 +399,7 @@ const viewUploadsLogic = createLogic({
       const uploadsWithPlateInfo = await Object.entries(
         uploadsToView.uploadMetadata
       ).reduce(async (accum, [key, upload]) => {
-        const wellIds = upload[WELL_ANNOTATION_NAME];
+        const wellIds = upload[AnnotationName.WELL];
         if (!wellIds || isEmpty(wellIds)) {
           return { ...(await accum), [key]: upload };
         }
@@ -411,7 +411,7 @@ const viewUploadsLogic = createLogic({
         }
         return {
           ...(await accum),
-          [key]: omit(upload, WELL_ANNOTATION_NAME),
+          [key]: omit(upload, AnnotationName.WELL),
         };
       }, {} as Promise<UploadStateBranch>);
 

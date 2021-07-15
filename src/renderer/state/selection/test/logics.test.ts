@@ -5,7 +5,7 @@ import { createSandbox, SinonStubbedInstance, createStubInstance } from "sinon";
 
 import selections from "../";
 import { feedback } from "../../";
-import { NOTES_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import MMSClient from "../../../services/mms-client";
 import {
   GetPlateResponse,
@@ -296,7 +296,7 @@ describe("Selection logics", () => {
       // Arrange
       const massEditRow = {
         color: ["blue", "green"],
-        [NOTES_ANNOTATION_NAME]: ["hello"],
+        [AnnotationName.NOTES]: ["hello"],
       };
       const rowsSelectedForMassEdit = ["1", "100", "2"];
       const { actions, logicMiddleware, store } = createMockReduxStore({
