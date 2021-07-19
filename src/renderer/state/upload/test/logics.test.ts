@@ -21,7 +21,6 @@ import { StartUploadResponse } from "../../../services/fss-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { ColumnType } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
-import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
@@ -1500,7 +1499,8 @@ describe("Upload logics", () => {
   describe("openUploadLogic", () => {
     it("does not show open dialog if user cancels action when asked if they want to save", async () => {
       const showMessageBoxStub = stub().resolves({
-        response: CANCEL_BUTTON_INDEX,
+        // 0 is the index of the cancel button in `stateHelpers.ensureDraftGetsSaved()`
+        response: 0,
       });
       const openDialogStub = stub();
       sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);

@@ -3,11 +3,7 @@ import { FilterFunction, StateWithHistory } from "redux-undo";
 
 import { APP_ID } from "../constants";
 
-import {
-  BatchedAction,
-  TypeToDescriptionMap,
-  UploadProgressInfo,
-} from "./types";
+import { BatchedAction, TypeToDescriptionMap } from "./types";
 
 export function makeConstant(associatedReducer: string, actionType: string) {
   return `${APP_ID}/${associatedReducer.toUpperCase()}/${actionType.toUpperCase()}`;
@@ -78,26 +74,4 @@ export const getReduxUndoFilterFn = (
     !excludeActions.includes(action.type) &&
     currentState !== previousHistory.present
   );
-};
-
-export const handleUploadProgress = (
-  fileNames: string[],
-  onProgress: (progress: UploadProgressInfo) => void
-) => {
-  const copyProgress = new Map();
-  fileNames.forEach((fileName: string) => {
-    copyProgress.set(fileName, 0);
-  });
-  return (originalPath: string, bytesCopied: number, totalBytes: number) => {
-    copyProgress.set(originalPath, bytesCopied);
-    let completedBytes = 0;
-    copyProgress.forEach((value: number) => {
-      completedBytes += value;
-    });
-    const progress: UploadProgressInfo = {
-      completedBytes,
-      totalBytes,
-    };
-    onProgress(progress);
-  };
 };

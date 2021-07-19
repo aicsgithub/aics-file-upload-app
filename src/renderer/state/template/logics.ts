@@ -6,11 +6,9 @@ import {
   SaveTemplateRequest,
   TemplateAnnotation,
 } from "../../services/mms-client/types";
-import { getApplyTemplateInfo } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert } from "../feedback/actions";
 import { OpenTemplateEditorAction } from "../feedback/types";
-import { getWithRetry } from "../feedback/util";
 import { receiveMetadata, requestTemplates } from "../metadata/actions";
 import {
   getAnnotationLookups,
@@ -19,6 +17,7 @@ import {
   getLookupAnnotationTypeId,
   getLookups,
 } from "../metadata/selectors";
+import { getApplyTemplateInfo, getWithRetry } from "../stateHelpers";
 import {
   AlertType,
   AnnotationDraft,
