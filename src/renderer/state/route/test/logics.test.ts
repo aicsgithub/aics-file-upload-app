@@ -260,7 +260,7 @@ describe("Route logics", () => {
         ],
       });
       labkeyClient.findPlateBarcodeByWellId.resolves("abc");
-      labkeyClient.findImagingSessionIdsByPlateBarcode.resolves([null, 1]);
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves(["3 hours"]);
       mmsClient.getPlate.resolves({
         plate: {
           ...mockAuditInfo,

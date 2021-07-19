@@ -24,6 +24,7 @@ export const getAnnotationOptions = (state: State) =>
 export const getAnnotationTypes = (state: State) =>
   state.metadata.annotationTypes;
 export const getUnits = (state: State) => state.metadata.units;
+// TODO: unused?
 export const getImagingSessions = (state: State) =>
   state.metadata.imagingSessions;
 export const getLookups = (state: State) => state.metadata.lookups;

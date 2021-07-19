@@ -230,6 +230,7 @@ export const mockSelection: SelectionStateBranch = {
   imagingSessionIds: [null, 1],
   hasNoPlateToUpload: false,
   plate: mockPlate,
+  plateBarcodeToImagingSessions: {},
   selectedWells: [],
   user: "fake_user",
   uploads: [],

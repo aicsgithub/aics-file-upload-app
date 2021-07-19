@@ -20,10 +20,18 @@
   display: flex;
   flex-direction: column;
 
-  height: calc(100% - 4em);
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  max-width: calc(100% - var(--navigation-bar-width));
   padding: 1em;
   user-select: auto;
+  width: 100vw;
+}
+
+.drag-and-drop-box {
+  display: flex;
+  flex-direction: column;
 }
 
 .spin-container {

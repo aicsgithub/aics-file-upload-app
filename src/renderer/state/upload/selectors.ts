@@ -136,7 +136,11 @@ const convertToUploadJobRow = (
     ...metadata,
     subRows,
     [AnnotationName.CHANNEL_TYPE]: channelIds,
+    [AnnotationName.IMAGING_SESSION]:
+      metadata[AnnotationName.IMAGING_SESSION] || [],
     [AnnotationName.NOTES]: metadata[AnnotationName.NOTES] || [],
+    [AnnotationName.PLATE_BARCODE]:
+      metadata[AnnotationName.PLATE_BARCODE] || [],
     [AnnotationName.WELL]: metadata[AnnotationName.WELL] || [],
     positionIndexes,
     scenes,

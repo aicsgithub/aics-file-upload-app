@@ -42,7 +42,7 @@ export default function PageFooter(props: Props) {
   }
 
   return (
-    <div className={styles.saveButtonContainer}>
+    <div className={styles.pageFooter}>
       <Button
         className={styles.cancelButton}
         size="large"

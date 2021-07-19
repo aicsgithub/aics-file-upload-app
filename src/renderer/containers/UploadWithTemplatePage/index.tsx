@@ -41,8 +41,8 @@ const openDialogOptions: OpenDialogOptions = {
 export default function UploadWithTemplatePage() {
   const dispatch = useDispatch();
   const appliedTemplate = useSelector(getAppliedTemplate);
-  const isReadOnly = useSelector(getAreSelectedUploadsInFlight);
   const isPageLoading = useSelector(getIsLoading);
+  const isReadOnly = useSelector(getAreSelectedUploadsInFlight);
   const requestsInProgress = useSelector(getRequestsInProgress);
   const selectedUploads = useSelector(getSelectedUploads);
   const uploadError = useSelector(getUploadError);
@@ -60,6 +60,7 @@ export default function UploadWithTemplatePage() {
 
   return (
     <DragAndDrop
+      className={styles.dragAndDropBox}
       disabled={!!selectedUploads.length}
       overlayChildren={!Object.keys(uploads).length && !isPageLoading}
       onDrop={(f) => dispatch(loadFiles(f))}

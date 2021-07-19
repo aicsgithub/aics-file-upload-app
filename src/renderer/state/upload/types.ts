@@ -68,12 +68,7 @@ export interface UploadTableRow extends FileModel {
   // Keeps track of all channelIds - used only on the top-level row
   [AnnotationName.CHANNEL_TYPE]: string[];
 
-  // notes associated with the file
-  [AnnotationName.NOTES]?: string[];
-
-  // all wellIds associated with this file model
-  [AnnotationName.WELL]?: number[];
-
+  // TODO: Remove???
   // human readable identifier of well, such as "A1"
   wellLabels: string[];
 }

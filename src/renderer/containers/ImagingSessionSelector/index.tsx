@@ -87,6 +87,8 @@ const dispatchToPropsMap = {
   selectImagingSessionId,
 };
 
+// TODO: This component can be deleted
+
 export default connect(
   mapStateToProps,
   dispatchToPropsMap

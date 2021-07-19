@@ -1,5 +1,10 @@
 import { GridCell } from "../../entities";
-import { CellPopulation, Solution } from "../../services/mms-client/types";
+import {
+  CellPopulation,
+  PlateResponse,
+  Solution,
+  WellResponse,
+} from "../../services/mms-client/types";
 import {
   AutoSaveAction,
   ImagingSessionIdToPlateMap,
@@ -118,4 +123,22 @@ export interface ApplyMassEditAction {
 
 export interface CancelMassEditAction {
   type: string;
+}
+
+export interface SetPlateBarcodeToImagingSessionsAction {
+  payload: PlateBarcodeToImagingSessions;
+  type: string;
+}
+
+export interface PlateWithImagingSession {
+  imagingSessionId?: number;
+  name?: string;
+  plate: PlateResponse;
+  wells: WellResponse[];
+}
+
+export interface PlateBarcodeToImagingSessions {
+  [plateBarcode: string]: {
+    [imagingSessionId: number]: PlateWithImagingSession;
+  };
 }

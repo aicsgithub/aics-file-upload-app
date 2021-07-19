@@ -1,5 +1,5 @@
 import { camelizeKeys } from "humps";
-import { isEmpty, map, pick, uniq } from "lodash";
+import { isEmpty, map, pick } from "lodash";
 
 import { LocalStorage } from "../../types";
 import HttpCacheClient from "../http-cache-client";
@@ -67,7 +67,7 @@ export default class LabkeyClient extends HttpCacheClient {
     this.getChannels = this.getChannels.bind(this);
     this.getTemplateHasBeenUsed = this.getTemplateHasBeenUsed.bind(this);
     this.findPlateBarcodeByWellId = this.findPlateBarcodeByWellId.bind(this);
-    this.findImagingSessionIdsByPlateBarcode = this.findImagingSessionIdsByPlateBarcode.bind(
+    this.findImagingSessionsByPlateBarcode = this.findImagingSessionsByPlateBarcode.bind(
       this
     );
     this.getFileExistsByMD5AndName = this.getFileExistsByMD5AndName.bind(this);
@@ -354,19 +354,16 @@ export default class LabkeyClient extends HttpCacheClient {
     return plateResponse.rows[0]?.BarCode;
   }
 
-  public async findImagingSessionIdsByPlateBarcode(
+  public async findImagingSessionsByPlateBarcode(
     barcode: string
-  ): Promise<Array<number | null>> {
+  ): Promise<{ ImagingSessionId: number; "ImagingSessionId/Name": string }[]> {
+    const columns = ["ImagingSessionId", "ImagingSessionId/Name"];
     const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Plate", [
       `query.barcode~eq=${encodeURIComponent(barcode)}`,
+      `query.columns=${columns}`,
     ]);
     const response = await this.get(query);
-    if (response.rows.length) {
-      return uniq(
-        response.rows.map((plate: LabkeyPlate) => plate.ImagingSessionId)
-      );
-    }
-    return [];
+    return response.rows;
   }
 
   public async getFileExistsByMD5AndName(

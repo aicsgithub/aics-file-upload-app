@@ -18,6 +18,10 @@ export const SET_HAS_NO_PLATE_TO_UPLOAD = makeConstant(
 export const SET_PLATE = makeConstant(BRANCH_NAME, "set-plate");
 export const SELECT_METADATA = makeConstant(BRANCH_NAME, "select-metadata");
 export const LOAD_FILES = makeConstant(BRANCH_NAME, "load-files");
+export const SET_PLATE_BARCODE_TO_IMAGING_SESSIONS = makeConstant(
+  BRANCH_NAME,
+  "set-plate-barcode-to-imaging-sessions"
+);
 export const SELECT_WELLS = makeConstant(BRANCH_NAME, "select-wells");
 export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");
 export const CLEAR_SELECTION_HISTORY = makeConstant(

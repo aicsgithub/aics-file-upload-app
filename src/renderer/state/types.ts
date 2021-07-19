@@ -42,6 +42,8 @@ import {
 import { UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
+import { PlateBarcodeToImagingSessions } from "./selection/types";
+
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -222,8 +224,10 @@ export interface FileModelId {
 // Metadata associated with a file
 export interface FileModel extends FileModelId {
   // Known custom annotations
-  [AnnotationName.WELL]?: number[];
   [AnnotationName.NOTES]?: string[];
+  [AnnotationName.PLATE_BARCODE]?: string[];
+  [AnnotationName.WELL]?: number[];
+  [AnnotationName.IMAGING_SESSION]?: string[];
   // Any other annotations will be generically added
   [annotationName: string]: any;
 }
@@ -295,6 +299,7 @@ export interface UploadRowTableId {
 }
 
 export interface UploadTabSelections {
+  // TODO: Is all of this still necessary?
   barcode?: string;
   cellAtDragStart?: UploadKeyValue;
   imagingSessionId?: number;
@@ -303,6 +308,7 @@ export interface UploadTabSelections {
   uploads: JSSJob<UploadServiceFields>[];
   massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
+  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions;
   rowsSelectedForDragEvent?: UploadRowTableId[];
   rowsSelectedForMassEdit?: string[];
   subFileSelectionModalFile?: string;

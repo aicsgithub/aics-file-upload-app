@@ -42,8 +42,15 @@ import {
   handleStartingNewUploadJob,
   resetHistoryActions,
 } from "../route/logics";
-import { updateMassEditRow } from "../selection/actions";
-import { getMassEditRow, getSelectedUploads } from "../selection/selectors";
+import {
+  setPlateBarcodeToImagingSessions,
+  updateMassEditRow,
+} from "../selection/actions";
+import {
+  getMassEditRow,
+  getPlateBarcodeToImagingSessions,
+  getSelectedUploads,
+} from "../selection/selectors";
 import { getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -628,6 +635,57 @@ function formatUpload(
 }
 
 const updateUploadLogic = createLogic({
+  process: async (
+    deps: ReduxLogicProcessDependenciesWithAction<UpdateUploadAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { upload } = deps.action.payload;
+
+    // If a plate barcode is being updated check for imaging sessions
+    const plateBarcode = upload[AnnotationName.PLATE_BARCODE]?.[0];
+    if (plateBarcode) {
+      const plateBarcodeToImagingSessions = getPlateBarcodeToImagingSessions(
+        deps.getState()
+      );
+      // Avoid re-querying for the imaging sessions if this
+      // plate barcode has been selected before
+      if (!Object.keys(plateBarcodeToImagingSessions).includes(plateBarcode)) {
+        // TODO: Why not find by name
+        const imagingSessionsForPlateBarcode = await deps.labkeyClient.findImagingSessionsByPlateBarcode(
+          plateBarcode
+        );
+        const imagingSessionsWithPlateInfo = await Promise.all(
+          imagingSessionsForPlateBarcode.map(async (is) => {
+            const platesAndWells = await deps.mmsClient.getPlate(
+              plateBarcode,
+              is && is["ImagingSessionId"]
+            );
+
+            return {
+              ...platesAndWells,
+              imagingSessionId: is["ImagingSessionId"],
+              name: is["ImagingSessionId/Name"],
+            };
+          })
+        );
+
+        dispatch(
+          setPlateBarcodeToImagingSessions({
+            ...plateBarcodeToImagingSessions,
+            [plateBarcode]: imagingSessionsWithPlateInfo.reduce(
+              (accum, is) => ({
+                ...accum,
+                [is.imagingSessionId]: is,
+              })
+            ),
+          })
+        );
+      }
+    }
+
+    done();
+  },
   transform: (
     {
       action,

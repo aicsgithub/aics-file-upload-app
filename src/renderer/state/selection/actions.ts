@@ -22,6 +22,7 @@ import {
   SELECT_WELLS,
   SET_HAS_NO_PLATE_TO_UPLOAD,
   SET_PLATE,
+  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
   START_CELL_DRAG,
   START_MASS_EDIT,
   STOP_CELL_DRAG,
@@ -36,17 +37,28 @@ import {
   JumpToPastSelectionAction,
   LoadFilesAction,
   OpenSubFileSelectionModalAction,
+  PlateBarcodeToImagingSessions,
   RemoveRowFromDragEventAction,
   SelectBarcodeAction,
   SelectImagingSessionIdAction,
   SelectWellsAction,
   SetHasNoPlateToUploadAction,
   SetPlateAction,
+  SetPlateBarcodeToImagingSessionsAction,
   StartCellDragAction,
   StartMassEditAction,
   StopCellDragAction,
   UpdateMassEditRowAction,
 } from "./types";
+
+export function setPlateBarcodeToImagingSessions(
+  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions
+): SetPlateBarcodeToImagingSessionsAction {
+  return {
+    payload: plateBarcodeToImagingSessions,
+    type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+  };
+}
 
 export function loadFiles(files: string[]): LoadFilesAction {
   return {

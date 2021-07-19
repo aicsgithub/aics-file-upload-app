@@ -71,6 +71,7 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
   uploads: [],
   massEditRow: undefined,
   plate: {},
+  plateBarcodeToImagingSessions: {},
   selectedWells: [],
   rowsSelectedForMassEdit: undefined,
   subFileSelectionModalFile: undefined,

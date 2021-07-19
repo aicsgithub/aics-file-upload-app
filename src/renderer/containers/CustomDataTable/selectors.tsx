@@ -10,55 +10,21 @@ import {
 } from "../../state/metadata/selectors";
 import {
   getAreSelectedUploadsInFlight,
-  getSelectedBarcode,
+  getPlateBarcodeToImagingSessions,
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
+import { getUpload } from "../../state/upload/selectors";
 import { getTextWidth } from "../../util";
 import FilenameCell from "../Table/CustomCells/FilenameCell";
 import ImagingSessionCell from "../Table/CustomCells/ImagingSessionCell";
 import NotesCell from "../Table/CustomCells/NotesCell";
+import PlateBarcodeCell from "../Table/CustomCells/PlateBarcodeCell";
 import SelectionCell from "../Table/CustomCells/SelectionCell";
 import WellCell from "../Table/CustomCells/WellCell";
 import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
 import SelectionHeader from "../Table/Headers/SelectionHeader";
 
 import { CustomColumn } from "./types";
-
-const SELECTION_COLUMN: CustomColumn = {
-  id: "selection",
-  disableResizing: true,
-  Header: SelectionHeader,
-  Cell: SelectionCell,
-  maxWidth: 35,
-};
-
-const WELL_COLUMN: CustomColumn = {
-  accessor: "wellLabels",
-  id: AnnotationName.WELL,
-  Cell: WellCell,
-  // This description was pulled from LK 03/22/21
-  description: "A well on a plate (that has been entered into the Plate UI)",
-  isRequired: true,
-  width: 100,
-};
-
-const DEFAULT_COLUMNS: CustomColumn[] = [
-  {
-    accessor: "file",
-    id: "File",
-    Cell: FilenameCell,
-    description: "Filename of file supplied",
-    width: 200,
-    sortType: (a, b) =>
-      basename(a.original.file).localeCompare(basename(b.original.file)),
-  },
-  {
-    accessor: AnnotationName.NOTES,
-    Cell: NotesCell,
-    description: "Any additional text data (not ideal for querying)",
-    maxWidth: 50,
-  },
-];
 
 const MAX_HEADER_WIDTH = 200;
 
@@ -94,43 +60,103 @@ function getColumnWidthForType(column: string, type?: ColumnType): number {
   }
 }
 
+const SELECTION_COLUMN: CustomColumn = {
+  id: "selection",
+  disableResizing: true,
+  Header: SelectionHeader,
+  Cell: SelectionCell,
+  maxWidth: 35,
+};
+
+const PLATE_BARCODE_COLUMN: CustomColumn = {
+  accessor: AnnotationName.PLATE_BARCODE,
+  Cell: PlateBarcodeCell,
+  // This description was pulled from LK 07/16/21
+  description: "The barcode for a Plate in LabKey	",
+  width: getColumnWidthForType(AnnotationName.PLATE_BARCODE, ColumnType.LOOKUP),
+};
+
+const WELL_COLUMN: CustomColumn = {
+  accessor: "wellLabels",
+  id: AnnotationName.WELL,
+  Cell: WellCell,
+  // This description was pulled from LK 03/22/21
+  description: "A well on a plate (that has been entered into the Plate UI)",
+  width: 100,
+};
+
+const DEFAULT_COLUMNS: CustomColumn[] = [
+  {
+    accessor: "file",
+    id: "File",
+    Cell: FilenameCell,
+    description: "Filename of file supplied",
+    width: 200,
+    sortType: (a, b) =>
+      basename(a.original.file).localeCompare(basename(b.original.file)),
+  },
+  {
+    accessor: AnnotationName.NOTES,
+    Cell: NotesCell,
+    description: "Any additional text data (not ideal for querying)",
+    maxWidth: 50,
+  },
+];
+
 export const getTemplateColumnsForTable = createSelector(
-  [getAnnotationTypes, getAppliedTemplate, getSelectedBarcode, getAnnotations],
-  (annotationTypes, template, hasPlate, annotations): CustomColumn[] => {
+  [
+    getAnnotationTypes,
+    getAppliedTemplate,
+    getAnnotations,
+    getUpload,
+    getPlateBarcodeToImagingSessions,
+  ],
+  (
+    annotationTypes,
+    template,
+    annotations,
+    uploads,
+    plateBarcodeToImagingSessions
+  ): CustomColumn[] => {
     if (!template) {
       return [];
     }
 
-    const templateAnnotations = [...template.annotations];
+    const columns: CustomColumn[] = [];
+
     const plateBarcodeAnnotation = annotations.find(
       (a) => a.name === AnnotationName.PLATE_BARCODE
     );
-    if (plateBarcodeAnnotation) {
-      templateAnnotations.push({ ...plateBarcodeAnnotation, required: false });
-    }
-
-    const columns: CustomColumn[] = template.annotations.map((annotation) => {
-      const type = annotationTypes.find(
-        (type) => type.annotationTypeId === annotation.annotationTypeId
-      )?.name;
-      return {
-        type,
-        accessor: annotation.name,
-        description: annotation.description,
-        dropdownValues: annotation.annotationOptions,
-        isRequired: annotation.required,
-        width: getColumnWidthForType(annotation.name, type),
-      };
+    console.log(annotations, plateBarcodeAnnotation);
+    columns.push({
+      ...PLATE_BARCODE_COLUMN,
+      description:
+        plateBarcodeAnnotation?.description || PLATE_BARCODE_COLUMN.description,
     });
-
-    // TODO: Could refactor so that the triggers these rely on just add the annotation
-    // into the template then when encountering those columns here swap out their Cell
-    // property to be the custom cell needed
 
     // TODO: Remove the logic to pull in a plate via the well
 
-    // If the user has selected a plate barcode on any row add the well column in
-    if (hasPlate) {
+    // If the user has selected plate barcodes add Well as a column
+    const selectedPlateBarcodes = Object.values(uploads).flatMap(
+      (u) => u[AnnotationName.PLATE_BARCODE]
+    );
+    if (selectedPlateBarcodes.length) {
+      // If any of the selected barcodes have imaging sessions add Imaging Session as a column
+      const platesHaveImagingSessions = Object.entries(
+        plateBarcodeToImagingSessions
+      ).some(([pb, is]) => is.length && selectedPlateBarcodes.includes(pb));
+      if (platesHaveImagingSessions) {
+        const imagingSessionAnnotation = annotations.find(
+          (a) => a.name === AnnotationName.IMAGING_SESSION
+        );
+        columns.push({
+          accessor: AnnotationName.IMAGING_SESSION,
+          Cell: ImagingSessionCell,
+          description: imagingSessionAnnotation?.description || "...loading",
+          width: 100,
+        });
+      }
+
       const wellAnnotation = annotations.find(
         (a) => a.name === AnnotationName.WELL
       );
@@ -138,20 +164,21 @@ export const getTemplateColumnsForTable = createSelector(
         ...WELL_COLUMN,
         description: wellAnnotation?.description || WELL_COLUMN.description,
       });
-
-      // If the any plates the user has selected have included an imaging session add it
-      if (true) {
-        const imagingSessionAnnotation = annotations.find(
-          (a) => a.name === AnnotationName.IMAGING_SESSION
-        );
-        columns.push({
-          accessor: AnnotationName.IMAGING_SESSION,
-          Cell: ImagingSessionCell,
-          description: imagingSessionAnnotation?.description || "loading",
-          width: 100,
-        });
-      }
     }
+
+    template.annotations.forEach((annotation) => {
+      const type = annotationTypes.find(
+        (type) => type.annotationTypeId === annotation.annotationTypeId
+      )?.name;
+      columns.push({
+        type,
+        accessor: annotation.name,
+        description: annotation.description,
+        dropdownValues: annotation.annotationOptions,
+        isRequired: annotation.required,
+        width: getColumnWidthForType(annotation.name, type),
+      });
+    });
 
     return columns;
   }
