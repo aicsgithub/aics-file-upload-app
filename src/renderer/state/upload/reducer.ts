@@ -2,18 +2,9 @@ import { omit } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
-import { AnnotationName } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { RESET_UPLOAD, VIEW_UPLOADS_SUCCEEDED } from "../route/constants";
 import { ResetUploadAction, ViewUploadsSucceededAction } from "../route/types";
-import {
-  SELECT_BARCODE,
-  SET_HAS_NO_PLATE_TO_UPLOAD,
-} from "../selection/constants";
-import {
-  SelectBarcodeAction,
-  SetHasNoPlateToUploadAction,
-} from "../selection/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
 import { TypeToDescriptionMap, FileModelId, UploadStateBranch } from "../types";
@@ -56,38 +47,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           [getUploadRowKey(uploadRowId)]: { ...uploadRowId },
         }),
         { ...state }
-      );
-    },
-  },
-  [SELECT_BARCODE]: {
-    accepts: (action: AnyAction): action is SelectBarcodeAction =>
-      action.type === SELECT_BARCODE,
-    perform: (state: UploadStateBranch) => {
-      return Object.entries(state).reduce(
-        (nextState, [key, metadata]) => ({
-          ...nextState,
-          [key]: {
-            ...metadata,
-            [AnnotationName.WELL]: undefined,
-          },
-        }),
-        {} as UploadStateBranch
-      );
-    },
-  },
-  [SET_HAS_NO_PLATE_TO_UPLOAD]: {
-    accepts: (action: AnyAction): action is SetHasNoPlateToUploadAction =>
-      action.type === SET_HAS_NO_PLATE_TO_UPLOAD,
-    perform: (state: UploadStateBranch) => {
-      return Object.entries(state).reduce(
-        (nextState, [key, metadata]) => ({
-          ...nextState,
-          [key]: {
-            ...metadata,
-            [AnnotationName.WELL]: undefined,
-          },
-        }),
-        {} as UploadStateBranch
       );
     },
   },

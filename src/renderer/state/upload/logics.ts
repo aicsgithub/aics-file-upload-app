@@ -78,7 +78,6 @@ import {
   initiateUploadFailed,
   initiateUploadSucceeded,
   removeUploads,
-  replaceUpload,
   saveUploadDraftSuccess,
   updateUploads,
   uploadFailed,
@@ -800,11 +799,11 @@ const openUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
+    // TODO: Make sure changing pages and opening drafts resets state
     dispatch(
-      batchActions([
-        replaceUpload(ctx.filePath, ctx.draft),
-        ...handleStartingNewUploadJob(logger, getState(), getApplicationMenu),
-      ])
+      batchActions(
+        handleStartingNewUploadJob(logger, getState(), getApplicationMenu)
+      )
     );
 
     const { draft } = ctx;

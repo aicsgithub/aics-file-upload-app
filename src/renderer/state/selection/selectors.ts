@@ -6,27 +6,20 @@ import { MassEditRow, State } from "../types";
 
 // BASIC SELECTORS
 export const getCellAtDragStart = (state: State) =>
-  state.selection.present.cellAtDragStart;
+  state.selection.cellAtDragStart;
 export const getRowsSelectedForDragEvent = (state: State) =>
-  state.selection.present.rowsSelectedForDragEvent;
-// TODO: Remove traces of removed
-export const getWells = (state: State) => state.selection.present.wells;
-export const getSelectedUser = (state: State) => state.selection.present.user;
-export const getCurrentSelectionIndex = (state: State) => state.selection.index;
+  state.selection.rowsSelectedForDragEvent;
+export const getSelectedUser = (state: State) => state.selection.user;
 export const getRowsSelectedForMassEdit = (state: State) =>
-  state.selection.present.rowsSelectedForMassEdit;
+  state.selection.rowsSelectedForMassEdit;
 export const getSubFileSelectionModalFile = (state: State) =>
-  state.selection.present.subFileSelectionModalFile;
-export const getSelectedUploads = (state: State) =>
-  state.selection.present.uploads;
-export const getMassEditRow = (state: State) =>
-  state.selection.present.massEditRow;
+  state.selection.subFileSelectionModalFile;
+export const getSelectedUploads = (state: State) => state.selection.uploads;
+export const getMassEditRow = (state: State) => state.selection.massEditRow;
 export const getPlateBarcodeToImagingSessions = (state: State) =>
-  state.selection.present.plateBarcodeToImagingSessions;
+  state.selection.plateBarcodeToImagingSessions;
 
 // COMPOSED SELECTORS
-export const NO_UNIT = "(Unit Not Found)";
-
 export const getIsExistingUpload = createSelector(
   [getSelectedUploads],
   (uploads): boolean => uploads.length !== 0

@@ -10,27 +10,10 @@ export const OPEN_SUB_FILE_SELECTION_MODAL = makeConstant(
   BRANCH_NAME,
   "open-sub-file-selection-modal"
 );
-export const SELECT_BARCODE = makeConstant(BRANCH_NAME, "select-barcode");
-export const SET_HAS_NO_PLATE_TO_UPLOAD = makeConstant(
-  BRANCH_NAME,
-  "set-has-no-plate"
-);
-export const SET_PLATE = makeConstant(BRANCH_NAME, "set-plate");
-export const SELECT_METADATA = makeConstant(BRANCH_NAME, "select-metadata");
 export const LOAD_FILES = makeConstant(BRANCH_NAME, "load-files");
 export const SET_PLATE_BARCODE_TO_IMAGING_SESSIONS = makeConstant(
   BRANCH_NAME,
   "set-plate-barcode-to-imaging-sessions"
-);
-export const SELECT_WELLS = makeConstant(BRANCH_NAME, "select-wells");
-export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");
-export const CLEAR_SELECTION_HISTORY = makeConstant(
-  BRANCH_NAME,
-  "clear-history"
-);
-export const SELECT_IMAGING_SESSION_ID = makeConstant(
-  BRANCH_NAME,
-  "select-imaging-session-id"
 );
 export const ADD_ROW_TO_DRAG_EVENT = makeConstant(
   BRANCH_NAME,

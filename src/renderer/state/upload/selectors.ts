@@ -27,28 +27,20 @@ import {
   LIST_DELIMITER_SPLIT,
   MINUTE_AS_MS,
 } from "../../constants";
-import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
-import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import { ColumnType } from "../../services/labkey-client/types";
 import { UploadRequest } from "../../services/types";
 import { Duration } from "../../types";
-import { getWellLabelAndImagingSessionName } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
   getDateTimeAnnotationTypeId,
   getDropdownAnnotationTypeId,
   getDurationAnnotationTypeId,
-  getImagingSessions,
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
   getOriginalUpload,
   getTextAnnotationTypeId,
 } from "../metadata/selectors";
-import {
-  getAllPlates,
-  getSelectedBarcode,
-  getWellIdToWellMap,
-} from "../selection/selectors";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
   TemplateAnnotationWithTypeName,
@@ -57,13 +49,7 @@ import {
 import { State, FileModel, UploadStateBranch } from "../types";
 
 import { isChannelOnlyRow, isFileRow, isSubImageRow } from "./constants";
-import {
-  DisplayUploadStateBranch,
-  FileType,
-  MMSAnnotationValueRequest,
-  UploadTableRow,
-  UploadMetadataWithDisplayFields,
-} from "./types";
+import { FileType, MMSAnnotationValueRequest, UploadTableRow } from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -97,35 +83,8 @@ const EXCLUDED_UPLOAD_FIELDS = [
 const removeExcludedFields = (metadata: FileModel) =>
   omit(metadata, EXCLUDED_UPLOAD_FIELDS);
 
-export const getUploadWithCalculatedData = createSelector(
-  [getUpload, getImagingSessions, getAllPlates, getWellIdToWellMap],
-  (
-    uploads: UploadStateBranch,
-    imagingSessions: ImagingSession[],
-    selectedPlates: PlateResponse[],
-    wellIdToWell: Map<number, WellResponse>
-  ): DisplayUploadStateBranch =>
-    Object.entries(uploads).reduce((accum, [key, metadata]) => {
-      const wellIds = metadata[AnnotationName.WELL] || [];
-      return {
-        ...accum,
-        [key]: {
-          ...metadata,
-          wellLabels: wellIds.map((wellId) =>
-            getWellLabelAndImagingSessionName(
-              wellId,
-              imagingSessions,
-              selectedPlates,
-              wellIdToWell
-            )
-          ),
-        },
-      };
-    }, {} as DisplayUploadStateBranch)
-);
-
 const convertToUploadJobRow = (
-  metadata: UploadMetadataWithDisplayFields,
+  metadata: FileModel,
   subRows: UploadTableRow[] = [],
   channelIds: string[] = [],
   positionIndexes: number[] = [],
@@ -151,28 +110,20 @@ const convertToUploadJobRow = (
 
 // there will be metadata for files, each subImage in a file, each channel in a file, and every combo
 // of subImages + channels
-const getFileToMetadataMap = createSelector(
-  [getUploadWithCalculatedData],
-  (
-    uploads: DisplayUploadStateBranch
-  ): { [file: string]: UploadMetadataWithDisplayFields[] } => {
-    return groupBy(
-      values(uploads),
-      ({ file }: UploadMetadataWithDisplayFields) => file
-    );
-  }
-);
+const getFileToMetadataMap = createSelector([getUpload], (uploads): {
+  [file: string]: FileModel[];
+} => {
+  return groupBy(values(uploads), ({ file }: FileModel) => file);
+});
 
-const getChannelOnlyRows = (
-  allMetadataForFile: UploadMetadataWithDisplayFields[]
-) => {
+const getChannelOnlyRows = (allMetadataForFile: FileModel[]) => {
   const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
   return channelMetadata.map((c) => convertToUploadJobRow(c));
 };
 
 const getSubImageChannelRows = (
-  allMetadataForSubImage: UploadMetadataWithDisplayFields[],
-  subImageParentMetadata?: UploadMetadataWithDisplayFields
+  allMetadataForSubImage: FileModel[],
+  subImageParentMetadata?: FileModel
 ) => {
   const sceneChannelMetadata = subImageParentMetadata
     ? without(allMetadataForSubImage, subImageParentMetadata)
@@ -180,20 +131,18 @@ const getSubImageChannelRows = (
   return sceneChannelMetadata.map((s) => convertToUploadJobRow(s));
 };
 
-const getSubImageRows = (
-  allMetadataForFile: UploadMetadataWithDisplayFields[]
-) => {
+const getSubImageRows = (allMetadataForFile: FileModel[]) => {
   const subImageRows: UploadTableRow[] = [];
   const subImageMetadata = allMetadataForFile.filter(isSubImageRow);
   const metadataGroupedBySubImage = groupBy(
     subImageMetadata,
-    ({ positionIndex, scene, subImageName }: UploadMetadataWithDisplayFields) =>
+    ({ positionIndex, scene, subImageName }: FileModel) =>
       positionIndex || scene || subImageName
   );
 
   forEach(
     values(metadataGroupedBySubImage),
-    (allMetadataForSubImage: UploadMetadataWithDisplayFields[]) => {
+    (allMetadataForSubImage: FileModel[]) => {
       const subImageOnlyMetadata = allMetadataForSubImage.find((m) =>
         isNil(m.channel)
       );
@@ -463,20 +412,17 @@ export const getUploadValidationErrors = createSelector(
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
-    getSelectedBarcode,
   ],
   (
     rows: UploadTableRow[],
     fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
     validationErrorsMap: { [key: string]: { [annotation: string]: string } },
-    template?: TemplateWithTypeNames,
-    selectedBarcode?: string
+    template?: TemplateWithTypeNames
   ): string[] => {
     if (!template) {
       return [];
     }
     const errors: string[] = [];
-    const shouldHaveWells = Boolean(selectedBarcode);
     // Iterate over each row value adding an error for each value with a non-ASCII character
     rows.forEach((row) => {
       Object.entries(row).forEach(([rowKey, rowValue]) => {
@@ -504,7 +450,10 @@ export const getUploadValidationErrors = createSelector(
         const requiredAnnotationsThatDontHaveValues = requiredAnnotations.filter(
           (annotation) => !annotationHasValueMap[annotation]
         );
-        if (!annotationHasValueMap[AnnotationName.WELL] && shouldHaveWells) {
+        if (
+          annotationHasValueMap[AnnotationName.PLATE_BARCODE] &&
+          !annotationHasValueMap[AnnotationName.WELL]
+        ) {
           requiredAnnotationsThatDontHaveValues.push(AnnotationName.WELL);
         }
 

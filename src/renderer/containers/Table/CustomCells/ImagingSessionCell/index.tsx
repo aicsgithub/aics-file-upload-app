@@ -11,7 +11,8 @@ import DropdownEditor from "../../Editors/DropdownEditor";
 import { ColumnValue } from "../../types";
 
 /**
- * TODO
+ * Component used in a react-table table to render a selection between
+ * imaging sessions viable for the given plate barcode
  */
 export default function ImagingSessionCell(
   props: CellProps<UploadTableRow, ColumnValue>
@@ -24,27 +25,32 @@ export default function ImagingSessionCell(
   const [isEditing, setIsEditing] = React.useState(false);
 
   const plateBarcode = props.row.original[AnnotationName.PLATE_BARCODE]?.[0];
-  const imagingSessions = plateBarcode
-    ? plateBarcodeToImagingSessions[plateBarcode]
-    : undefined;
+  const imagingSessions =
+    plateBarcodeToImagingSessions[plateBarcode || ""] || [];
+  const imagingSessionNames = Object.values(imagingSessions)
+    .map((is) => is.name)
+    .filter((n) => !!n) as string[];
 
   function commitChanges(value: ColumnValue) {
     setIsEditing(false);
     dispatch(updateUpload(props.row.id, { [props.column.id]: value }));
   }
 
-  // TODO: Show disabled if no plate barcode selected
-  // TODO: Show loading if imaging sessions is undefined
-
   if (isEditing) {
     return (
       <DropdownEditor
         initialValue={value as string[]}
-        options={imagingSessions || []}
+        options={imagingSessionNames}
         commitChanges={commitChanges}
       />
     );
   }
 
-  return <DisplayCell {...props} onStartEditing={() => setIsEditing(true)} />;
+  function onStartEditing() {
+    if (plateBarcode && imagingSessionNames.length) {
+      setIsEditing(true);
+    }
+  }
+
+  return <DisplayCell {...props} onStartEditing={onStartEditing} />;
 }

@@ -39,7 +39,6 @@ import {
   getUploadFileNames,
   getUploadKeyToAnnotationErrorMap,
   getUploadRequests,
-  getUploadWithCalculatedData,
 } from "../selectors";
 import { getUploadAsTableRows, getUploadValidationErrors } from "../selectors";
 import { FileType, MMSAnnotationValueRequest } from "../types";
@@ -84,17 +83,6 @@ describe("Upload selectors", () => {
 
     it("should return false if the past is empty", () => {
       expect(getCanUndoUpload(mockState)).to.be.false;
-    });
-  });
-
-  describe("getUploadWithCalculatedData", () => {
-    it("adds wellLabels to the uploads", () => {
-      const result = getUploadWithCalculatedData(
-        nonEmptyStateForInitiatingUpload
-      );
-      expect(
-        result[getUploadRowKey({ file: "/path/to/file1" })].wellLabels
-      ).to.deep.equal(["A1"]);
     });
   });
 
@@ -704,7 +692,7 @@ describe("Upload selectors", () => {
     it("handles files without scenes or channels", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory(mockSelection),
+        selection: mockSelection,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
@@ -776,7 +764,7 @@ describe("Upload selectors", () => {
     it("shows scene and channel only rows if file row is not present", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory(mockSelection),
+        selection: mockSelection,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1234",
@@ -843,9 +831,9 @@ describe("Upload selectors", () => {
     it("handles files with channels", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-        }),
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
@@ -874,9 +862,9 @@ describe("Upload selectors", () => {
     it("handles files with scenes and channels", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-        }),
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
@@ -1168,10 +1156,9 @@ describe("Upload selectors", () => {
     it("adds error if a row does not have a well annotation and is meant to", () => {
       const errors = getUploadValidationErrors({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.selection.present,
-          barcode: "123213",
-        }),
+        selection: {
+          ...nonEmptyStateForInitiatingUpload.selection,
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "foo" })]: {
             barcode: "abc",

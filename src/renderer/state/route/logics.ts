@@ -40,12 +40,10 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
   getLookups,
-  getSelectionHistory,
   getUploadHistory,
 } from "../metadata/selectors";
 import {
   clearSelectionHistory,
-  jumpToPastSelection,
   setPlateBarcodeToImagingSessions,
 } from "../selection/actions";
 import { PlateBarcodeToImagingSessions } from "../selection/types";
@@ -106,11 +104,6 @@ export const setSwitchEnvEnabled = (
 };
 
 const stateBranchHistory = [
-  {
-    clearHistory: clearSelectionHistory,
-    getHistory: getSelectionHistory,
-    jumpToPast: jumpToPastSelection,
-  },
   {
     clearHistory: clearUploadHistory,
     getHistory: getUploadHistory,

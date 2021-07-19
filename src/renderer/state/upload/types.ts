@@ -3,19 +3,10 @@ import { JSSJob } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
 import {
   AutoSaveAction,
-  State,
   FileModel,
   FileModelId,
   WriteToStoreAction,
 } from "../types";
-
-export interface DisplayUploadStateBranch {
-  [fullPath: string]: UploadMetadataWithDisplayFields;
-}
-
-export interface UploadMetadataWithDisplayFields extends FileModel {
-  wellLabels: string[];
-}
 
 export interface MMSAnnotationValueRequest {
   annotationId: number;
@@ -182,14 +173,6 @@ export interface SaveUploadDraftAction {
 }
 
 export interface OpenUploadDraftAction {
-  type: string;
-}
-
-export interface ReplaceUploadAction {
-  payload: {
-    filePath: string;
-    replacementState: State;
-  };
   type: string;
 }
 

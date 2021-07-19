@@ -225,16 +225,9 @@ export const mockJob: JSSJob = {
 };
 
 export const mockSelection: SelectionStateBranch = {
-  barcode: undefined,
-  imagingSessionId: undefined,
-  imagingSessionIds: [null, 1],
-  hasNoPlateToUpload: false,
-  plate: mockPlate,
   plateBarcodeToImagingSessions: {},
-  selectedWells: [],
   user: "fake_user",
   uploads: [],
-  wells: mockWells,
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -387,7 +380,7 @@ export const mockState: State = {
   job: job.initialState,
   metadata: metadata.initialState,
   route: route.initialState,
-  selection: getMockStateWithHistory(selection.initialState),
+  selection: selection.initialState,
   setting: setting.initialState,
   template: template.initialState,
   upload: getMockStateWithHistory(upload.initialState),
@@ -677,11 +670,9 @@ export const nonEmptyStateForInitiatingUpload: State = {
     },
     lookups: mockLookups,
   },
-  selection: getMockStateWithHistory({
+  selection: {
     ...mockSelection,
-    barcode: "1234",
-    selectedWells: [{ col: 0, row: 0 }],
-  }),
+  },
   template: {
     ...mockTemplateStateBranch,
     appliedTemplate: mockMMSTemplate,

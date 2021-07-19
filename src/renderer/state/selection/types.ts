@@ -1,4 +1,3 @@
-import { GridCell } from "../../entities";
 import {
   CellPopulation,
   PlateResponse,
@@ -7,8 +6,6 @@ import {
 } from "../../services/mms-client/types";
 import {
   AutoSaveAction,
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
   MassEditRow,
   MetadataStateBranch,
   UploadKeyValue,
@@ -41,47 +38,6 @@ export interface CloseSubFileSelectionModalAction {
 
 export interface OpenSubFileSelectionModalAction {
   payload: string;
-  type: string;
-}
-
-export interface SelectBarcodeAction extends AutoSaveAction {
-  payload: {
-    barcode: string;
-    imagingSessionIds: Array<number | null>;
-  };
-  type: string;
-}
-
-export interface SetHasNoPlateToUploadAction {
-  payload: boolean;
-  type: string;
-}
-
-export interface SetPlateAction extends AutoSaveAction {
-  payload: {
-    imagingSessionIds: Array<number | null>;
-    plate: ImagingSessionIdToPlateMap;
-    wells: ImagingSessionIdToWellsMap;
-  };
-  type: string;
-}
-
-export interface SelectWellsAction {
-  payload: GridCell[];
-  type: string;
-}
-
-export interface JumpToPastSelectionAction extends AutoSaveAction {
-  index: number;
-  type: string;
-}
-
-export interface ClearSelectionHistoryAction extends AutoSaveAction {
-  type: string;
-}
-
-export interface SelectImagingSessionIdAction extends AutoSaveAction {
-  payload: number;
   type: string;
 }
 

@@ -1,4 +1,3 @@
-import { AicsGridCell } from "@aics/aics-react-labkey";
 import {
   ipcRenderer,
   Menu,
@@ -278,12 +277,6 @@ export interface RouteStateBranch {
 }
 
 export interface SelectionStateBranch extends UploadTabSelections {
-  barcode?: string;
-  imagingSessionId?: number;
-  imagingSessionIds: Array<number | null>;
-  plate: ImagingSessionIdToPlateMap;
-  wells: ImagingSessionIdToWellsMap;
-  selectedWells: AicsGridCell[];
   user: string;
 }
 
@@ -299,21 +292,13 @@ export interface UploadRowTableId {
 }
 
 export interface UploadTabSelections {
-  // TODO: Is all of this still necessary?
-  barcode?: string;
   cellAtDragStart?: UploadKeyValue;
-  imagingSessionId?: number;
-  imagingSessionIds: Array<number | null>;
-  hasNoPlateToUpload: boolean;
   uploads: JSSJob<UploadServiceFields>[];
   massEditRow?: MassEditRow;
-  plate: ImagingSessionIdToPlateMap;
   plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions;
   rowsSelectedForDragEvent?: UploadRowTableId[];
   rowsSelectedForMassEdit?: string[];
   subFileSelectionModalFile?: string;
-  wells: ImagingSessionIdToWellsMap;
-  selectedWells: AicsGridCell[];
 }
 
 export interface ImagingSessionIdToPlateMap {
@@ -382,9 +367,9 @@ export interface State {
   // Which Upload wizard page to show, which tab to show
   route: RouteStateBranch;
 
-  // Things that the user selects that we would be interested in keeping a history of (for undo/redo)
+  // Things that the user selects that we would be interested in keeping a history of
   // Include only selections that occur inside the upload tab
-  selection: StateWithHistory<SelectionStateBranch>;
+  selection: SelectionStateBranch;
 
   // User settings that are manually and automatically created
   setting: SettingStateBranch;

@@ -22,8 +22,6 @@ import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
 import { getFileMetadataForJob } from "../../metadata/selectors";
-import { setHasNoPlateToUpload } from "../../selection/actions";
-import { getSelectedPlate } from "../../selection/selectors";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -292,17 +290,9 @@ describe("Route logics", () => {
           page: Page.MyUploads,
           view: Page.MyUploads,
         },
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          barcode: undefined,
-          imagingSessionId: undefined,
-          imagingSessionIds: [],
-          job: undefined,
-          plate: {},
-          selectedWells: [],
-          stagedFiles: [],
-          wells: {},
-        }),
+        selection: {
+          ...mockState.selection,
+        },
         upload: getMockStateWithHistory({}),
       };
     });
@@ -356,10 +346,9 @@ describe("Route logics", () => {
       });
       const { logicMiddleware, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.selection.present,
-          job: { ...mockSuccessfulUploadJob, jobId: "anotherjobid" },
-        }),
+        selection: {
+          ...nonEmptyStateForInitiatingUpload.selection,
+        },
       });
 
       store.dispatch(viewUploads([mockSuccessfulUploadJob]));

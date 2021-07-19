@@ -48,7 +48,6 @@ export const UPLOAD_WITHOUT_METADATA = makeConstant(
   "upload-without-metadata"
 );
 export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
-export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
 export const SAVE_UPLOAD_DRAFT_SUCCESS = makeConstant(
   BRANCH_NAME,
   "save-upload-draft-success"

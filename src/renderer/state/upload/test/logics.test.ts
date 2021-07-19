@@ -1560,10 +1560,10 @@ describe("Upload logics", () => {
       };
       mockStateForEditingMetadata = {
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
+        selection: {
+          ...mockState.selection,
           uploads: [mockSuccessfulUploadJob],
-        }),
+        },
         upload: getMockStateWithHistory({
           cat: catUpload,
         }),
