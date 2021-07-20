@@ -43,13 +43,13 @@ import {
   getLookups,
   getUploadHistory,
 } from "../metadata/selectors";
-import { PlateBarcodeToImagingSessions } from "../metadata/types";
 import { getMountPoint } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import {
   AsyncRequest,
   Logger,
   Page,
+  PlateBarcodeToImagingSessions,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,

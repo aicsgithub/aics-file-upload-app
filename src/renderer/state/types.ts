@@ -41,8 +41,6 @@ import {
 import { UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
-import { PlateBarcodeToImagingSessions } from "./metadata/types";
-
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -423,4 +421,15 @@ export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
 export interface MassEditRow {
   // custom annotations
   [key: string]: any;
+}
+
+export interface PlateBarcodeToImagingSessions {
+  [plateBarcode: string]: {
+    [imagingSessionId: number]: {
+      imagingSessionId?: number;
+      name?: string;
+      plate: PlateResponse;
+      wells: WellResponse[];
+    };
+  };
 }

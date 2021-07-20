@@ -1,5 +1,9 @@
 import { BarcodePrefix } from "../../services/labkey-client/types";
-import { AsyncRequest, MetadataStateBranch } from "../types";
+import {
+  AsyncRequest,
+  MetadataStateBranch,
+  PlateBarcodeToImagingSessions,
+} from "../types";
 
 import {
   CLEAR_OPTIONS_FOR_LOOKUP,
@@ -21,7 +25,6 @@ import {
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
-  PlateBarcodeToImagingSessions,
   ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
   RequestAnnotationUsage,
