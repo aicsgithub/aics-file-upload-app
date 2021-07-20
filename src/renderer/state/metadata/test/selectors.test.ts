@@ -3,9 +3,7 @@ import { expect } from "chai";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
   mockAuditInfo,
-  mockNotesAnnotation,
   mockState,
-  mockWellAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
@@ -13,10 +11,8 @@ import {
   getAnnotationsWithAnnotationOptions,
   getBooleanAnnotationTypeId,
   getLookupAnnotationTypeId,
-  getNotesAnnotation,
   getTemplateIdToName,
   getUniqueBarcodeSearchResults,
-  getWellAnnotation,
 } from "../selectors";
 
 describe("Metadata selectors", () => {
@@ -169,26 +165,6 @@ describe("Metadata selectors", () => {
         },
       });
       expect(result).to.equal(undefined);
-    });
-  });
-  describe("getNotesAnnotation", () => {
-    it("returns annotation named Notes if found", () => {
-      const result = getNotesAnnotation(nonEmptyStateForInitiatingUpload);
-      expect(result).to.equal(mockNotesAnnotation);
-    });
-    it("returns undefined if Notes annotation not found", () => {
-      const result = getNotesAnnotation(mockState);
-      expect(result).to.be.undefined;
-    });
-  });
-  describe("getWellAnnotation", () => {
-    it("returns annotation named Well if found", () => {
-      const result = getWellAnnotation(nonEmptyStateForInitiatingUpload);
-      expect(result).to.equal(mockWellAnnotation);
-    });
-    it("returns undefined if Well annotation not found", () => {
-      const result = getWellAnnotation(mockState);
-      expect(result).to.be.undefined;
     });
   });
   describe("getAnnotationsWithAnnotationOptions", () => {

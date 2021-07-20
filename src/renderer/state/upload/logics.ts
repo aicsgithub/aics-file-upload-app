@@ -646,7 +646,6 @@ const updateUploadLogic = createLogic({
       // Avoid re-querying for the imaging sessions if this
       // plate barcode has been selected before
       if (!Object.keys(plateBarcodeToImagingSessions).includes(plateBarcode)) {
-        // TODO: Why not find by name
         const imagingSessionsForPlateBarcode = await deps.labkeyClient.findImagingSessionsByPlateBarcode(
           plateBarcode
         );
@@ -657,7 +656,6 @@ const updateUploadLogic = createLogic({
               is && is["ImagingSessionId"]
             );
 
-            // TODO: What do we actually use from this?
             return {
               wells,
               imagingSessionId: is && is["ImagingSessionId"],
@@ -666,15 +664,6 @@ const updateUploadLogic = createLogic({
           })
         );
 
-        console.log(
-          imagingSessionsWithPlateInfo.reduce(
-            (accum, is) => ({
-              ...accum,
-              [is.imagingSessionId || 0]: is,
-            }),
-            {}
-          )
-        );
         dispatch(
           setPlateBarcodeToImagingSessions({
             ...plateBarcodeToImagingSessions,
@@ -806,7 +795,6 @@ const openUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    // TODO: Make sure changing pages and opening drafts resets state
     dispatch(
       batchActions([
         replaceUpload(ctx.filePath, ctx.draft),

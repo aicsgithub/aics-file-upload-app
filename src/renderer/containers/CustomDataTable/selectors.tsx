@@ -141,11 +141,6 @@ export const getTemplateColumnsForTable = createSelector(
           plateBarcodeToImagingSessions[pb] &&
           Object.values(plateBarcodeToImagingSessions[pb]).some((i) => i.name)
       );
-      console.log(
-        platesHaveImagingSessions,
-        plateBarcodeToImagingSessions,
-        selectedPlateBarcodes
-      );
       if (platesHaveImagingSessions) {
         const imagingSessionAnnotation = annotations.find(
           (a) => a.name === AnnotationName.IMAGING_SESSION

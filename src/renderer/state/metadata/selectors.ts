@@ -1,7 +1,6 @@
 import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { AnnotationName } from "../../constants";
 import {
   Annotation,
   AnnotationOption,
@@ -101,16 +100,6 @@ export const getDateAnnotationTypeId = getAnnotationTypeId(ColumnType.DATE);
 export const getDateTimeAnnotationTypeId = getAnnotationTypeId(
   ColumnType.DATETIME
 );
-
-const getAnnotation = (annotationName: string) =>
-  createSelector([getAnnotations], (annotations: Annotation[]):
-    | Annotation
-    | undefined => {
-    return annotations.find((a) => a.name === annotationName);
-  });
-
-export const getNotesAnnotation = getAnnotation(AnnotationName.NOTES);
-export const getWellAnnotation = getAnnotation(AnnotationName.WELL);
 
 export const getAnnotationsWithAnnotationOptions = createSelector(
   [getAnnotations, getAnnotationOptions],

@@ -70,7 +70,7 @@ describe("CustomDataTable selectors", () => {
       ]);
     });
 
-    it("returns columns from template and well", () => {
+    it("returns columns from template and plate", () => {
       // Arrange
       const expected = [
         PLATE_BARCODE_COLUMN,

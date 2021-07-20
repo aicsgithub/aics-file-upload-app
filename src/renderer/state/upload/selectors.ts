@@ -495,8 +495,6 @@ const getAnnotations = (
     const customData = removeExcludedFields(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
-      // TODO: ?
-      console.log("Hello");
       const annotation = annotationNameToAnnotationMap[annotationName];
       if (annotation) {
         let addAnnotation = Array.isArray(value)
@@ -541,7 +539,6 @@ const getAnnotations = (
         );
       }
     });
-    console.log("Hello", result);
     return result;
   });
 };

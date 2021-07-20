@@ -1,17 +1,14 @@
 import { trim } from "lodash";
 import { createSelector } from "reselect";
 
+import { AnnotationName } from "../../constants";
 import {
   Annotation,
   AnnotationType,
   ColumnType,
 } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
-import {
-  getAnnotationTypes,
-  getNotesAnnotation,
-  getWellAnnotation,
-} from "../metadata/selectors";
+import { getAnnotations, getAnnotationTypes } from "../metadata/selectors";
 import { AnnotationDraft, State, TemplateDraft } from "../types";
 
 import { TemplateWithTypeNames } from "./types";
@@ -65,25 +62,16 @@ export const getSaveTemplateRequest = createSelector(
 
 // includes annotation info for required fields - well
 // and fills out annotation type name
+const DEFAULT_ANNOTATION_NAMES = [AnnotationName.NOTES, AnnotationName.WELL];
 export const getCompleteAppliedTemplate = createSelector(
-  [
-    getNotesAnnotation,
-    getWellAnnotation,
-    getAppliedTemplate,
-    getAnnotationTypes,
-  ],
+  [getAnnotations, getAnnotationTypes, getAppliedTemplate],
   (
-    notes?: Annotation,
-    well?: Annotation,
-    appliedTemplate?: Template,
-    annotationTypes?: AnnotationType[]
+    annotations: Annotation[],
+    annotationTypes: AnnotationType[],
+    appliedTemplate?: Template
   ): TemplateWithTypeNames | undefined => {
     if (!appliedTemplate) {
       return undefined;
-    }
-
-    if (!well || !notes) {
-      throw new Error("Could not get well or notes annotation");
     }
 
     if (!annotationTypes) {
@@ -107,16 +95,17 @@ export const getCompleteAppliedTemplate = createSelector(
             type: type.name,
           };
         }),
-        {
-          ...well,
-          required: false,
-          type: ColumnType.LOOKUP,
-        },
-        {
-          ...notes,
-          required: false,
-          type: ColumnType.TEXT,
-        },
+        ...DEFAULT_ANNOTATION_NAMES.map((name) => {
+          const annotation = annotations.find((a) => a.name === name);
+          if (!annotation) {
+            throw new Error("Could not get necessary annotation information");
+          }
+          return {
+            ...annotation,
+            required: false,
+            type: annotation["annotationTypeId/Name"],
+          };
+        }),
       ],
     };
   }
