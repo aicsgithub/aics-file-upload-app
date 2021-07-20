@@ -5,6 +5,7 @@ import {
   AutoSaveAction,
   FileModel,
   FileModelId,
+  State,
   WriteToStoreAction,
 } from "../types";
 
@@ -169,6 +170,14 @@ export interface SaveUploadDraftAction {
 }
 
 export interface OpenUploadDraftAction {
+  type: string;
+}
+
+export interface ReplaceUploadAction {
+  payload: {
+    filePath: string;
+    replacementState: State;
+  };
   type: string;
 }
 

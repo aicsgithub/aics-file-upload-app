@@ -78,6 +78,7 @@ import {
   initiateUploadFailed,
   initiateUploadSucceeded,
   removeUploads,
+  replaceUpload,
   saveUploadDraftSuccess,
   updateUploads,
   uploadFailed,
@@ -802,9 +803,10 @@ const openUploadLogic = createLogic({
   ) => {
     // TODO: Make sure changing pages and opening drafts resets state
     dispatch(
-      batchActions(
-        handleStartingNewUploadJob(logger, getState(), getApplicationMenu)
-      )
+      batchActions([
+        replaceUpload(ctx.filePath, ctx.draft),
+        ...handleStartingNewUploadJob(logger, getState(), getApplicationMenu),
+      ])
     );
 
     const { draft } = ctx;

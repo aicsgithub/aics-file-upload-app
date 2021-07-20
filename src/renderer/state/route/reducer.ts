@@ -5,11 +5,8 @@ import { CloseNotificationCenter } from "../feedback/types";
 import { UPDATE_SETTINGS } from "../setting/constants";
 import { UpdateSettingsAction } from "../setting/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
-import { INITIATE_UPLOAD_SUCCEEDED, REPLACE_UPLOAD } from "../upload/constants";
-import {
-  InitiateUploadSucceededAction,
-  ReplaceUploadAction,
-} from "../upload/types";
+import { INITIATE_UPLOAD_SUCCEEDED } from "../upload/constants";
+import { InitiateUploadSucceededAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -18,7 +15,6 @@ import {
   SELECT_VIEW,
   START_NEW_UPLOAD,
 } from "./constants";
-import { getPage } from "./selectors";
 import {
   CloseUploadAction,
   SelectPageAction,
@@ -90,18 +86,6 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
     perform: (state: RouteStateBranch, action: SelectViewAction) => ({
       ...state,
       view: action.payload,
-    }),
-  },
-  [REPLACE_UPLOAD]: {
-    accepts: (action: AnyAction): action is ReplaceUploadAction =>
-      action.type === REPLACE_UPLOAD,
-    perform: (
-      state: RouteStateBranch,
-      { payload: { replacementState } }: ReplaceUploadAction
-    ) => ({
-      ...state,
-      page: getPage(replacementState),
-      view: getPage(replacementState),
     }),
   },
 };

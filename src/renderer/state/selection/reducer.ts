@@ -9,8 +9,8 @@ import {
   TypeToDescriptionMap,
   UploadTabSelections,
 } from "../types";
-import { UPDATE_SUB_IMAGES } from "../upload/constants";
-import { UpdateSubImagesAction } from "../upload/types";
+import { REPLACE_UPLOAD, UPDATE_SUB_IMAGES } from "../upload/constants";
+import { ReplaceUploadAction, UpdateSubImagesAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -104,6 +104,14 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     ) => ({
       ...state,
       subFileSelectionModalFile: action.payload,
+    }),
+  },
+  [REPLACE_UPLOAD]: {
+    accepts: (action: AnyAction): action is ReplaceUploadAction =>
+      action.type === REPLACE_UPLOAD,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      ...uploadTabSelectionInitialState,
     }),
   },
   [RESET_UPLOAD]: {
