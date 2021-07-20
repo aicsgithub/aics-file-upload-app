@@ -1,5 +1,6 @@
 import { basename } from "path";
 
+import { isEmpty } from "lodash";
 import { createSelector } from "reselect";
 
 import { MAIN_FONT_WIDTH, AnnotationName } from "../../constants";
@@ -77,8 +78,7 @@ const PLATE_BARCODE_COLUMN: CustomColumn = {
 };
 
 const WELL_COLUMN: CustomColumn = {
-  accessor: "wellLabels",
-  id: AnnotationName.WELL,
+  accessor: AnnotationName.WELL,
   Cell: WellCell,
   // This description was pulled from LK 03/22/21
   description: "A well on a plate (that has been entered into the Plate UI)",
@@ -134,17 +134,15 @@ export const getTemplateColumnsForTable = createSelector(
         plateBarcodeAnnotation?.description || PLATE_BARCODE_COLUMN.description,
     });
 
-    // TODO: Remove the logic to pull in a plate via the well
-
     // If the user has selected plate barcodes add Well as a column
     const selectedPlateBarcodes = Object.values(uploads).flatMap(
-      (u) => u[AnnotationName.PLATE_BARCODE]
+      (u) => u[AnnotationName.PLATE_BARCODE] || []
     );
     if (selectedPlateBarcodes.length) {
       // If any of the selected barcodes have imaging sessions add Imaging Session as a column
       const platesHaveImagingSessions = Object.entries(
         plateBarcodeToImagingSessions
-      ).some(([pb, is]) => is.length && selectedPlateBarcodes.includes(pb));
+      ).some(([pb, is]) => !isEmpty(is) && selectedPlateBarcodes.includes(pb));
       if (platesHaveImagingSessions) {
         const imagingSessionAnnotation = annotations.find(
           (a) => a.name === AnnotationName.IMAGING_SESSION

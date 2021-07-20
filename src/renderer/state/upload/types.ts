@@ -58,10 +58,6 @@ export interface UploadTableRow extends FileModel {
 
   // Keeps track of all channelIds - used only on the top-level row
   [AnnotationName.CHANNEL_TYPE]: string[];
-
-  // TODO: Remove???
-  // human readable identifier of well, such as "A1"
-  wellLabels: string[];
 }
 
 export interface JumpToPastUploadAction extends AutoSaveAction {

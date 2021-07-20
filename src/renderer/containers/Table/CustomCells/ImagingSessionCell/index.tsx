@@ -15,7 +15,7 @@ import { ColumnValue } from "../../types";
  * imaging sessions viable for the given plate barcode
  */
 export default function ImagingSessionCell(
-  props: CellProps<UploadTableRow, ColumnValue>
+  props: CellProps<UploadTableRow, string[]>
 ) {
   const { value } = props;
   const dispatch = useDispatch();
@@ -33,13 +33,18 @@ export default function ImagingSessionCell(
 
   function commitChanges(value: ColumnValue) {
     setIsEditing(false);
-    dispatch(updateUpload(props.row.id, { [props.column.id]: value }));
+    dispatch(
+      updateUpload(props.row.id, {
+        [props.column.id]: value,
+        [AnnotationName.WELL]: [],
+      })
+    );
   }
 
   if (isEditing) {
     return (
       <DropdownEditor
-        initialValue={value as string[]}
+        initialValue={value}
         options={imagingSessionNames}
         commitChanges={commitChanges}
       />

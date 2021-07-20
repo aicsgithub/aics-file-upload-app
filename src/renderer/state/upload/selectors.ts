@@ -94,6 +94,9 @@ const convertToUploadJobRow = (
   return {
     ...metadata,
     subRows,
+    positionIndexes,
+    scenes,
+    subImageNames,
     [AnnotationName.CHANNEL_TYPE]: channelIds,
     [AnnotationName.IMAGING_SESSION]:
       metadata[AnnotationName.IMAGING_SESSION] || [],
@@ -101,10 +104,6 @@ const convertToUploadJobRow = (
     [AnnotationName.PLATE_BARCODE]:
       metadata[AnnotationName.PLATE_BARCODE] || [],
     [AnnotationName.WELL]: metadata[AnnotationName.WELL] || [],
-    positionIndexes,
-    scenes,
-    subImageNames,
-    wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
   };
 };
 
@@ -496,6 +495,8 @@ const getAnnotations = (
     const customData = removeExcludedFields(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
+      // TODO: ?
+      console.log("Hello");
       const annotation = annotationNameToAnnotationMap[annotationName];
       if (annotation) {
         let addAnnotation = Array.isArray(value)
@@ -540,6 +541,7 @@ const getAnnotations = (
         );
       }
     });
+    console.log("Hello", result);
     return result;
   });
 };

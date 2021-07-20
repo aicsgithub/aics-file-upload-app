@@ -36,7 +36,8 @@ const openDialogOptions: OpenDialogOptions = {
 };
 
 /**
- * TODO
+ * Component responsible for rendering a page the user can use to
+ * input user-defined metadata and submit the files for upload.
  */
 export default function UploadWithTemplatePage() {
   const dispatch = useDispatch();
@@ -80,7 +81,7 @@ export default function UploadWithTemplatePage() {
             )}
             <LabeledInput
               className={styles.selector}
-              label={`Select ${SCHEMA_SYNONYM}`}
+              label={`Select Metadata ${SCHEMA_SYNONYM}`}
             >
               <TemplateSearch
                 allowCreate={true}

@@ -42,10 +42,7 @@ import {
   getLookups,
   getUploadHistory,
 } from "../metadata/selectors";
-import {
-  clearSelectionHistory,
-  setPlateBarcodeToImagingSessions,
-} from "../selection/actions";
+import { setPlateBarcodeToImagingSessions } from "../selection/actions";
 import { PlateBarcodeToImagingSessions } from "../selection/types";
 import { getMountPoint } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
@@ -127,7 +124,6 @@ export const handleStartingNewUploadJob = (
     selectPage(Page.UploadWithTemplate),
     clearUploadDraft(),
     clearUploadHistory(),
-    clearSelectionHistory(),
   ];
   const isMountedAsExpected = existsSync(
     makePosixPathCompatibleWithPlatform("/allen/aics", platform())
@@ -383,13 +379,11 @@ const viewUploadsLogic = createLogic({
         state
       );
 
-      const actions: AnyAction[] = [];
-
       // Any barcoded plate can be snapshot in time as that plate at a certain
       // imaging session. The contents & images of the plates at that time (imaging session)
       // may vary so the app needs to provide options for the user to choose between
       const plateBarcodeToImagingSessions = await Object.values(
-        uploadsToView
+        uploadsToView.uploadMetadata
       ).reduce(async (accumPromise, upload) => {
         const accum = await accumPromise;
         // An upload is assumed to only have one plate associated with it
@@ -433,10 +427,11 @@ const viewUploadsLogic = createLogic({
         }
 
         return accum;
-      }, {} as PlateBarcodeToImagingSessions);
-      actions.push(
-        setPlateBarcodeToImagingSessions(plateBarcodeToImagingSessions)
-      );
+      }, {} as Promise<PlateBarcodeToImagingSessions>);
+
+      const actions: AnyAction[] = [
+        setPlateBarcodeToImagingSessions(plateBarcodeToImagingSessions),
+      ];
 
       if (uploadsToView.templateId) {
         const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
@@ -460,7 +455,7 @@ const viewUploadsLogic = createLogic({
         actions.push(viewUploadsSucceeded(uploadsToView.uploadMetadata));
       }
 
-      dispatch(batchActions([...actions]));
+      dispatch(batchActions(actions));
     } catch (e) {
       dispatch(
         requestFailed(

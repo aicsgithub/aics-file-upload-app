@@ -661,6 +661,7 @@ const updateUploadLogic = createLogic({
               is && is["ImagingSessionId"]
             );
 
+            // TODO: What do we actually use from this?
             return {
               ...platesAndWells,
               imagingSessionId: is["ImagingSessionId"],

@@ -26,6 +26,7 @@ interface StateProps {
 }
 
 interface OwnProps {
+  autoFocus?: boolean;
   className?: string;
   defaultOpen?: boolean;
   disabled?: boolean;
@@ -33,6 +34,7 @@ interface OwnProps {
   getDisplayFromOption?: (option: any) => string;
   lookupAnnotationName: keyof MetadataStateBranch;
   onBlur?: () => void;
+  onInputKeyDown?: (e: React.KeyboardEvent) => void;
   placeholder?: string;
 }
 
@@ -118,6 +120,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
         validateStatus={this.props.error ? "error" : ""}
       >
         <Select
+          autoFocus={this.props.autoFocus}
           allowClear={true}
           className={classNames(
             styles.container,
@@ -130,6 +133,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
           loading={optionsLoading}
           mode={mode}
           notFoundContent={notFoundContent}
+          onInputKeyDown={this.props.onInputKeyDown}
           onBlur={onBlur}
           // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore: lisah cannot seem to make this component happy even
