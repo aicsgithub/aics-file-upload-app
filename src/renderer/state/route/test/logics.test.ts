@@ -21,9 +21,8 @@ import {
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
-import { getFileMetadataForJob } from "../../metadata/selectors";
-import { SET_PLATE_BARCODE_TO_IMAGING_SESSIONS } from "../../selection/constants";
-import { getPlateBarcodeToImagingSessions } from "../../selection/selectors";
+import { SET_PLATE_BARCODE_TO_IMAGING_SESSIONS } from "../../metadata/constants";
+import { getPlateBarcodeToImagingSessions } from "../../metadata/selectors";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -260,7 +259,9 @@ describe("Route logics", () => {
         ],
       });
       labkeyClient.findPlateBarcodeByWellId.resolves("abc");
-      labkeyClient.findImagingSessionsByPlateBarcode.resolves(["3 hours"]);
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves([
+        { ImagingSessionId: 4, "ImagingSessionId/Name": "3 hours" },
+      ]);
       mmsClient.getPlate.resolves({
         plate: {
           ...mockAuditInfo,
@@ -427,7 +428,6 @@ describe("Route logics", () => {
       let state = store.getState();
       expect(getPage(state)).to.equal(Page.MyUploads);
       expect(getView(state)).to.equal(Page.MyUploads);
-      expect(getFileMetadataForJob(state)).to.be.undefined;
       expect(getUpload(state)).to.be.empty;
       expect(getAppliedTemplate(state)).to.be.undefined;
 

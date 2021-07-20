@@ -22,8 +22,6 @@ interface Props {
   wells: Well[][];
 }
 
-// TODO: Make this still functions normally after Associate and Remove Association because of moving out of container wrapper situation
-
 /**
  * A readonly view of a plate saved through the Plate UI
  */

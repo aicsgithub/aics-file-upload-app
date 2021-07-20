@@ -32,25 +32,20 @@ import {
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
+import { setPlateBarcodeToImagingSessions } from "../metadata/actions";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
+  getPlateBarcodeToImagingSessions,
 } from "../metadata/selectors";
 import { closeUpload, viewUploads, resetUpload } from "../route/actions";
 import {
   handleStartingNewUploadJob,
   resetHistoryActions,
 } from "../route/logics";
-import {
-  setPlateBarcodeToImagingSessions,
-  updateMassEditRow,
-} from "../selection/actions";
-import {
-  getMassEditRow,
-  getPlateBarcodeToImagingSessions,
-  getSelectedUploads,
-} from "../selection/selectors";
+import { updateMassEditRow } from "../selection/actions";
+import { getMassEditRow, getSelectedUploads } from "../selection/selectors";
 import { getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";

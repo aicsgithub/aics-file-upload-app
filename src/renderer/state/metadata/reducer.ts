@@ -19,20 +19,18 @@ import {
 import { makeReducer } from "../util";
 
 import {
-  CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
   RECEIVE_ANNOTATION_USAGE,
   RECEIVE_METADATA,
   RESET_HISTORY,
-  UPDATE_PAGE_HISTORY,
+  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
 } from "./constants";
 import {
-  ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
   ResetHistoryAction,
-  UpdatePageHistoryMapAction,
+  SetPlateBarcodeToImagingSessionsAction,
 } from "./types";
 
 export const initialState: MetadataStateBranch = {
@@ -45,11 +43,11 @@ export const initialState: MetadataStateBranch = {
   barcodeSearchResults: [],
   channels: [],
   history: {
-    selection: {},
     upload: {},
   },
   imagingSessions: [],
   lookups: [],
+  plateBarcodeToImagingSessions: {},
   templates: [],
   units: [],
   users: [],
@@ -95,37 +93,8 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
     perform: (state: MetadataStateBranch) => ({
       ...state,
       history: {
-        selection: {},
         upload: {},
       },
-    }),
-  },
-  [UPDATE_PAGE_HISTORY]: {
-    accepts: (action: AnyAction): action is UpdatePageHistoryMapAction =>
-      action.type === UPDATE_PAGE_HISTORY,
-    perform: (
-      state: MetadataStateBranch,
-      action: UpdatePageHistoryMapAction
-    ) => ({
-      ...state,
-      history: {
-        selection: {
-          ...state.history.selection,
-          ...action.payload.selection,
-        },
-        upload: {
-          ...state.history.upload,
-          ...action.payload.upload,
-        },
-      },
-    }),
-  },
-  [CLEAR_FILE_METADATA_FOR_JOB]: {
-    accepts: (action: AnyAction): action is ClearFileMetadataForJobAction =>
-      action.type === CLEAR_FILE_METADATA_FOR_JOB,
-    perform: (state: MetadataStateBranch) => ({
-      ...state,
-      fileMetadataForJob: undefined,
     }),
   },
   [REPLACE_UPLOAD]: {
@@ -143,6 +112,19 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
       ...state,
       currentUploadFilePath: undefined,
       originalUpload: undefined,
+    }),
+  },
+  [SET_PLATE_BARCODE_TO_IMAGING_SESSIONS]: {
+    accepts: (
+      action: AnyAction
+    ): action is SetPlateBarcodeToImagingSessionsAction =>
+      action.type === SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+    perform: (
+      state: MetadataStateBranch,
+      action: SetPlateBarcodeToImagingSessionsAction
+    ) => ({
+      ...state,
+      plateBarcodeToImagingSessions: action.payload,
     }),
   },
   // this is necessary because we are sharing the upload tab

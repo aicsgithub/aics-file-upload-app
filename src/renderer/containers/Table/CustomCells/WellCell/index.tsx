@@ -6,8 +6,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
 import { AnnotationName } from "../../../../constants";
-import { getImagingSessions } from "../../../../state/metadata/selectors";
-import { getPlateBarcodeToImagingSessions } from "../../../../state/selection/selectors";
+import {
+  getImagingSessions,
+  getPlateBarcodeToImagingSessions,
+} from "../../../../state/metadata/selectors";
 import { Well } from "../../../../state/selection/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
@@ -34,7 +36,6 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
   const imagingSessionName =
     props.row.original[AnnotationName.IMAGING_SESSION]?.[0];
 
-  // TODO: Missing info about solutions and units????
   const wells = React.useMemo(() => {
     if (plateBarcode && plateBarcodeToImagingSessions[plateBarcode]) {
       const platesWithImagingSessions =

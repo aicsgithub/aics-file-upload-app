@@ -1,6 +1,5 @@
 import { expect } from "chai";
 
-import { AnnotationName } from "../../../constants";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
   mockAuditInfo,
@@ -10,8 +9,11 @@ import {
   mockState,
   mockTemplateStateBranch,
 } from "../../../state/test/mocks";
-import WellCell from "../../Table/CustomCells/WellCell";
-import { getColumnsForTable, getTemplateColumnsForTable } from "../selectors";
+import {
+  getColumnsForTable,
+  getTemplateColumnsForTable,
+  PLATE_BARCODE_COLUMN,
+} from "../selectors";
 
 describe("CustomDataTable selectors", () => {
   const annotationTypes = [
@@ -54,30 +56,24 @@ describe("CustomDataTable selectors", () => {
       });
 
       // Assert
-      expect(actual).to.be.lengthOf(3);
-      expect(actual).deep.equal(
-        annotations.map((a, index) => ({
+      expect(actual).to.be.lengthOf(4);
+      expect(actual).deep.equal([
+        PLATE_BARCODE_COLUMN,
+        ...annotations.map((a, index) => ({
           type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
           accessor: a.name,
           description: a.description,
           dropdownValues: [],
           isRequired: false,
           width: index === 0 ? 150 : 100,
-        }))
-      );
+        })),
+      ]);
     });
 
     it("returns columns from template and well", () => {
       // Arrange
       const expected = [
-        {
-          id: AnnotationName.WELL,
-          Cell: WellCell,
-          // This description was pulled from LK 03/22/21
-          description:
-            "A well on a plate (that has been entered into the Plate UI)",
-          width: 100,
-        },
+        PLATE_BARCODE_COLUMN,
         ...annotations.map((a, index) => ({
           type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
           accessor: a.name,
@@ -126,9 +122,9 @@ describe("CustomDataTable selectors", () => {
       });
 
       // Assert
-      expect(actual.length).to.equal(6);
+      expect(actual.length).to.equal(7);
       expect(actual.find((c) => c.id === "selection")).to.not.be.undefined;
-      expect(actual.filter((c) => !c.isReadOnly)).to.be.lengthOf(6);
+      expect(actual.filter((c) => !c.isReadOnly)).to.be.lengthOf(7);
     });
 
     it("sets columns to read only", () => {
@@ -150,7 +146,7 @@ describe("CustomDataTable selectors", () => {
       });
 
       // Assert
-      expect(actual.length).to.equal(5);
+      expect(actual.length).to.equal(6);
       // Assert: ensure the only non-readonly columns are the defaults
       expect(actual.every((c) => c.isReadOnly)).to.be.true;
       expect(actual.find((c) => c.id === "selection")).to.be.undefined;

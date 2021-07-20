@@ -34,6 +34,7 @@ import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
+import { setPlateBarcodeToImagingSessions } from "../metadata/actions";
 import {
   getAnnotationLookups,
   getAnnotations,
@@ -42,8 +43,7 @@ import {
   getLookups,
   getUploadHistory,
 } from "../metadata/selectors";
-import { setPlateBarcodeToImagingSessions } from "../selection/actions";
-import { PlateBarcodeToImagingSessions } from "../selection/types";
+import { PlateBarcodeToImagingSessions } from "../metadata/types";
 import { getMountPoint } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import {
@@ -395,7 +395,6 @@ const viewUploadsLogic = createLogic({
           // Avoid re-querying for the imaging sessions if this
           // plate barcode has been selected before
           if (!Object.keys(accum).includes(plateBarcode)) {
-            // TODO: Why not find by name
             const imagingSessionsForPlateBarcode = await labkeyClient.findImagingSessionsByPlateBarcode(
               plateBarcode
             );

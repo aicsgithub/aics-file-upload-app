@@ -2,7 +2,6 @@ import { BarcodePrefix } from "../../services/labkey-client/types";
 import { AsyncRequest, MetadataStateBranch } from "../types";
 
 import {
-  CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
   CREATE_BARCODE,
   GET_BARCODE_SEARCH_RESULTS,
@@ -13,22 +12,22 @@ import {
   REQUEST_ANNOTATION_USAGE,
   REQUEST_METADATA,
   RESET_HISTORY,
-  UPDATE_PAGE_HISTORY,
+  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
 } from "./constants";
 import { initialState } from "./reducer";
 import {
-  ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
+  PlateBarcodeToImagingSessions,
   ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
   RequestAnnotationUsage,
   RequestMetadataAction,
   ResetHistoryAction,
-  UpdatePageHistoryMapAction,
+  SetPlateBarcodeToImagingSessionsAction,
 } from "./types";
 
 export function requestAnnotationUsage(
@@ -103,6 +102,15 @@ export function requestBarcodeSearchResults(
   };
 }
 
+export function setPlateBarcodeToImagingSessions(
+  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions
+): SetPlateBarcodeToImagingSessionsAction {
+  return {
+    payload: plateBarcodeToImagingSessions,
+    type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+  };
+}
+
 export function requestTemplates(): GetTemplatesAction {
   return {
     type: GET_TEMPLATES,
@@ -119,36 +127,8 @@ export function createBarcode(
   };
 }
 
-export function updatePageHistory(
-  page: string,
-  selectionIndex: number,
-  uploadIndex: number,
-  templateIndex: number
-): UpdatePageHistoryMapAction {
-  return {
-    payload: {
-      selection: {
-        [page]: selectionIndex,
-      },
-      template: {
-        [page]: templateIndex,
-      },
-      upload: {
-        [page]: uploadIndex,
-      },
-    },
-    type: UPDATE_PAGE_HISTORY,
-  };
-}
-
 export function resetHistory(): ResetHistoryAction {
   return {
     type: RESET_HISTORY,
-  };
-}
-
-export function clearFileMetadataForJob(): ClearFileMetadataForJobAction {
-  return {
-    type: CLEAR_FILE_METADATA_FOR_JOB,
   };
 }

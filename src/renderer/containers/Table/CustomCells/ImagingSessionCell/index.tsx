@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
 import { AnnotationName } from "../../../../constants";
-import { getPlateBarcodeToImagingSessions } from "../../../../state/selection/selectors";
+import { getPlateBarcodeToImagingSessions } from "../../../../state/metadata/selectors";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
 import DisplayCell from "../../DefaultCells/DisplayCell";

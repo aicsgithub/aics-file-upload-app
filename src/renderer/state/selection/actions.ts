@@ -10,7 +10,6 @@ import {
   LOAD_FILES,
   OPEN_SUB_FILE_SELECTION_MODAL,
   REMOVE_ROW_FROM_DRAG_EVENT,
-  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
   START_CELL_DRAG,
   START_MASS_EDIT,
   STOP_CELL_DRAG,
@@ -23,24 +22,12 @@ import {
   CloseSubFileSelectionModalAction,
   LoadFilesAction,
   OpenSubFileSelectionModalAction,
-  PlateBarcodeToImagingSessions,
   RemoveRowFromDragEventAction,
-  SetPlateBarcodeToImagingSessionsAction,
   StartCellDragAction,
   StartMassEditAction,
   StopCellDragAction,
   UpdateMassEditRowAction,
 } from "./types";
-
-// TODO: Move this into metadata branch
-export function setPlateBarcodeToImagingSessions(
-  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions
-): SetPlateBarcodeToImagingSessionsAction {
-  return {
-    payload: plateBarcodeToImagingSessions,
-    type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
-  };
-}
 
 export function loadFiles(files: string[]): LoadFilesAction {
   return {

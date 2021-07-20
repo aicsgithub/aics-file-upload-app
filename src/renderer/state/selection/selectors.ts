@@ -16,8 +16,6 @@ export const getSubFileSelectionModalFile = (state: State) =>
   state.selection.subFileSelectionModalFile;
 export const getSelectedUploads = (state: State) => state.selection.uploads;
 export const getMassEditRow = (state: State) => state.selection.massEditRow;
-export const getPlateBarcodeToImagingSessions = (state: State) =>
-  state.selection.plateBarcodeToImagingSessions;
 
 // COMPOSED SELECTORS
 export const getIsExistingUpload = createSelector(

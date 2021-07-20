@@ -11,10 +11,6 @@ export const OPEN_SUB_FILE_SELECTION_MODAL = makeConstant(
   "open-sub-file-selection-modal"
 );
 export const LOAD_FILES = makeConstant(BRANCH_NAME, "load-files");
-export const SET_PLATE_BARCODE_TO_IMAGING_SESSIONS = makeConstant(
-  BRANCH_NAME,
-  "set-plate-barcode-to-imaging-sessions"
-);
 export const ADD_ROW_TO_DRAG_EVENT = makeConstant(
   BRANCH_NAME,
   "add-row-to-drag-event"

@@ -31,34 +31,7 @@ export const RECEIVE_ANNOTATION_USAGE = makeConstant(
   BRANCH_NAME,
   "receive-annotation-usage"
 );
-export const CLEAR_FILE_METADATA_FOR_JOB = makeConstant(
+export const SET_PLATE_BARCODE_TO_IMAGING_SESSIONS = makeConstant(
   BRANCH_NAME,
-  "clear-file-metadata-for-job"
+  "set-plate-barcode-to-imaging-sessions"
 );
-export const UPDATE_PAGE_HISTORY = makeConstant(
-  BRANCH_NAME,
-  "update-page-history"
-);
-
-export const MAIN_FILE_COLUMNS = [
-  "filename",
-  "positionIndex",
-  "channel",
-  "template",
-];
-export const UNIMPORTANT_COLUMNS = [
-  "localFilePath",
-  "publicFilePath",
-  "archiveFilePath",
-  "thumbnailLocalFilePath",
-  "uploaded",
-  "uploadedBy",
-  "modified",
-  "modifiedBy",
-  "fileType",
-  "fileSize",
-  "templateId",
-  "fileId",
-  "thumbnailId",
-  "key",
-];

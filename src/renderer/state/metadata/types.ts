@@ -1,4 +1,5 @@
 import { BarcodePrefix } from "../../services/labkey-client/types";
+import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { AsyncRequest, MetadataStateBranch } from "../types";
 
 export interface GetOptionsForLookupAction {
@@ -11,10 +12,6 @@ export interface GetOptionsForLookupAction {
 
 export interface ClearOptionsForLookupAction {
   payload: keyof MetadataStateBranch; // lookupAnnotationName
-  type: string;
-}
-
-export interface ClearFileMetadataForJobAction {
   type: string;
 }
 
@@ -43,21 +40,6 @@ export interface ReceiveAnnotationUsageAction {
   type: string;
 }
 
-export interface UpdatePageHistoryMapAction {
-  payload: {
-    selection: {
-      [page: string]: number;
-    };
-    template: {
-      [page: string]: number;
-    };
-    upload: {
-      [page: string]: number;
-    };
-  };
-  type: string;
-}
-
 export interface CreateBarcodeAction {
   payload: { barcodePrefix: BarcodePrefix; uploadKey: string };
   type: string;
@@ -74,4 +56,22 @@ export interface GetTemplatesAction {
 
 export interface ResetHistoryAction {
   type: string;
+}
+
+export interface SetPlateBarcodeToImagingSessionsAction {
+  payload: PlateBarcodeToImagingSessions;
+  type: string;
+}
+
+export interface PlateWithImagingSession {
+  imagingSessionId?: number;
+  name?: string;
+  plate: PlateResponse;
+  wells: WellResponse[];
+}
+
+export interface PlateBarcodeToImagingSessions {
+  [plateBarcode: string]: {
+    [imagingSessionId: number]: PlateWithImagingSession;
+  };
 }

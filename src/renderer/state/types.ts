@@ -41,7 +41,7 @@ import {
 import { UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
-import { PlateBarcodeToImagingSessions } from "./selection/types";
+import { PlateBarcodeToImagingSessions } from "./metadata/types";
 
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
@@ -241,17 +241,16 @@ export interface MetadataStateBranch {
   channels: Channel[];
   // this represents the filepath to an upload draft that has been saved is currently opened in the upload wizard
   currentUploadFilePath?: string;
-  fileMetadataForJob?: SearchResultRow[];
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
   originalUploads?: UploadStateBranch;
+  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions;
   templates: LabkeyTemplate[];
   units: Unit[];
   // Gets updated every time app changes pages.
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
   history: {
-    selection: PageToIndexMap;
     upload: PageToIndexMap;
   };
 
@@ -293,7 +292,6 @@ export interface UploadTabSelections {
   cellAtDragStart?: UploadKeyValue;
   uploads: JSSJob<UploadServiceFields>[];
   massEditRow?: MassEditRow;
-  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions;
   rowsSelectedForDragEvent?: UploadRowTableId[];
   rowsSelectedForMassEdit?: string[];
   subFileSelectionModalFile?: string;

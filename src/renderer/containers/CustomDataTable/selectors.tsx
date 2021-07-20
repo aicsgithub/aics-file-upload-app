@@ -7,11 +7,9 @@ import { ColumnType } from "../../services/labkey-client/types";
 import {
   getAnnotations,
   getAnnotationTypes,
-} from "../../state/metadata/selectors";
-import {
-  getAreSelectedUploadsInFlight,
   getPlateBarcodeToImagingSessions,
-} from "../../state/selection/selectors";
+} from "../../state/metadata/selectors";
+import { getAreSelectedUploadsInFlight } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getUpload } from "../../state/upload/selectors";
 import { getTextWidth } from "../../util";
@@ -68,7 +66,7 @@ const SELECTION_COLUMN: CustomColumn = {
   maxWidth: 35,
 };
 
-const PLATE_BARCODE_COLUMN: CustomColumn = {
+export const PLATE_BARCODE_COLUMN: CustomColumn = {
   accessor: AnnotationName.PLATE_BARCODE,
   Cell: PlateBarcodeCell,
   // This description was pulled from LK 07/16/21

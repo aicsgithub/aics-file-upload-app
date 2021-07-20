@@ -8,7 +8,6 @@ import { getSelectedUploads } from "../../state/selection/selectors";
 import { AsyncRequest, UploadStateBranch } from "../../state/types";
 import { getUpload, getUploadFileNames } from "../../state/upload/selectors";
 
-// TODO: Remove traces
 export const getIsUploadInProgress = createSelector(
   [getRequestsInProgress, getUploadFileNames],
   (requestsInProgress: string[], fileNames: string[]) => {

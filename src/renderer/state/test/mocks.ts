@@ -225,7 +225,6 @@ export const mockJob: JSSJob = {
 };
 
 export const mockSelection: SelectionStateBranch = {
-  plateBarcodeToImagingSessions: {},
   user: "fake_user",
   uploads: [],
 };
