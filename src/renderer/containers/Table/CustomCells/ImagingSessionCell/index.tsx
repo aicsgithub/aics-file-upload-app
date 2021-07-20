@@ -57,5 +57,11 @@ export default function ImagingSessionCell(
     }
   }
 
-  return <DisplayCell {...props} onStartEditing={onStartEditing} />;
+  return (
+    <DisplayCell
+      {...props}
+      disabled={!imagingSessionNames.length}
+      onStartEditing={onStartEditing}
+    />
+  );
 }

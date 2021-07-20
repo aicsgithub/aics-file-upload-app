@@ -109,7 +109,8 @@ ipcMain.on(
     limsHost: string,
     limsPort: string,
     barcode: string,
-    prefix: string
+    prefix: string,
+    uploadKey: string
   ) => {
     const child: BrowserWindow = new BrowserWindow({
       parent: mainWindow,
@@ -137,7 +138,7 @@ ipcMain.on(
         const imagingSessionId = new URLSearchParams(childURL.search).get(
           "ImagingSessionId"
         );
-        event.sender.send(PLATE_CREATED, barcode, imagingSessionId);
+        event.sender.send(PLATE_CREATED, uploadKey, barcode, imagingSessionId);
         child.close();
       }
     });

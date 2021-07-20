@@ -17,11 +17,10 @@ describe("AddCustomData selectors", () => {
     it("returns true if selected job and job successful", () => {
       const result = getCanSubmitUpload({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-          hasNoPlateToUpload: true,
-          job: mockSuccessfulUploadJob,
-        }),
+          uploads: [mockSuccessfulUploadJob],
+        },
       });
       expect(result).to.be.true;
     });

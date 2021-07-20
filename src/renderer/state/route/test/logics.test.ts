@@ -22,6 +22,8 @@ import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
 import { getFileMetadataForJob } from "../../metadata/selectors";
+import { SET_PLATE_BARCODE_TO_IMAGING_SESSIONS } from "../../selection/constants";
+import { getPlateBarcodeToImagingSessions } from "../../selection/selectors";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -490,7 +492,8 @@ describe("Route logics", () => {
         )
       ).to.be.true;
     });
-    it("does not dispatch setPlate action if file metadata does not contain well annotation", async () => {
+
+    it("does not dispatch setPlateBarcodeToImagingSessions action if file metadata does not contain well annotation", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -498,9 +501,14 @@ describe("Route logics", () => {
       store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
-      expect(getSelectedPlate(store.getState())).to.be.undefined;
-      expect(actions.includesMatch(setHasNoPlateToUpload(true)));
+      expect(getPlateBarcodeToImagingSessions(store.getState())).to.be.empty;
+      expect(
+        actions.includesMatch({
+          type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+        })
+      );
     });
+
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
       stubMethods({});
       const errorMessage = "foo";
@@ -527,6 +535,7 @@ describe("Route logics", () => {
 
       expect(actions.includesMatch(expectedAction)).to.be.true;
     });
+
     it("dispatches requestFailed if getting template fails", async () => {
       stubMethods({});
       const errorMessage = "foo";
@@ -544,21 +553,6 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch(expectedAction)).to.be.true;
-    });
-
-    it("does not set no plate selected if no template was found", async () => {
-      // Arrange
-      stubMethods({});
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      // Act
-      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
-      await logicMiddleware.whenComplete();
-
-      // Assert
-      expect(actions.includesMatch(setHasNoPlateToUpload(true))).to.be.false;
     });
   });
 });

@@ -1,6 +1,5 @@
 import { basename } from "path";
 
-import { isEmpty } from "lodash";
 import { createSelector } from "reselect";
 
 import { MAIN_FONT_WIDTH, AnnotationName } from "../../constants";
@@ -127,7 +126,6 @@ export const getTemplateColumnsForTable = createSelector(
     const plateBarcodeAnnotation = annotations.find(
       (a) => a.name === AnnotationName.PLATE_BARCODE
     );
-    console.log(annotations, plateBarcodeAnnotation);
     columns.push({
       ...PLATE_BARCODE_COLUMN,
       description:
@@ -140,9 +138,16 @@ export const getTemplateColumnsForTable = createSelector(
     );
     if (selectedPlateBarcodes.length) {
       // If any of the selected barcodes have imaging sessions add Imaging Session as a column
-      const platesHaveImagingSessions = Object.entries(
-        plateBarcodeToImagingSessions
-      ).some(([pb, is]) => !isEmpty(is) && selectedPlateBarcodes.includes(pb));
+      const platesHaveImagingSessions = selectedPlateBarcodes.some(
+        (pb) =>
+          plateBarcodeToImagingSessions[pb] &&
+          Object.values(plateBarcodeToImagingSessions[pb]).some((i) => i.name)
+      );
+      console.log(
+        platesHaveImagingSessions,
+        plateBarcodeToImagingSessions,
+        selectedPlateBarcodes
+      );
       if (platesHaveImagingSessions) {
         const imagingSessionAnnotation = annotations.find(
           (a) => a.name === AnnotationName.IMAGING_SESSION

@@ -656,29 +656,39 @@ const updateUploadLogic = createLogic({
           plateBarcode
         );
         const imagingSessionsWithPlateInfo = await Promise.all(
-          imagingSessionsForPlateBarcode.map(async (is) => {
-            const platesAndWells = await deps.mmsClient.getPlate(
+          [undefined, ...imagingSessionsForPlateBarcode].map(async (is) => {
+            const { wells } = await deps.mmsClient.getPlate(
               plateBarcode,
               is && is["ImagingSessionId"]
             );
 
             // TODO: What do we actually use from this?
             return {
-              ...platesAndWells,
-              imagingSessionId: is["ImagingSessionId"],
-              name: is["ImagingSessionId/Name"],
+              wells,
+              imagingSessionId: is && is["ImagingSessionId"],
+              name: is && is["ImagingSessionId/Name"],
             };
           })
         );
 
+        console.log(
+          imagingSessionsWithPlateInfo.reduce(
+            (accum, is) => ({
+              ...accum,
+              [is.imagingSessionId || 0]: is,
+            }),
+            {}
+          )
+        );
         dispatch(
           setPlateBarcodeToImagingSessions({
             ...plateBarcodeToImagingSessions,
             [plateBarcode]: imagingSessionsWithPlateInfo.reduce(
               (accum, is) => ({
                 ...accum,
-                [is.imagingSessionId]: is,
-              })
+                [is.imagingSessionId || 0]: is,
+              }),
+              {}
             ),
           })
         );

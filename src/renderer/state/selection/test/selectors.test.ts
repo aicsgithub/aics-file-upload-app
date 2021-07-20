@@ -97,7 +97,6 @@ describe("Selections selectors", () => {
       expect(result).to.deep.equal({
         ...massEditRow,
         [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit.length,
-        wellLabels: ["A1", "A2"],
       });
     });
   });

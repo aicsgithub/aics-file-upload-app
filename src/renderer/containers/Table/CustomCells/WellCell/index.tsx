@@ -11,6 +11,7 @@ import { getPlateBarcodeToImagingSessions } from "../../../../state/selection/se
 import { Well } from "../../../../state/selection/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
+import { getWellLabel } from "../../../../util";
 import Plate from "../../../Plate";
 import DisplayCell from "../../DefaultCells/DisplayCell";
 
@@ -35,7 +36,7 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
 
   // TODO: Missing info about solutions and units????
   const wells = React.useMemo(() => {
-    if (plateBarcode) {
+    if (plateBarcode && plateBarcodeToImagingSessions[plateBarcode]) {
       const platesWithImagingSessions =
         plateBarcodeToImagingSessions[plateBarcode];
       const imagingSession = imagingSessions.find(
@@ -68,13 +69,20 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
     plateBarcodeToImagingSessions,
   ]);
 
-  const selectedWellIds = wells.flatMap((row) =>
-    row.flatMap((well) =>
-      selectedWells.some((sw) => sw.col === well.col && sw.row === well.row)
-        ? [well.wellId]
-        : []
-    )
-  );
+  const wellLabels: string[] = [];
+  const selectedWellIds: number[] = [];
+  wells.forEach((row) => {
+    row.forEach((well) => {
+      if (associatedWells.includes(well.wellId)) {
+        wellLabels.push(getWellLabel(well));
+      }
+      if (
+        selectedWells.some((sw) => sw.col === well.col && sw.row === well.row)
+      ) {
+        selectedWellIds.push(well.wellId);
+      }
+    });
+  });
 
   // Disable association button if no wells are selected or if
   // all of the wells have already been associated with
@@ -131,7 +139,7 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
           className={styles.plate}
           onSelect={(wells) => setSelectedWells(wells)}
           selectedWells={selectedWells}
-          selectedWellIds={selectedWellIds}
+          associatedWellIds={associatedWells}
           wells={wells}
         />
       </div>
@@ -142,8 +150,10 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
     <>
       <DisplayCell
         {...props}
+        value={wellLabels.sort()}
+        disabled={!wells?.[0].length}
         onTabExit={() => setIsEditing(false)}
-        onStartEditing={() => setIsEditing(true)}
+        onStartEditing={() => wells?.[0].length && setIsEditing(true)}
       />
       <Modal
         title="Associate Wells with this row by selecting wells and clicking Associate"

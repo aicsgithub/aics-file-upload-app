@@ -9,9 +9,10 @@ import {
   Lookup,
 } from "../../services/labkey-client/types";
 import { requestFailed } from "../actions";
-import { setErrorAlert } from "../feedback/actions";
+import { setAlert, setErrorAlert } from "../feedback/actions";
 import { getWithRetry } from "../feedback/util";
 import {
+  AlertType,
   AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -53,19 +54,28 @@ const createBarcodeLogic = createLogic({
       const {
         setting: { limsHost, limsPort },
       } = getState();
-      const { prefixId, prefix } = action.payload;
+      const {
+        barcodePrefix: { prefixId, prefix },
+        uploadKey,
+      } = action.payload;
       const barcode = await mmsClient.createBarcode(prefixId);
       ipcRenderer.send(
         OPEN_CREATE_PLATE_STANDALONE,
         limsHost,
         limsPort,
         barcode,
-        prefix
+        prefix,
+        uploadKey
       );
     } catch (ex) {
       const error = "Could not create barcode: " + ex.message;
       logger.error(error);
-      dispatch(requestFailed(error, AsyncRequest.CREATE_BARCODE));
+      dispatch(
+        setAlert({
+          type: AlertType.ERROR,
+          message: error,
+        })
+      );
     }
     done();
   },

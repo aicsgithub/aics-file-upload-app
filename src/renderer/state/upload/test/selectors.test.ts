@@ -730,7 +730,6 @@ describe("Upload selectors", () => {
         subImageNames: [],
         subRows: [],
         [AnnotationName.WELL]: [1],
-        wellLabels: ["A1"],
       });
       expect(rows).to.deep.include({
         barcode: "1235",
@@ -744,7 +743,6 @@ describe("Upload selectors", () => {
         subImageNames: [],
         subRows: [],
         [AnnotationName.WELL]: [2],
-        wellLabels: ["A2"],
       });
       expect(rows).to.deep.include({
         barcode: "1236",
@@ -758,7 +756,6 @@ describe("Upload selectors", () => {
         subImageNames: [],
         subRows: [],
         [AnnotationName.WELL]: [1, 2, 3],
-        wellLabels: ["A1", "A2", "B1"],
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
@@ -811,7 +808,6 @@ describe("Upload selectors", () => {
         subImageNames: [],
         subRows: [],
         [AnnotationName.WELL]: [2],
-        wellLabels: ["A2"],
       });
       expect(rows[1]).to.deep.equal({
         barcode: "1234",
@@ -825,7 +821,6 @@ describe("Upload selectors", () => {
         subImageNames: [],
         subRows: [],
         [AnnotationName.WELL]: [2],
-        wellLabels: ["A2"],
       });
     });
     it("handles files with channels", () => {
@@ -959,7 +954,6 @@ describe("Upload selectors", () => {
         file: true,
         [AnnotationName.NOTES]: false,
         [AnnotationName.WELL]: false,
-        wellLabels: false,
       });
     });
 
@@ -1000,7 +994,6 @@ describe("Upload selectors", () => {
         file: true,
         [AnnotationName.NOTES]: false,
         [AnnotationName.WELL]: true,
-        wellLabels: true,
       });
     });
   });

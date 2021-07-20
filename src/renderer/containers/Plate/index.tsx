@@ -15,10 +15,10 @@ const ROW_EL_WIDTH = 25.4; // px width of the AICSGrid row label
 const MIN_HEIGHT_TO_SHOW_WELL_INFO = 14 * 3; // 3 lines of text, line-height 14px
 
 interface Props {
+  associatedWellIds: number[];
   className?: string;
   onSelect: (wells: AicsGridCell[]) => void;
   selectedWells: AicsGridCell[];
-  selectedWellIds: number[];
   wells: Well[][];
 }
 
@@ -50,7 +50,7 @@ export default function Plate(props: Props) {
         fontSize="14px"
         selectedCells={props.selectedWells}
         displayBackground={(cellData: Well) => {
-          if (includes(props.selectedWellIds, cellData.wellId)) {
+          if (includes(props.associatedWellIds, cellData.wellId)) {
             return ASSOCIATED_WELL_COLOR;
           }
 

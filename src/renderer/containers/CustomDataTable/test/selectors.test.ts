@@ -3,7 +3,6 @@ import { expect } from "chai";
 import { AnnotationName } from "../../../constants";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
-  getMockStateWithHistory,
   mockAuditInfo,
   mockJob,
   mockMMSTemplate,
@@ -72,13 +71,11 @@ describe("CustomDataTable selectors", () => {
       // Arrange
       const expected = [
         {
-          accessor: "wellLabels",
           id: AnnotationName.WELL,
           Cell: WellCell,
           // This description was pulled from LK 03/22/21
           description:
             "A well on a plate (that has been entered into the Plate UI)",
-          isRequired: true,
           width: 100,
         },
         ...annotations.map((a, index) => ({
@@ -98,10 +95,9 @@ describe("CustomDataTable selectors", () => {
           ...mockState.metadata,
           annotationTypes,
         },
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-          barcode: "12345132",
-        }),
+        },
         template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
@@ -143,10 +139,10 @@ describe("CustomDataTable selectors", () => {
           ...mockState.metadata,
           annotationTypes,
         },
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
           uploads: [mockJob],
-        }),
+        },
         template: {
           ...mockTemplateStateBranch,
           appliedTemplate,

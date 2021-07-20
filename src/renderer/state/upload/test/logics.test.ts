@@ -1054,7 +1054,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });
@@ -1086,7 +1085,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });
@@ -1119,7 +1117,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });
@@ -1152,7 +1149,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });
@@ -1184,7 +1180,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });
@@ -1218,7 +1213,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });
@@ -1251,7 +1245,6 @@ describe("Upload logics", () => {
             [AnnotationName.NOTES]: [],
             templateId: 8,
             [AnnotationName.WELL]: [],
-            wellLabels: [],
           },
         }),
       });

@@ -59,7 +59,7 @@ export interface UpdatePageHistoryMapAction {
 }
 
 export interface CreateBarcodeAction {
-  payload: BarcodePrefix;
+  payload: { barcodePrefix: BarcodePrefix; uploadKey: string };
   type: string;
 }
 

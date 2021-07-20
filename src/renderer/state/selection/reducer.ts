@@ -20,6 +20,7 @@ import {
   CLOSE_SUB_FILE_SELECTION_MODAL,
   OPEN_SUB_FILE_SELECTION_MODAL,
   REMOVE_ROW_FROM_DRAG_EVENT,
+  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
   START_CELL_DRAG,
   START_MASS_EDIT,
   STOP_CELL_DRAG,
@@ -32,6 +33,7 @@ import {
   CloseSubFileSelectionModalAction,
   OpenSubFileSelectionModalAction,
   RemoveRowFromDragEventAction,
+  SetPlateBarcodeToImagingSessionsAction,
   StartCellDragAction,
   StartMassEditAction,
   StopCellDragAction,
@@ -135,6 +137,19 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       )
         ? state.rowsSelectedForDragEvent
         : [...(state.rowsSelectedForDragEvent || []), action.payload],
+    }),
+  },
+  [SET_PLATE_BARCODE_TO_IMAGING_SESSIONS]: {
+    accepts: (
+      action: AnyAction
+    ): action is SetPlateBarcodeToImagingSessionsAction =>
+      action.type === SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+    perform: (
+      state: SelectionStateBranch,
+      action: SetPlateBarcodeToImagingSessionsAction
+    ) => ({
+      ...state,
+      plateBarcodeToImagingSessions: action.payload,
     }),
   },
   [REMOVE_ROW_FROM_DRAG_EVENT]: {

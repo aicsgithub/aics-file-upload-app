@@ -1,17 +1,19 @@
 import { Alert, Spin } from "antd";
-import { OpenDialogOptions } from "electron";
+import { ipcRenderer, OpenDialogOptions } from "electron";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { SCHEMA_SYNONYM } from "../../../shared/constants";
+import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import DragAndDrop from "../../components/DragAndDrop";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import { AnnotationName } from "../../constants";
 import {
   getIsLoading,
   getRequestsInProgress,
   getUploadError,
 } from "../../state/feedback/selectors";
+import { getImagingSessions } from "../../state/metadata/selectors";
 import { loadFiles } from "../../state/selection/actions";
 import {
   getAreSelectedUploadsInFlight,
@@ -19,7 +21,7 @@ import {
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { AsyncRequest } from "../../state/types";
-import { applyTemplate } from "../../state/upload/actions";
+import { applyTemplate, updateUpload } from "../../state/upload/actions";
 import {
   getUploadAsTableRows,
   getUploadValidationErrors,
@@ -42,6 +44,7 @@ const openDialogOptions: OpenDialogOptions = {
 export default function UploadWithTemplatePage() {
   const dispatch = useDispatch();
   const appliedTemplate = useSelector(getAppliedTemplate);
+  const imagingSessions = useSelector(getImagingSessions);
   const isPageLoading = useSelector(getIsLoading);
   const isReadOnly = useSelector(getAreSelectedUploadsInFlight);
   const requestsInProgress = useSelector(getRequestsInProgress);
@@ -58,6 +61,28 @@ export default function UploadWithTemplatePage() {
   const isSelectedJobLoading = requestsInProgress.includes(
     AsyncRequest.GET_FILE_METADATA_FOR_JOB
   );
+
+  // Listen for barcode creation events
+  React.useEffect(() => {
+    ipcRenderer.on(PLATE_CREATED, (_, uploadKey, barcode, imagingSessionId) => {
+      const imagingSession = imagingSessions.find(
+        (is) => is.imagingSessionId === imagingSessionId
+      );
+      dispatch(
+        updateUpload(uploadKey, {
+          [AnnotationName.PLATE_BARCODE]: [barcode],
+          [AnnotationName.IMAGING_SESSION]: imagingSession
+            ? [imagingSession.name]
+            : [],
+          [AnnotationName.WELL]: [],
+        })
+      );
+    });
+
+    return function cleanUp() {
+      ipcRenderer.removeAllListeners(PLATE_CREATED);
+    };
+  }, [dispatch, imagingSessions]);
 
   return (
     <DragAndDrop

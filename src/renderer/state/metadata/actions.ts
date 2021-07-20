@@ -110,10 +110,11 @@ export function requestTemplates(): GetTemplatesAction {
 }
 
 export function createBarcode(
-  barcodePrefix: BarcodePrefix
+  barcodePrefix: BarcodePrefix,
+  uploadKey: string
 ): CreateBarcodeAction {
   return {
-    payload: barcodePrefix,
+    payload: { barcodePrefix, uploadKey },
     type: CREATE_BARCODE,
   };
 }

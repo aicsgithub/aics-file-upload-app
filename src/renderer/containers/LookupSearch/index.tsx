@@ -1,6 +1,5 @@
 import { Form, Icon, Select, Spin } from "antd";
 import * as classNames from "classnames";
-import { ReactNode } from "react";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator, AnyAction } from "redux";
@@ -30,6 +29,7 @@ interface OwnProps {
   className?: string;
   defaultOpen?: boolean;
   disabled?: boolean;
+  dropdownRender?: (n: React.ReactNode | undefined) => React.ReactNode;
   error?: boolean;
   getDisplayFromOption?: (option: any) => string;
   lookupAnnotationName: keyof MetadataStateBranch;
@@ -107,7 +107,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
       value,
     } = this.props;
 
-    let notFoundContent: ReactNode = "No Results Found";
+    let notFoundContent: React.ReactNode = "No Results Found";
     if (optionsLoading) {
       notFoundContent = <Spin size="large" />;
     } else if (isLargeLookup && !this.state.searchValue) {
@@ -132,6 +132,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
           disabled={disabled}
           loading={optionsLoading}
           mode={mode}
+          dropdownRender={this.props.dropdownRender}
           notFoundContent={notFoundContent}
           onInputKeyDown={this.props.onInputKeyDown}
           onBlur={onBlur}
