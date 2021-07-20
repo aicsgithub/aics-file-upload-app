@@ -51,11 +51,11 @@ export default function PlateBarcodeCell(
     AsyncRequest.GET_BARCODE_SEARCH_RESULTS
   );
 
-  function onCommit() {
+  function onCommit(barcode = plateBarcode) {
     setIsEditing(false);
     dispatch(
       updateUpload(props.row.id, {
-        [props.column.id]: plateBarcode ? [plateBarcode] : [],
+        [props.column.id]: barcode ? [barcode] : [],
         [AnnotationName.IMAGING_SESSION]: [],
         [AnnotationName.WELL]: [],
       })
@@ -71,6 +71,7 @@ export default function PlateBarcodeCell(
     return (
       <LookupSearch
         autoFocus
+        defaultOpen
         className={styles.plateBarcodeCell}
         getDisplayFromOption={(result: BarcodeSelectorOption) => result.barcode}
         lookupAnnotationName="barcodeSearchResults"
@@ -117,7 +118,7 @@ export default function PlateBarcodeCell(
         }
         onBlur={onCommit}
         onInputKeyDown={createEnterKeyHandler(onCommit)}
-        selectSearchValue={(pb?: string) => setPlateBarcode(pb)}
+        selectSearchValue={onCommit}
         value={props.value?.[0]}
       />
     );
