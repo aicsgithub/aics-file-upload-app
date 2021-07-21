@@ -9,7 +9,10 @@ import {
   getAnnotationTypes,
   getPlateBarcodeToImagingSessions,
 } from "../../state/metadata/selectors";
-import { getAreSelectedUploadsInFlight } from "../../state/selection/selectors";
+import {
+  getAreSelectedUploadsInFlight,
+  getMassEditRow,
+} from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getUpload } from "../../state/upload/selectors";
 import { getTextWidth } from "../../util";
@@ -119,13 +122,15 @@ export const getTemplateColumnsForTable = createSelector(
     getAnnotations,
     getUpload,
     getPlateBarcodeToImagingSessions,
+    getMassEditRow,
   ],
   (
     annotationTypes,
     template,
     annotations,
     uploads,
-    plateBarcodeToImagingSessions
+    plateBarcodeToImagingSessions,
+    massEditRow
   ): CustomColumn[] => {
     if (!template) {
       return [];
@@ -143,9 +148,11 @@ export const getTemplateColumnsForTable = createSelector(
     });
 
     // If the user has selected plate barcodes add Well as a column
-    const selectedPlateBarcodes = Object.values(uploads).flatMap(
-      (u) => u[AnnotationName.PLATE_BARCODE] || []
-    );
+    const selectedPlateBarcodes: string[] = massEditRow
+      ? massEditRow[AnnotationName.PLATE_BARCODE] || []
+      : Object.values(uploads).flatMap(
+          (u) => u[AnnotationName.PLATE_BARCODE] || []
+        );
     if (selectedPlateBarcodes.length) {
       // If any of the selected barcodes have imaging sessions add Imaging Session as a column
       const platesHaveImagingSessions = selectedPlateBarcodes.some(

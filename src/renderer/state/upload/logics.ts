@@ -635,7 +635,7 @@ const updateUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const { upload } = deps.action.payload;
+    const upload = deps.action.payload.upload || deps.action.payload;
 
     // If a plate barcode is being updated check for imaging sessions
     const plateBarcode = upload[AnnotationName.PLATE_BARCODE]?.[0];
