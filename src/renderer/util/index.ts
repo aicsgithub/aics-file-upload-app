@@ -2,23 +2,13 @@ import { constants, promises, readdir as fsReaddir, stat as fsStat } from "fs";
 import { resolve } from "path";
 import { promisify } from "util";
 
-import { AicsGridCell } from "@aics/aics-react-labkey";
 import { memoize, omit, difference, trim, uniq, flatten } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
-import { ImagingSession } from "../services/labkey-client/types";
 import MMSClient from "../services/mms-client";
-import {
-  GetPlateResponse,
-  PlateResponse,
-  Template,
-  TemplateAnnotation,
-  WellResponse,
-} from "../services/mms-client/types";
+import { Template, TemplateAnnotation } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
 import {
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   UploadStateBranch,
@@ -26,58 +16,6 @@ import {
 
 const stat = promisify(fsStat);
 const readdir = promisify(fsReaddir);
-
-const MAX_ROWS = 26;
-
-/***
- * Returns a human readable label representing the row and column of a well on a plate.
- * Assumes plate does not have more than 26 rows.
- * @param well
- * @param noneText
- */
-export function getWellLabel(well?: AicsGridCell, noneText = "None"): string {
-  if (!well) {
-    return noneText;
-  }
-
-  if (well.row < 0 || well.col < 0) {
-    throw Error("Well row and col cannot be negative!");
-  }
-
-  // row and col are zero-based indexes
-  if (well.row > MAX_ROWS - 1) {
-    throw Error(`Well row cannot exceed ${MAX_ROWS}`);
-  }
-
-  const row = String.fromCharCode(97 + (well.row % 26)).toUpperCase();
-  const col = well.col + 1;
-  return `${row}${col}`;
-}
-
-// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
-export const getWellLabelAndImagingSessionName = (
-  wellId: number,
-  imagingSessions: ImagingSession[],
-  selectedPlates: PlateResponse[],
-  wellIdToWell: Map<number, WellResponse>
-) => {
-  const well = wellIdToWell.get(wellId);
-  let label = "ERROR";
-  if (well) {
-    label = getWellLabel({ col: well.col, row: well.row });
-    const plate = selectedPlates.find((p) => p.plateId === well.plateId);
-
-    if (plate && plate.imagingSessionId) {
-      const imagingSession = imagingSessions.find(
-        (is) => is.imagingSessionId === plate.imagingSessionId
-      );
-      if (imagingSession) {
-        label += ` (${imagingSession.name})`;
-      }
-    }
-  }
-  return label;
-};
 
 // every annotation will be stored in an array, regardless of whether it can have multiple values or not
 export const pivotAnnotations = (
@@ -105,55 +43,6 @@ export const splitTrimAndFilter = (value = ""): any[] =>
     .split(LIST_DELIMITER_SPLIT)
     .map(trim)
     .filter((v) => !!v);
-
-export interface PlateInfo {
-  plate: ImagingSessionIdToPlateMap;
-  wells: ImagingSessionIdToWellsMap;
-}
-/**
- * Queries for plate with given barcode and transforms the response into a list of actions to dispatch
- * @param {string} barcode
- * @param {number[]} imagingSessionIds the imagingSessionIds for the plate with this barcode
- * @param {MMSClient} mmsClient
- * @param {ReduxLogicNextCb} dispatch
- * @returns {Promise<PlateInfo>}
- */
-export const getPlateInfo = async (
-  barcode: string,
-  imagingSessionIds: Array<number | null>,
-  mmsClient: MMSClient,
-  dispatch: ReduxLogicNextCb
-): Promise<PlateInfo> => {
-  const request = (): Promise<GetPlateResponse[]> =>
-    Promise.all(
-      imagingSessionIds.map((imagingSessionId: number | null) =>
-        mmsClient.getPlate(barcode, imagingSessionId || undefined)
-      )
-    );
-
-  const platesAndWells: GetPlateResponse[] = await getWithRetry(
-    request,
-    dispatch
-  );
-
-  const imagingSessionIdToPlate: {
-    [imagingSessionId: number]: PlateResponse;
-  } = {};
-  const imagingSessionIdToWells: {
-    [imagingSessionId: number]: WellResponse[];
-  } = {};
-  imagingSessionIds.forEach((imagingSessionId: number | null, i: number) => {
-    imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
-    const { plate, wells } = platesAndWells[i];
-    imagingSessionIdToPlate[imagingSessionId] = plate;
-    imagingSessionIdToWells[imagingSessionId] = wells;
-  });
-
-  return {
-    plate: imagingSessionIdToPlate,
-    wells: imagingSessionIdToWells,
-  };
-};
 
 export interface ApplyTemplateInfo {
   template: Template;

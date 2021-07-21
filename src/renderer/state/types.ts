@@ -33,11 +33,7 @@ import {
   Lookup,
   Unit,
 } from "../services/labkey-client/types";
-import {
-  PlateResponse,
-  Template,
-  WellResponse,
-} from "../services/mms-client/types";
+import { Template, WellResponse } from "../services/mms-client/types";
 import { UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
@@ -295,14 +291,6 @@ export interface UploadTabSelections {
   subFileSelectionModalFile?: string;
 }
 
-export interface ImagingSessionIdToPlateMap {
-  [imagingSessionId: number]: PlateResponse;
-}
-
-export interface ImagingSessionIdToWellsMap {
-  [imagingSessionId: number]: WellResponse[];
-}
-
 export interface AnnotationDraft extends Audited {
   annotationId: number;
   annotationOptions?: string[];
@@ -428,7 +416,6 @@ export interface PlateBarcodeToImagingSessions {
     [imagingSessionId: number]: {
       imagingSessionId?: number;
       name?: string;
-      plate: PlateResponse;
       wells: WellResponse[];
     };
   };

@@ -139,7 +139,7 @@ export const getTemplateColumnsForTable = createSelector(
       const platesHaveImagingSessions = selectedPlateBarcodes.some(
         (pb) =>
           plateBarcodeToImagingSessions[pb] &&
-          Object.values(plateBarcodeToImagingSessions[pb]).some((i) => i.name)
+          Object.values(plateBarcodeToImagingSessions[pb]).some((i) => i?.name)
       );
       if (platesHaveImagingSessions) {
         const imagingSessionAnnotation = annotations.find(

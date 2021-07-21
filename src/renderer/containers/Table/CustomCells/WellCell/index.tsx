@@ -13,11 +13,24 @@ import {
 import { Well } from "../../../../state/selection/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
-import { getWellLabel } from "../../../../util";
 import Plate from "../../../Plate";
 import DisplayCell from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
+
+/***
+ * Returns a human readable label representing the row and column of a well on a plate.
+ * Assumes plate does not have more than 26 rows.
+ */
+function getWellLabel(well?: AicsGridCell, noneText = "None"): string {
+  if (!well) {
+    return noneText;
+  }
+
+  const row = String.fromCharCode(97 + (well.row % 26)).toUpperCase();
+  const col = well.col + 1;
+  return `${row}${col}`;
+}
 
 /**
  * This is used in the react-tables when a user is editing a Well annotation cell.

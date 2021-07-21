@@ -40,6 +40,7 @@ import {
   getAnnotations,
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
+  getImagingSessions,
   getLookups,
   getUploadHistory,
 } from "../metadata/selectors";
@@ -382,31 +383,43 @@ const viewUploadsLogic = createLogic({
       // Any barcoded plate can be snapshot in time as that plate at a certain
       // imaging session. The contents & images of the plates at that time (imaging session)
       // may vary so the app needs to provide options for the user to choose between
-      const plateBarcodeToImagingSessions = await Object.values(
-        uploadsToView.uploadMetadata
-      ).reduce(async (accumPromise, upload) => {
+      const imagingSessions = getImagingSessions(state);
+      const { uploadMetadata } = uploadsToView;
+      const plateBarcodeToImagingSessions = await Object.entries(
+        uploadMetadata
+      ).reduce(async (accumPromise, [key, upload]) => {
         const accum = await accumPromise;
         // An upload is assumed to only have one plate associated with it
         const representativeWellId = upload[AnnotationName.WELL]?.[0];
         if (representativeWellId) {
-          const plateBarcode = await labkeyClient.findPlateBarcodeByWellId(
+          const plate = await labkeyClient.findPlateByWellId(
             representativeWellId
           );
+
+          // Derive and apply the plate barcode and imaging session found via the well
+          const imagingSession = imagingSessions.find(
+            (is) => is.imagingSessionId === plate.ImagingSessionId
+          );
+          uploadMetadata[key][AnnotationName.PLATE_BARCODE] = [plate.BarCode];
+          uploadMetadata[key][AnnotationName.IMAGING_SESSION] = imagingSession
+            ? [imagingSession.name]
+            : [];
+
           // Avoid re-querying for the imaging sessions if this
           // plate barcode has been selected before
-          if (!Object.keys(accum).includes(plateBarcode)) {
+          if (!Object.keys(accum).includes(plate.BarCode)) {
             const imagingSessionsForPlateBarcode = await labkeyClient.findImagingSessionsByPlateBarcode(
-              plateBarcode
+              plate.BarCode
             );
             const imagingSessionsWithPlateInfo = await Promise.all(
               imagingSessionsForPlateBarcode.map(async (is) => {
-                const platesAndWells = await mmsClient.getPlate(
-                  plateBarcode,
+                const { wells } = await mmsClient.getPlate(
+                  plate.BarCode,
                   is && is["ImagingSessionId"]
                 );
 
                 return {
-                  ...platesAndWells,
+                  wells,
                   imagingSessionId: is["ImagingSessionId"],
                   name: is["ImagingSessionId/Name"],
                 };
@@ -415,11 +428,12 @@ const viewUploadsLogic = createLogic({
 
             return {
               ...accum,
-              [plateBarcode]: imagingSessionsWithPlateInfo.reduce(
+              [plate.BarCode]: imagingSessionsWithPlateInfo.reduce(
                 (imagingSessionSoFar, is) => ({
                   ...imagingSessionSoFar,
-                  [is.imagingSessionId]: is,
-                })
+                  [is.imagingSessionId || 0]: is,
+                }),
+                {}
               ),
             };
           }
@@ -444,14 +458,14 @@ const viewUploadsLogic = createLogic({
           mmsClient,
           dispatch,
           booleanAnnotationTypeId,
-          uploadsToView.uploadMetadata
+          uploadMetadata
         );
         actions.push(
           setAppliedTemplate(template, uploads),
           viewUploadsSucceeded(uploads)
         );
       } else {
-        actions.push(viewUploadsSucceeded(uploadsToView.uploadMetadata));
+        actions.push(viewUploadsSucceeded(uploadMetadata));
       }
 
       dispatch(batchActions(actions));

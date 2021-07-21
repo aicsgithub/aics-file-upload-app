@@ -40,7 +40,9 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   public render() {
     if (this.props.disabled) {
       return (
-        <div className={classNames(styles.container, this.props.className)}>
+        <div
+          className={classNames(styles.childContainer, this.props.className)}
+        >
           {this.props.children}
         </div>
       );

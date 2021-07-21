@@ -39,8 +39,6 @@ import {
 import { Well } from "../selection/types";
 import {
   AnnotationDraft,
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
   JobStateBranch,
   SelectionStateBranch,
   State,
@@ -174,41 +172,6 @@ export const mockWell: Well = {
   row: 0,
   solutions: [],
   wellId: 1,
-};
-
-export const mockWells: ImagingSessionIdToWellsMap = {
-  0: [
-    mockWell,
-    { ...mockWell, col: 1, row: 0, wellId: 2 },
-    { ...mockWell, cellPopulations: [], col: 2, row: 0, wellId: 5 },
-    { ...mockWell, col: 1, row: 1, wellId: 4 },
-    { ...mockWell, col: 0, row: 1, wellId: 3 },
-    { ...mockWell, cellPopulations: [], col: 2, row: 1, wellId: 6 },
-  ],
-  1: [{ ...mockWell, plateId: 2, wellId: 10 }],
-};
-
-export const mockPlate: ImagingSessionIdToPlateMap = {
-  0: {
-    ...mockAuditInfo,
-    barcode: "abc",
-    comments: "",
-    imagingSessionId: undefined,
-    plateGeometryId: 1,
-    plateId: 1,
-    plateStatusId: 1,
-    seededOn: undefined,
-  },
-  1: {
-    ...mockAuditInfo,
-    barcode: "abc",
-    comments: "drugs added",
-    imagingSessionId: 1,
-    plateGeometryId: 1,
-    plateId: 2,
-    plateStatusId: 1,
-    seededOn: undefined,
-  },
 };
 
 export const mockJob: JSSJob = {

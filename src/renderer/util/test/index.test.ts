@@ -7,7 +7,6 @@ import * as rimraf from "rimraf";
 import {
   createSandbox,
   SinonStubbedInstance,
-  spy,
   stub,
   createStubInstance,
 } from "sinon";
@@ -16,23 +15,16 @@ import {
   determineFilesFromNestedPaths,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
-  getPlateInfo,
   getPowerOf1000,
   splitTrimAndFilter,
 } from "../";
 import MMSClient from "../../services/mms-client";
-import {
-  GetPlateResponse,
-  PlateResponse,
-  Template,
-} from "../../services/mms-client/types";
-import { Well } from "../../state/selection/types";
+import { Template } from "../../services/mms-client/types";
 import {
   dialog,
   mockReduxLogicDeps,
 } from "../../state/test/configure-mock-store";
 import {
-  mockAuditInfo,
   mockBooleanAnnotation,
   mockFavoriteColorTemplateAnnotation,
   mockMMSTemplate,
@@ -43,7 +35,6 @@ import {
   UploadStateBranch,
 } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
-import { getWellLabel } from "../index";
 import makePosixPathCompatibleWithPlatform from "../makePosixPathCompatibleWithPlatform";
 
 describe("General utilities", () => {
@@ -55,40 +46,6 @@ describe("General utilities", () => {
 
   afterEach(() => {
     sandbox.restore();
-  });
-  describe("getWellLabel", () => {
-    it("should display A1 given {row: 0, col: 0}", () => {
-      const wellLabel = getWellLabel({ row: 0, col: 0 });
-      expect(wellLabel).to.equal("A1");
-    });
-
-    it("should display Z14 given {row: 25, col: 13}", () => {
-      const wellLabel = getWellLabel({ row: 25, col: 13 });
-      expect(wellLabel).to.equal("Z14");
-    });
-
-    it("should throw error given {row: -1, col: 0}", () => {
-      expect(() => getWellLabel({ row: -1, col: 0 })).to.throw();
-    });
-
-    it("should throw error given {row: 0, col: -1}", () => {
-      expect(() => getWellLabel({ row: 0, col: -1 })).to.throw();
-    });
-
-    it("should throw error given {row: 26, col: 0}", () => {
-      expect(() => getWellLabel({ row: 26, col: 0 })).to.throw();
-    });
-
-    it("should display None given undefined well", () => {
-      const wellLabel = getWellLabel(undefined);
-      expect(wellLabel).to.equal("None");
-    });
-
-    it("should display custom text given undefined well and custom none text provided", () => {
-      const NONE = "Oops";
-      const wellLabel = getWellLabel(undefined, NONE);
-      expect(wellLabel).to.equal(NONE);
-    });
   });
 
   describe("determineFilesFromNestedPaths", () => {
@@ -168,58 +125,6 @@ describe("General utilities", () => {
       expect(
         makePosixPathCompatibleWithPlatform("//allen/aics/sw", "win32")
       ).to.equal(expectedPath);
-    });
-  });
-  describe("getPlateInfo", () => {
-    const barcode = "123456";
-    const mockEmptyWell: Well = {
-      cellPopulations: [],
-      col: 0,
-      plateId: 1,
-      row: 0,
-      solutions: [],
-      wellId: 1,
-    };
-    const mockPlate: PlateResponse = {
-      ...mockAuditInfo,
-      barcode,
-      comments: "",
-      imagingSessionId: undefined,
-      plateGeometryId: 1,
-      plateId: 1,
-      plateStatusId: 1,
-      seededOn: "2018-02-14 23:03:52",
-    };
-    it("creates a map of imagingSessionIds to plate and well info", async () => {
-      const mockGetPlateResponse1: GetPlateResponse = {
-        plate: mockPlate,
-        wells: [mockEmptyWell],
-      };
-      const mockGetPlateResponse2: GetPlateResponse = {
-        plate: { ...mockPlate, imagingSessionId: 4, plateId: 2 },
-        wells: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
-      };
-      mmsClient.getPlate
-        .withArgs(barcode, undefined)
-        .resolves(mockGetPlateResponse1);
-      mmsClient.getPlate.withArgs(barcode, 4).resolves(mockGetPlateResponse2);
-      const dispatchSpy = spy();
-      const imagingSessionIds = [null, 4];
-
-      const { plate, wells } = await getPlateInfo(
-        barcode,
-        imagingSessionIds,
-        (mmsClient as any) as MMSClient,
-        dispatchSpy
-      );
-      expect(plate).to.deep.equal({
-        0: mockPlate,
-        4: { ...mockPlate, imagingSessionId: 4, plateId: 2 },
-      });
-      expect(wells).to.deep.equal({
-        0: [mockEmptyWell],
-        4: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
-      });
     });
   });
   describe("getApplyTemplateInfo", () => {

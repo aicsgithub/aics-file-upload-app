@@ -258,7 +258,10 @@ describe("Route logics", () => {
           },
         ],
       });
-      labkeyClient.findPlateBarcodeByWellId.resolves("abc");
+      labkeyClient.findPlateByWellId.resolves({
+        BarCode: "abc",
+        ImagingSessionId: 6,
+      });
       labkeyClient.findImagingSessionsByPlateBarcode.resolves([
         { ImagingSessionId: 4, "ImagingSessionId/Name": "3 hours" },
       ]);

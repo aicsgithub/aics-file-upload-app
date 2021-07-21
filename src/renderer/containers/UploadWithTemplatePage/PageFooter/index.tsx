@@ -32,7 +32,7 @@ export default function PageFooter(props: Props) {
   function onSubmit() {
     props.onSubmit();
 
-    if (validationErrors.length) {
+    if (!validationErrors.length) {
       if (selectedUploads.length) {
         dispatch(submitFileMetadataUpdate());
       } else {
