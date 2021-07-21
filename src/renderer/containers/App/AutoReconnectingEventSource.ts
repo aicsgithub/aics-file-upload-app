@@ -1,4 +1,4 @@
-import { timeout } from "../../state/feedback/util";
+import { timeout } from "../../util";
 
 // The normal `EventSource` object does not attempt to reconnect under all
 // scenarios (see https://html.spec.whatwg.org/multipage/server-sent-events.html#sse-processing-model).

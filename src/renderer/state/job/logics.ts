@@ -9,6 +9,7 @@ import {
   UploadStage,
 } from "../../services/job-status-client/types";
 import { setErrorAlert, setInfoAlert } from "../feedback/actions";
+import { handleUploadProgress } from "../stateHelpers";
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -16,7 +17,6 @@ import {
   ReduxLogicTransformDependencies,
 } from "../types";
 import { uploadFailed, uploadSucceeded } from "../upload/actions";
-import { handleUploadProgress } from "../util";
 
 import { updateUploadProgressInfo } from "./actions";
 import { RECEIVE_JOB_UPDATE, RECEIVE_JOBS } from "./constants";

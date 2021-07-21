@@ -22,13 +22,7 @@ import { StartUploadResponse } from "../../services/fss-client";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { UploadRequest } from "../../services/types";
-import {
-  determineFilesFromNestedPaths,
-  ensureDraftGetsSaved,
-  getApplyTemplateInfo,
-  pivotAnnotations,
-  splitTrimAndFilter,
-} from "../../util";
+import { determineFilesFromNestedPaths, splitTrimAndFilter } from "../../util";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
@@ -47,6 +41,12 @@ import {
 import { updateMassEditRow } from "../selection/actions";
 import { getMassEditRow, getSelectedUploads } from "../selection/selectors";
 import { getTemplateId } from "../setting/selectors";
+import {
+  ensureDraftGetsSaved,
+  getApplyTemplateInfo,
+  handleUploadProgress,
+  pivotAnnotations,
+} from "../stateHelpers";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
@@ -61,7 +61,7 @@ import {
   UploadStateBranch,
   FileModel,
 } from "../types";
-import { batchActions, handleUploadProgress } from "../util";
+import { batchActions } from "../util";
 
 import {
   addUploadFiles,
