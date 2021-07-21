@@ -422,7 +422,7 @@ describe("Route logics", () => {
         VIEW_UPLOADS_SUCCEEDED
       );
     });
-    it("handles case where upload tab is not open yet", async () => {
+    it("handles case where upload page is not open yet", async () => {
       stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
@@ -446,6 +446,8 @@ describe("Route logics", () => {
           fileId: "dog",
           "Favorite Color": ["Blue", "Green"],
           [AnnotationName.WELL]: ["A1", "B6"],
+          [AnnotationName.PLATE_BARCODE]: ["abc"],
+          [AnnotationName.IMAGING_SESSION]: [],
           channelId: undefined,
           fovId: undefined,
           positionIndex: undefined,
@@ -454,6 +456,7 @@ describe("Route logics", () => {
         },
       });
       expect(getAppliedTemplate(state)).to.not.be.undefined;
+      expect(getPlateBarcodeToImagingSessions(state)).to.not.be.empty;
     });
     it("dispatches requestFailed if boolean annotation type id is not defined", async () => {
       stubMethods({});

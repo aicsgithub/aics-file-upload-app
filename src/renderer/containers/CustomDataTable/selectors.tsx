@@ -74,7 +74,19 @@ export const PLATE_BARCODE_COLUMN: CustomColumn = {
   width: getColumnWidthForType(AnnotationName.PLATE_BARCODE, ColumnType.LOOKUP),
 };
 
-const WELL_COLUMN: CustomColumn = {
+export const IMAGING_SESSION_COLUMN: CustomColumn = {
+  accessor: AnnotationName.IMAGING_SESSION,
+  Cell: ImagingSessionCell,
+  // This description was pulled from LK 07/16/21
+  description:
+    "Describes the session in which a plate is imaged. This is used especially when a single plate is imaged multiple times to identify each session (e.g. 2 hour - Drugs, 4 hour - Drugs)	",
+  width: getColumnWidthForType(
+    AnnotationName.IMAGING_SESSION,
+    ColumnType.LOOKUP
+  ),
+};
+
+export const WELL_COLUMN: CustomColumn = {
   accessor: AnnotationName.WELL,
   Cell: WellCell,
   // This description was pulled from LK 03/22/21
@@ -146,10 +158,10 @@ export const getTemplateColumnsForTable = createSelector(
           (a) => a.name === AnnotationName.IMAGING_SESSION
         );
         columns.push({
-          accessor: AnnotationName.IMAGING_SESSION,
-          Cell: ImagingSessionCell,
-          description: imagingSessionAnnotation?.description || "...loading",
-          width: 100,
+          ...IMAGING_SESSION_COLUMN,
+          description:
+            imagingSessionAnnotation?.description ||
+            IMAGING_SESSION_COLUMN.description,
         });
       }
 

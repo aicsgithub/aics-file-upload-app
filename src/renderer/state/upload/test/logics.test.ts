@@ -13,6 +13,7 @@ import {
 } from "sinon";
 
 import { AnnotationName } from "../../../constants";
+import { LabkeyClient } from "../../../services";
 import FileManagementSystem from "../../../services/fms-client";
 import { StartUploadResponse } from "../../../services/fss-client";
 import JobStatusClient from "../../../services/job-status-client";
@@ -22,6 +23,9 @@ import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
+import { setPlateBarcodeToImagingSessions } from "../../metadata/actions";
+import { SET_PLATE_BARCODE_TO_IMAGING_SESSIONS } from "../../metadata/constants";
+import { getPlateBarcodeToImagingSessions } from "../../metadata/selectors";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -31,6 +35,7 @@ import {
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
+  mockAuditInfo,
   mockDateAnnotation,
   mockFailedUploadJob,
   mockJob,
@@ -83,14 +88,17 @@ describe("Upload logics", () => {
   let fms: SinonStubbedInstance<FileManagementSystem>;
   let jssClient: SinonStubbedInstance<JobStatusClient>;
   let mmsClient: SinonStubbedInstance<MMSClient>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
 
   beforeEach(() => {
     fms = createStubInstance(FileManagementSystem);
     jssClient = createStubInstance(JobStatusClient);
     mmsClient = createStubInstance(MMSClient);
+    labkeyClient = createStubInstance(LabkeyClient);
     sandbox.replace(mockReduxLogicDeps, "fms", fms);
     sandbox.replace(mockReduxLogicDeps, "jssClient", jssClient);
     sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
   });
 
   afterEach(() => {
@@ -1229,7 +1237,7 @@ describe("Upload logics", () => {
     });
 
     it("converts '' to [] if type is TEXT", () => {
-      const { store } = createMockReduxStore({
+      const { actions, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
         template: {
           ...mockTemplateStateBranch,
@@ -1258,6 +1266,137 @@ describe("Upload logics", () => {
       // after
       const upload = getUpload(store.getState());
       expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+      expect(
+        actions.includesMatch({ type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS })
+      ).to.be.false;
+    });
+
+    it("sets plateBarcodeToImagingSessions if update includes plate barcode", async () => {
+      // Arrange
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            annotations: [mockTextAnnotation],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [uploadRowKey]: {
+            [mockTextAnnotation.name]: [],
+            file: "/path/to/file3",
+            [AnnotationName.NOTES]: [],
+            templateId: 8,
+            [AnnotationName.WELL]: [],
+          },
+        }),
+      });
+      const plateBarcode = "490109230";
+      const expected = {
+        [plateBarcode]: {
+          [9]: {
+            name: "imaging session 9",
+            imagingSessionId: 9,
+            wells: [],
+          },
+          [0]: {
+            name: undefined,
+            imagingSessionId: undefined,
+            wells: [],
+          },
+        },
+      };
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves([
+        { ImagingSessionId: 9, "ImagingSessionId/Name": "imaging session 9" },
+      ]);
+      mmsClient.getPlate.resolves({
+        plate: {
+          barcode: "",
+          comments: "",
+          plateGeometryId: 8,
+          plateId: 14,
+          plateStatusId: 3,
+          ...mockAuditInfo,
+        },
+        wells: [],
+      });
+
+      // Act
+      store.dispatch(
+        updateUpload(uploadRowKey, {
+          [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+        })
+      );
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(getPlateBarcodeToImagingSessions(store.getState())).to.deep.equal(
+        expected
+      );
+      expect(actions.includesMatch(setPlateBarcodeToImagingSessions(expected)))
+        .to.be.true;
+      expect(
+        getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
+      ).to.deep.equal([plateBarcode]);
+    });
+
+    it("does not set plateBarcodeToImagingSessions if already queried for plate barcode", async () => {
+      // Arrange
+      const plateBarcode = "490109230";
+      const expected = {
+        [plateBarcode]: {
+          [9]: {
+            name: "imaging session 9",
+            imagingSessionId: 9,
+            wells: [],
+          },
+          [0]: {
+            wells: [],
+          },
+        },
+      };
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        metadata: {
+          ...nonEmptyStateForInitiatingUpload.metadata,
+          plateBarcodeToImagingSessions: expected,
+        },
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            annotations: [mockTextAnnotation],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [uploadRowKey]: {
+            [mockTextAnnotation.name]: [],
+            file: "/path/to/file3",
+            [AnnotationName.NOTES]: [],
+            templateId: 8,
+            [AnnotationName.WELL]: [],
+          },
+        }),
+      });
+
+      // Act
+      store.dispatch(
+        updateUpload(uploadRowKey, {
+          [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+        })
+      );
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(getPlateBarcodeToImagingSessions(store.getState())).to.deep.equal(
+        expected
+      );
+      expect(actions.includesMatch(setPlateBarcodeToImagingSessions(expected)))
+        .to.be.false;
+      expect(
+        getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
+      ).to.deep.equal([plateBarcode]);
     });
   });
 

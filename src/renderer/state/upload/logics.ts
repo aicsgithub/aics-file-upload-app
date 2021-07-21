@@ -653,13 +653,13 @@ const updateUploadLogic = createLogic({
           [undefined, ...imagingSessionsForPlateBarcode].map(async (is) => {
             const { wells } = await deps.mmsClient.getPlate(
               plateBarcode,
-              is && is["ImagingSessionId"]
+              is?.["ImagingSessionId"]
             );
 
             return {
               wells,
-              imagingSessionId: is && is["ImagingSessionId"],
-              name: is && is["ImagingSessionId/Name"],
+              imagingSessionId: is?.["ImagingSessionId"],
+              name: is?.["ImagingSessionId/Name"],
             };
           })
         );
