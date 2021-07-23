@@ -239,7 +239,7 @@ export interface MetadataStateBranch {
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
   originalUploads?: UploadStateBranch;
-  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions;
+  plateBarcodeToPlates: PlateBarcodeToPlates;
   templates: LabkeyTemplate[];
   units: Unit[];
   // Gets updated every time app changes pages.
@@ -411,12 +411,12 @@ export interface MassEditRow {
   [key: string]: any;
 }
 
-export interface PlateBarcodeToImagingSessions {
-  [plateBarcode: string]: {
-    [imagingSessionId: number]: {
-      imagingSessionId?: number;
-      name?: string;
-      wells: WellResponse[];
-    };
-  };
+export interface PlateAtImagingSession {
+  imagingSessionId?: number;
+  name?: string;
+  wells: WellResponse[];
+}
+
+export interface PlateBarcodeToPlates {
+  [plateBarcode: string]: PlateAtImagingSession[];
 }

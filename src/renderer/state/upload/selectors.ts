@@ -39,6 +39,7 @@ import {
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
   getOriginalUpload,
+  getPlateBarcodeToPlates,
   getTextAnnotationTypeId,
 } from "../metadata/selectors";
 import { getCompleteAppliedTemplate } from "../template/selectors";
@@ -410,13 +411,15 @@ export const getUploadValidationErrors = createSelector(
     getUploadAsTableRows,
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
+    getPlateBarcodeToPlates,
     getCompleteAppliedTemplate,
   ],
   (
-    rows: UploadTableRow[],
-    fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
-    validationErrorsMap: { [key: string]: { [annotation: string]: string } },
-    template?: TemplateWithTypeNames
+    rows,
+    fileToAnnotationHasValueMap,
+    validationErrorsMap,
+    plateBarcodeToPlates,
+    template?
   ): string[] => {
     if (!template) {
       return [];
@@ -449,11 +452,23 @@ export const getUploadValidationErrors = createSelector(
         const requiredAnnotationsThatDontHaveValues = requiredAnnotations.filter(
           (annotation) => !annotationHasValueMap[annotation]
         );
-        if (
-          annotationHasValueMap[AnnotationName.PLATE_BARCODE] &&
-          !annotationHasValueMap[AnnotationName.WELL]
-        ) {
-          requiredAnnotationsThatDontHaveValues.push(AnnotationName.WELL);
+        if (annotationHasValueMap[AnnotationName.PLATE_BARCODE]) {
+          if (!annotationHasValueMap[AnnotationName.IMAGING_SESSION]) {
+            const plateBarcode = rows.find((r) => r.file === file)?.[
+              AnnotationName.PLATE_BARCODE
+            ]?.[0];
+            const plateInfoForBarcode =
+              plateBarcodeToPlates[plateBarcode || ""];
+            // If there are imaging sessions to choose from then the user should have to
+            if (plateInfoForBarcode?.find((p) => !!p.name)) {
+              requiredAnnotationsThatDontHaveValues.push(
+                AnnotationName.IMAGING_SESSION
+              );
+            }
+          }
+          if (!annotationHasValueMap[AnnotationName.WELL]) {
+            requiredAnnotationsThatDontHaveValues.push(AnnotationName.WELL);
+          }
         }
 
         if (requiredAnnotationsThatDontHaveValues.length) {

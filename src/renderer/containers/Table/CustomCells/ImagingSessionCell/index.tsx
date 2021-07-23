@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
 import { AnnotationName } from "../../../../constants";
-import { getPlateBarcodeToImagingSessions } from "../../../../state/metadata/selectors";
+import { getPlateBarcodeToPlates } from "../../../../state/metadata/selectors";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
 import DisplayCell from "../../DefaultCells/DisplayCell";
@@ -19,15 +19,12 @@ export default function ImagingSessionCell(
 ) {
   const { value } = props;
   const dispatch = useDispatch();
-  const plateBarcodeToImagingSessions = useSelector(
-    getPlateBarcodeToImagingSessions
-  );
+  const plateBarcodeToPlates = useSelector(getPlateBarcodeToPlates);
   const [isEditing, setIsEditing] = React.useState(false);
 
   const plateBarcode = props.row.original[AnnotationName.PLATE_BARCODE]?.[0];
-  const imagingSessions =
-    plateBarcodeToImagingSessions[plateBarcode || ""] || [];
-  const imagingSessionNames = Object.values(imagingSessions)
+  const plates = plateBarcodeToPlates[plateBarcode || ""] || [];
+  const imagingSessionNames = plates
     .map((is) => is.name)
     .filter((n) => !!n) as string[];
 
@@ -36,7 +33,6 @@ export default function ImagingSessionCell(
     dispatch(
       updateUpload(props.row.id, {
         [props.column.id]: value,
-        [AnnotationName.WELL]: [],
       })
     );
   }
@@ -44,6 +40,7 @@ export default function ImagingSessionCell(
   if (isEditing) {
     return (
       <DropdownEditor
+        disableMultiSelect
         initialValue={value}
         options={imagingSessionNames}
         commitChanges={commitChanges}

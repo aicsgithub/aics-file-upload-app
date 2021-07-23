@@ -6,10 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
 import { AnnotationName } from "../../../../constants";
-import {
-  getImagingSessions,
-  getPlateBarcodeToImagingSessions,
-} from "../../../../state/metadata/selectors";
+import { getPlateBarcodeToPlates } from "../../../../state/metadata/selectors";
 import { Well } from "../../../../state/selection/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadTableRow } from "../../../../state/upload/types";
@@ -38,10 +35,7 @@ function getWellLabel(well?: AicsGridCell, noneText = "None"): string {
  */
 export default function WellCell(props: CellProps<UploadTableRow>) {
   const dispatch = useDispatch();
-  const imagingSessions = useSelector(getImagingSessions);
-  const plateBarcodeToImagingSessions = useSelector(
-    getPlateBarcodeToImagingSessions
-  );
+  const plateBarcodeToPlates = useSelector(getPlateBarcodeToPlates);
   const [isEditing, setIsEditing] = React.useState(false);
   const [selectedWells, setSelectedWells] = React.useState<AicsGridCell[]>([]);
   const associatedWells = props.row.original[AnnotationName.WELL] || [];
@@ -50,38 +44,33 @@ export default function WellCell(props: CellProps<UploadTableRow>) {
     props.row.original[AnnotationName.IMAGING_SESSION]?.[0];
 
   const wells = React.useMemo(() => {
-    if (plateBarcode && plateBarcodeToImagingSessions[plateBarcode]) {
-      const platesWithImagingSessions =
-        plateBarcodeToImagingSessions[plateBarcode];
-      const imagingSession = imagingSessions.find(
-        (is) => is.name === imagingSessionName
-      );
-      const wells =
-        platesWithImagingSessions[imagingSession?.imagingSessionId || 0].wells;
-      const sortedWells = sortBy(wells, ["row", "col"]);
-      const rowCount = sortedWells[sortedWells.length - 1].row + 1;
-      const colCount = sortedWells[sortedWells.length - 1].col + 1;
+    if (plateBarcode && plateBarcodeToPlates[plateBarcode]) {
+      const plates = plateBarcodeToPlates[plateBarcode];
+      const wells = plates.find((p) =>
+        imagingSessionName ? p.name === imagingSessionName : !p.name
+      )?.wells;
+      if (wells) {
+        const sortedWells = sortBy(wells, ["row", "col"]);
+        const rowCount = sortedWells[sortedWells.length - 1].row + 1;
+        const colCount = sortedWells[sortedWells.length - 1].col + 1;
 
-      const result: Well[][] = Array(rowCount)
-        .fill(null)
-        .map(() => Array(colCount).fill(null));
-      wells.forEach((well) => {
-        const { cellPopulations, col, row, solutions } = well;
-        result[row][col] = {
-          ...well,
-          modified: !isEmpty(cellPopulations) || !isEmpty(solutions),
-        };
-      });
+        const result: Well[][] = Array(rowCount)
+          .fill(null)
+          .map(() => Array(colCount).fill(null));
+        wells.forEach((well) => {
+          const { cellPopulations, col, row, solutions } = well;
+          result[row][col] = {
+            ...well,
+            // If true, highlights well in special color
+            modified: !isEmpty(cellPopulations) || !isEmpty(solutions),
+          };
+        });
 
-      return result;
+        return result;
+      }
     }
     return [[]];
-  }, [
-    plateBarcode,
-    imagingSessionName,
-    imagingSessions,
-    plateBarcodeToImagingSessions,
-  ]);
+  }, [plateBarcode, imagingSessionName, plateBarcodeToPlates]);
 
   const wellLabels: string[] = [];
   const selectedWellIds: number[] = [];

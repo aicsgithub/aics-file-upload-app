@@ -31,7 +31,7 @@ export const RECEIVE_ANNOTATION_USAGE = makeConstant(
   BRANCH_NAME,
   "receive-annotation-usage"
 );
-export const SET_PLATE_BARCODE_TO_IMAGING_SESSIONS = makeConstant(
+export const SET_PLATE_BARCODE_TO_PLATES = makeConstant(
   BRANCH_NAME,
-  "set-plate-barcode-to-imaging-sessions"
+  "set-plate-barcode-to-plates"
 );

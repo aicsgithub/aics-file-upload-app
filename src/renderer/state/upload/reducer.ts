@@ -2,6 +2,7 @@ import { omit } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
+import { AnnotationName } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { RESET_UPLOAD, VIEW_UPLOADS_SUCCEEDED } from "../route/constants";
 import { ResetUploadAction, ViewUploadsSucceededAction } from "../route/types";
@@ -65,11 +66,27 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
         return state;
       }
 
+      let { upload } = action.payload;
+      const modifiedAnnotations = Object.keys(upload);
+      // Reset Imaging Session and Well on Plate Barcode changes
+      if (modifiedAnnotations.includes(AnnotationName.PLATE_BARCODE)) {
+        upload = {
+          ...upload,
+          [AnnotationName.IMAGING_SESSION]: [],
+          [AnnotationName.WELL]: [],
+        };
+      } else if (modifiedAnnotations.includes(AnnotationName.IMAGING_SESSION)) {
+        upload = {
+          ...upload,
+          [AnnotationName.WELL]: [],
+        };
+      }
+
       return {
         ...state,
         [action.payload.key]: {
           ...state[action.payload.key],
-          ...action.payload.upload,
+          ...upload,
         },
       };
     },

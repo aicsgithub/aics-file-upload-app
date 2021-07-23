@@ -23,14 +23,14 @@ import {
   RECEIVE_ANNOTATION_USAGE,
   RECEIVE_METADATA,
   RESET_HISTORY,
-  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+  SET_PLATE_BARCODE_TO_PLATES,
 } from "./constants";
 import {
   ClearOptionsForLookupAction,
   ReceiveAnnotationUsageAction,
   ReceiveMetadataAction,
   ResetHistoryAction,
-  SetPlateBarcodeToImagingSessionsAction,
+  SetPlateBarcodeToPlatesAction,
 } from "./types";
 
 export const initialState: MetadataStateBranch = {
@@ -47,7 +47,7 @@ export const initialState: MetadataStateBranch = {
   },
   imagingSessions: [],
   lookups: [],
-  plateBarcodeToImagingSessions: {},
+  plateBarcodeToPlates: {},
   templates: [],
   units: [],
   users: [],
@@ -114,17 +114,15 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
       originalUpload: undefined,
     }),
   },
-  [SET_PLATE_BARCODE_TO_IMAGING_SESSIONS]: {
-    accepts: (
-      action: AnyAction
-    ): action is SetPlateBarcodeToImagingSessionsAction =>
-      action.type === SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+  [SET_PLATE_BARCODE_TO_PLATES]: {
+    accepts: (action: AnyAction): action is SetPlateBarcodeToPlatesAction =>
+      action.type === SET_PLATE_BARCODE_TO_PLATES,
     perform: (
       state: MetadataStateBranch,
-      action: SetPlateBarcodeToImagingSessionsAction
+      action: SetPlateBarcodeToPlatesAction
     ) => ({
       ...state,
-      plateBarcodeToImagingSessions: action.payload,
+      plateBarcodeToPlates: action.payload,
     }),
   },
   // this is necessary because we are sharing the upload tab

@@ -74,7 +74,6 @@ export default function UploadWithTemplatePage() {
           [AnnotationName.IMAGING_SESSION]: imagingSession
             ? [imagingSession.name]
             : [],
-          [AnnotationName.WELL]: [],
         })
       );
     });

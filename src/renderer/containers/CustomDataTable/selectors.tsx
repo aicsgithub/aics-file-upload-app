@@ -7,7 +7,7 @@ import { ColumnType } from "../../services/labkey-client/types";
 import {
   getAnnotations,
   getAnnotationTypes,
-  getPlateBarcodeToImagingSessions,
+  getPlateBarcodeToPlates,
 } from "../../state/metadata/selectors";
 import {
   getAreSelectedUploadsInFlight,
@@ -121,7 +121,7 @@ export const getTemplateColumnsForTable = createSelector(
     getAppliedTemplate,
     getAnnotations,
     getUpload,
-    getPlateBarcodeToImagingSessions,
+    getPlateBarcodeToPlates,
     getMassEditRow,
   ],
   (
@@ -129,7 +129,7 @@ export const getTemplateColumnsForTable = createSelector(
     template,
     annotations,
     uploads,
-    plateBarcodeToImagingSessions,
+    plateBarcodeToPlates,
     massEditRow
   ): CustomColumn[] => {
     if (!template) {
@@ -155,10 +155,8 @@ export const getTemplateColumnsForTable = createSelector(
         );
     if (selectedPlateBarcodes.length) {
       // If any of the selected barcodes have imaging sessions add Imaging Session as a column
-      const platesHaveImagingSessions = selectedPlateBarcodes.some(
-        (pb) =>
-          plateBarcodeToImagingSessions[pb] &&
-          Object.values(plateBarcodeToImagingSessions[pb]).some((i) => i?.name)
+      const platesHaveImagingSessions = selectedPlateBarcodes.some((pb) =>
+        plateBarcodeToPlates[pb]?.some((i) => i?.name)
       );
       if (platesHaveImagingSessions) {
         const imagingSessionAnnotation = annotations.find(

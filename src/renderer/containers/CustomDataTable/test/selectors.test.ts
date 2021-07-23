@@ -96,12 +96,12 @@ describe("CustomDataTable selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes,
-          plateBarcodeToImagingSessions: {
-            [plateBarcode]: {
-              [0]: {
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
                 wells: [],
               },
-            },
+            ],
           },
         },
         selection: {
@@ -147,14 +147,14 @@ describe("CustomDataTable selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes,
-          plateBarcodeToImagingSessions: {
-            [plateBarcode]: {
-              [4]: {
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
                 name: "imaging session 1",
                 imagingSessionId: 4,
                 wells: [],
               },
-            },
+            ],
           },
         },
         selection: {
@@ -200,14 +200,14 @@ describe("CustomDataTable selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes,
-          plateBarcodeToImagingSessions: {
-            [plateBarcode]: {
-              [4]: {
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
                 name: "imaging session 1",
                 imagingSessionId: 4,
                 wells: [],
               },
-            },
+            ],
           },
         },
         selection: {

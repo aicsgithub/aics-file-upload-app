@@ -107,7 +107,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
       value,
     } = this.props;
 
-    let notFoundContent: React.ReactNode = "No Results Found";
+    let notFoundContent: React.ReactNode = "No Results";
     if (optionsLoading) {
       notFoundContent = <Spin size="large" />;
     } else if (isLargeLookup && !this.state.searchValue) {
