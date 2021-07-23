@@ -297,10 +297,10 @@ export interface AnnotationDraft extends Audited {
   annotationTypeId: number;
   annotationTypeName: string;
   description: string;
-  index: number;
   name: string;
   lookupSchema?: string;
   lookupTable?: string;
+  orderIndex: number
   required: boolean;
 }
 

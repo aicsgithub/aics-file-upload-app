@@ -532,7 +532,7 @@ export const mockAnnotationDraft: AnnotationDraft = {
   annotationTypeId: 1,
   annotationTypeName: "Text",
   description: "You know what a color is",
-  index: 0,
+  orderIndex: 0,
   name: "Color",
   required: false,
   ...mockAuditInfo,

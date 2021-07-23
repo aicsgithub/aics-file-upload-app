@@ -6,7 +6,6 @@ import {
   Modal,
   Popover,
   Spin,
-  Table,
   Tooltip,
 } from "antd";
 import { ColumnProps } from "antd/es/table";
@@ -14,6 +13,7 @@ import { ipcRenderer } from "electron";
 import { castArray, trim } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { CellProps, Column, useTable } from "react-table";
 
 import {
   OPEN_TEMPLATE_MENU_ITEM_CLICKED,
@@ -38,6 +38,9 @@ import {
 } from "../../state/template/actions";
 import { getTemplateDraft } from "../../state/template/selectors";
 import { AnnotationDraft, AsyncRequest } from "../../state/types";
+import Table from "../Table";
+import DefaultCell from "../Table/DefaultCells/DefaultCell";
+import DefaultHeader from "../Table/Headers/DefaultHeader";
 
 import AnnotationEditorModal from "./AnnotationEditorModal";
 
@@ -164,58 +167,50 @@ function TemplateEditorModal(props: Props) {
     }
   }
 
-  const columns: ColumnProps<AnnotationDraft>[] = [
+  const columns: Column<AnnotationDraft>[] = [
     {
-      dataIndex: "name",
-      key: "name",
-      title: "Name",
-      render: function TooltipName(name: string, row) {
-        return <Tooltip overlay={row.description}>{name}</Tooltip>;
-      },
+      accessor: "name",
+      Cell: DefaultCell,
+      isReadOnly: true,
     },
     {
-      align: "center",
-      dataIndex: "required",
-      key: "required",
-      render: function RequiredCheckbox(required: boolean, _, index) {
+      accessor: "required",
+      Cell: function RequiredCheckbox(props: CellProps<AnnotationDraft>) {
         return (
           <Checkbox
-            checked={required}
+            checked={props.value}
             onChange={() =>
-              onUpdateTemplateAnnotation(index, { required: !required })
+              onUpdateTemplateAnnotation(props.index, { required: !props.value })
             }
           />
         );
       },
-      title: "Required",
-      width: "125px",
+      width: 125,
     },
     {
-      align: "right",
-      key: "actions",
-      render: function Actions(_, row, index) {
+      id: "Actions",
+      Cell: function Actions(props: CellProps<AnnotationDraft>) {
         return (
           <>
             <Button
               icon="search"
               title="View"
-              onClick={() => setFocusedAnnotation(row)}
+              onClick={() => setFocusedAnnotation(props.row.original)}
             />
             <Button
               icon="edit"
               title="Edit"
-              onClick={() => setAnnotationToEdit(row)}
+              onClick={() => setAnnotationToEdit(props.row.original)}
             />
             <Button
               icon="delete"
               title="Remove"
-              onClick={() => onRemoveAnnotation(index)}
+              onClick={() => onRemoveAnnotation(props.index)}
             />
           </>
         );
       },
-      title: "Actions",
-      width: "125px",
+      width: 125,
     },
   ];
 
@@ -236,6 +231,26 @@ function TemplateEditorModal(props: Props) {
   function onCloseAnnotationModal() {
     setAnnotationToEdit(undefined);
     setShowAnnotationEditor(false);
+  }
+
+  function onRowDrag(dragIndex: number, hoverIndex: number) {
+    const annotations = template.annotations.map((annotation, index) => {
+      if (dragIndex === index) {
+        return { ...annotation, orderIndex: hoverIndex };
+      }
+      // If origin is above this row and destination is below
+      // move this row up
+      if (dragIndex > index && hoverIndex < index) {
+        return { ...annotation, orderIndex: index + 1 };
+      }
+      // If origin is below this row and destination is above
+      // move this row down
+      if (index < index && hoverIndex > index) {
+        return { ...annotation, orderIndex: index - 1 };
+      }
+      return annotation;
+    }).sort((a, b) => a.orderIndex - b.orderIndex);
+    dispatch(updateTemplateDraft({ annotations }));
   }
 
   const annotationOptionList = (
@@ -274,6 +289,24 @@ function TemplateEditorModal(props: Props) {
         Create new Annotation
       </Button>
     </>
+  );
+
+
+  const data: any[] = React.useMemo(() => template.annotations, [template.annotations]);
+  const memoizedColumns = React.useMemo(
+    () => columns,
+    [columns]
+  );
+
+  const tableInstance = useTable(
+    {
+      columns: memoizedColumns,
+      // Defines the default column properties, can be overriden per column
+      defaultColumn: {
+        Header: DefaultHeader,
+      },
+      data,
+    },
   );
 
   const title = isEditing
@@ -346,16 +379,11 @@ function TemplateEditorModal(props: Props) {
               </Popover>
             </div>
             <div className={styles.annotationContainer}>
-              <Table
-                rowKey="name"
-                size="small"
-                columns={columns}
-                pagination={false}
-                dataSource={template.annotations}
-                rowClassName={(row) =>
-                  row === focusedAnnotation ? styles.highlighted : undefined
-                }
-              />
+                <Table
+                  className={focusedAnnotation ? styles.halfWidth : undefined}
+                  tableInstance={tableInstance}
+                  onRowDrag={onRowDrag}
+                />
               {focusedAnnotation && (
                 <Table
                   size="small"

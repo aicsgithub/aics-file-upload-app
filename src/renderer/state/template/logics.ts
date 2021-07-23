@@ -54,7 +54,7 @@ import {
   getSaveTemplateRequest,
   getTemplateDraft,
 } from "./selectors";
-import { CreateAnnotationAction, EditAnnotationAction } from "./types";
+import { AddExistingAnnotationAction, CreateAnnotationAction, EditAnnotationAction } from "./types";
 
 const createAnnotation = createLogic({
   process: async (
@@ -145,7 +145,7 @@ const editAnnotation = createLogic({
       // Replace old annotation version with new one
       const oldAnnotationIndex = getTemplateDraft(getState()).annotations.find(
         (a) => a.annotationId === action.payload.annotationId
-      )?.index;
+      )?.orderIndex;
       if (oldAnnotationIndex !== undefined) {
         dispatch(removeAnnotations([oldAnnotationIndex]));
       }
@@ -186,7 +186,7 @@ const openTemplateEditorLogic = createLogic({
           startTemplateDraft(template, {
             ...etc,
             annotations: annotations.map(
-              (a: TemplateAnnotation, index: number) => {
+              (a: TemplateAnnotation, orderIndex: number) => {
                 const type = annotationTypes.find(
                   (t) => t.annotationTypeId === a.annotationTypeId
                 );
@@ -197,7 +197,7 @@ const openTemplateEditorLogic = createLogic({
                 return {
                   ...a,
                   annotationTypeName: type.name,
-                  index,
+                  orderIndex,
                 };
               }
             ),
@@ -217,7 +217,7 @@ const openTemplateEditorLogic = createLogic({
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
-    { action, getState }: ReduxLogicTransformDependencies,
+    { action, getState }: ReduxLogicTransformDependenciesWithAction<AddExistingAnnotationAction>,
     next: ReduxLogicNextCb
   ) => {
     const state = getState();
@@ -267,10 +267,9 @@ const addExistingAnnotationLogic = createLogic({
         ...oldAnnotations,
         {
           annotationTypeName: annotationType.name,
-          index: oldAnnotations.length,
+          orderIndex: oldAnnotations.length,
           lookupSchema,
           lookupTable,
-          name,
           required: false,
           ...action.payload,
         },
@@ -297,10 +296,10 @@ const removeAnnotationsLogic = createLogic({
     const { annotations: oldAnnotations } = getTemplateDraft(getState());
     let annotations = [...oldAnnotations];
     annotations = annotations
-      .filter((a) => !includes(action.payload, a.index))
-      .map((a: AnnotationDraft, index: number) => ({
+      .filter((a) => !includes(action.payload, a.orderIndex))
+      .map((a: AnnotationDraft, orderIndex: number) => ({
         ...a,
-        index,
+        orderIndex,
       }));
     next(updateTemplateDraft({ annotations }));
   },
@@ -419,7 +418,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
         return {
           ...annotation,
           annotationTypeName: annotationType.name,
-          index: annotationsToKeep.length + index,
+          orderIndex: annotationsToKeep.length + index,
         };
       });
       const annotations: AnnotationDraft[] = [

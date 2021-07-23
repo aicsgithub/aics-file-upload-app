@@ -1,5 +1,7 @@
 import classNames from "classnames";
 import * as React from "react";
+import { DndProvider } from "react-dnd";
+import HTML5Backend from 'react-dnd-html5-backend';
 import { Row, TableInstance } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
@@ -12,6 +14,7 @@ interface Props<T extends {}> {
   className?: string;
   tableInstance: TableInstance<T>;
   onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
+  onRowDrag?: (dragIndex: number, hoverIndex: number) => void;
 }
 
 // From https://davidwalsh.name/detect-scrollbar-width
@@ -42,63 +45,65 @@ export default function Table<T extends {}>(props: Props<T>) {
   const { rows, prepareRow } = tableInstance;
 
   return (
-    <div
-      className={classNames(styles.tableContainer, className)}
-      {...tableInstance.getTableProps()}
-    >
-      <div>
-        {tableInstance.headerGroups.map((headerGroup) => (
-          <div
-            {...headerGroup.getHeaderGroupProps()}
-            key={headerGroup.getHeaderGroupProps().key}
-          >
-            {headerGroup.headers.map((column) => (
-              <div
-                {...column.getHeaderProps()}
-                className={styles.tableHeader}
-                key={column.getHeaderProps().key}
-              >
-                <div className={styles.tableHeaderContainer}>
-                  <div
-                    {...(column.getResizerProps && column.getResizerProps())}
-                    className={styles.columnResizer}
-                  />
-                  <div
-                    {...(column.getSortByToggleProps &&
-                      column.getSortByToggleProps())}
-                  >
-                    {column.render("Header")}
-                  </div>
-                  {column.canFilter && <div>{column.render("Filter")}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-      <div className={styles.tableBody} {...tableInstance.getTableBodyProps()}>
-        <AutoSizer disableWidth>
-          {({ height }) => (
-            <FixedSizeList
-              height={height}
-              itemData={{ rows, prepareRow, onContextMenu }}
-              itemCount={tableInstance.rows.length}
-              itemSize={35}
-              width={tableInstance.totalColumnsWidth + scrollBarSize}
+    <DndProvider backend={HTML5Backend}>
+      <div
+        className={classNames(styles.tableContainer, className)}
+        {...tableInstance.getTableProps()}
+      >
+        <div>
+          {tableInstance.headerGroups.map((headerGroup) => (
+            <div
+              {...headerGroup.getHeaderGroupProps()}
+              key={headerGroup.getHeaderGroupProps().key}
             >
-              {TableRow}
-            </FixedSizeList>
+              {headerGroup.headers.map((column) => (
+                <div
+                  {...column.getHeaderProps()}
+                  className={styles.tableHeader}
+                  key={column.getHeaderProps().key}
+                >
+                  <div className={styles.tableHeaderContainer}>
+                    <div
+                      {...(column.getResizerProps && column.getResizerProps())}
+                      className={styles.columnResizer}
+                    />
+                    <div
+                      {...(column.getSortByToggleProps &&
+                        column.getSortByToggleProps())}
+                    >
+                      {column.render("Header")}
+                    </div>
+                    {column.canFilter && <div>{column.render("Filter")}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className={styles.tableBody} {...tableInstance.getTableBodyProps()}>
+          <AutoSizer disableWidth>
+            {({ height }) => (
+              <FixedSizeList
+                height={height}
+                itemData={{ rows, prepareRow, onContextMenu, onRowDrag: props.onRowDrag }}
+                itemCount={tableInstance.rows.length}
+                itemSize={35}
+                width={tableInstance.totalColumnsWidth + scrollBarSize}
+              >
+                {TableRow}
+              </FixedSizeList>
+            )}
+          </AutoSizer>
+        </div>
+        {!!tableInstance.filteredRows &&
+          tableInstance.filteredRows.length !==
+            tableInstance.preFilteredRows.length && (
+            <div className={styles.tableFooter}>
+              Showing {tableInstance.filteredRows.length} of{" "}
+              {tableInstance.preFilteredRows.length}
+            </div>
           )}
-        </AutoSizer>
       </div>
-      {!!tableInstance.filteredRows &&
-        tableInstance.filteredRows.length !==
-          tableInstance.preFilteredRows.length && (
-          <div className={styles.tableFooter}>
-            Showing {tableInstance.filteredRows.length} of{" "}
-            {tableInstance.preFilteredRows.length}
-          </div>
-        )}
-    </div>
+    </DndProvider>
   );
 }
