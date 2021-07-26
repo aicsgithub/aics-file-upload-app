@@ -386,63 +386,55 @@ const viewUploadsLogic = createLogic({
       // may vary so the app needs to provide options for the user to choose between
       const imagingSessions = getImagingSessions(state);
       const { uploadMetadata } = uploadsToView;
-      const plateBarcodeToPlates = await Object.entries(uploadMetadata).reduce(
-        async (accumPromise, [key, upload]) => {
-          const accum = await accumPromise;
-          // An upload is assumed to only have one plate associated with it
-          const representativeWellId = upload[AnnotationName.WELL]?.[0];
-          if (representativeWellId) {
-            const plate = await labkeyClient.findPlateByWellId(
-              representativeWellId
+      const plateBarcodeToPlates: PlateBarcodeToPlates = {};
+      for (const [key, upload] of Object.entries(uploadMetadata)) {
+        // An upload is assumed to only have one plate associated with it
+        const representativeWellId = upload[AnnotationName.WELL]?.[0];
+        if (representativeWellId) {
+          const plate = await labkeyClient.findPlateByWellId(
+            representativeWellId
+          );
+
+          // Derive and apply the plate barcode and imaging session found via the well
+          const imagingSession = imagingSessions.find(
+            (is) => is.imagingSessionId === plate.ImagingSessionId
+          );
+          uploadMetadata[key][AnnotationName.PLATE_BARCODE] = [plate.BarCode];
+          uploadMetadata[key][AnnotationName.IMAGING_SESSION] = imagingSession
+            ? [imagingSession.name]
+            : [];
+
+          // Avoid re-querying for the imaging sessions if this
+          // plate barcode has been selected before
+          if (!Object.keys(plateBarcodeToPlates).includes(plate.BarCode)) {
+            const imagingSessionsForPlateBarcode = await labkeyClient.findImagingSessionsByPlateBarcode(
+              plate.BarCode
+            );
+            const imagingSessionsWithPlateInfo: PlateAtImagingSession[] = await Promise.all(
+              imagingSessionsForPlateBarcode.map(async (is) => {
+                const { wells } = await mmsClient.getPlate(
+                  plate.BarCode,
+                  is["ImagingSessionId"]
+                );
+
+                return {
+                  wells,
+                  imagingSessionId: is["ImagingSessionId"],
+                  name: is["ImagingSessionId/Name"],
+                };
+              })
             );
 
-            // Derive and apply the plate barcode and imaging session found via the well
-            const imagingSession = imagingSessions.find(
-              (is) => is.imagingSessionId === plate.ImagingSessionId
-            );
-            uploadMetadata[key][AnnotationName.PLATE_BARCODE] = [plate.BarCode];
-            uploadMetadata[key][AnnotationName.IMAGING_SESSION] = imagingSession
-              ? [imagingSession.name]
-              : [];
-
-            // Avoid re-querying for the imaging sessions if this
-            // plate barcode has been selected before
-            if (!Object.keys(accum).includes(plate.BarCode)) {
-              const imagingSessionsForPlateBarcode = await labkeyClient.findImagingSessionsByPlateBarcode(
-                plate.BarCode
-              );
-              const imagingSessionsWithPlateInfo: PlateAtImagingSession[] = await Promise.all(
-                imagingSessionsForPlateBarcode.map(async (is) => {
-                  const { wells } = await mmsClient.getPlate(
-                    plate.BarCode,
-                    is["ImagingSessionId"]
-                  );
-
-                  return {
-                    wells,
-                    imagingSessionId: is["ImagingSessionId"],
-                    name: is["ImagingSessionId/Name"],
-                  };
-                })
-              );
-
-              // If the barcode has no imaging sessions, find info of plate without
-              if (!imagingSessionsWithPlateInfo.length) {
-                const { wells } = await mmsClient.getPlate(plate.BarCode);
-                imagingSessionsWithPlateInfo.push({ wells });
-              }
-
-              return {
-                ...accum,
-                [plate.BarCode]: imagingSessionsWithPlateInfo,
-              };
+            // If the barcode has no imaging sessions, find info of plate without
+            if (!imagingSessionsWithPlateInfo.length) {
+              const { wells } = await mmsClient.getPlate(plate.BarCode);
+              imagingSessionsWithPlateInfo.push({ wells });
             }
-          }
 
-          return accum;
-        },
-        {} as Promise<PlateBarcodeToPlates>
-      );
+            plateBarcodeToPlates[plate.BarCode] = imagingSessionsWithPlateInfo;
+          }
+        }
+      }
 
       const actions: AnyAction[] = [
         setPlateBarcodeToPlates(plateBarcodeToPlates),
