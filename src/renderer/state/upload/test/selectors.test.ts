@@ -1,11 +1,7 @@
 import { expect } from "chai";
 import { orderBy } from "lodash";
 
-import {
-  CHANNEL_ANNOTATION_NAME,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
 import { UploadRequest } from "../../../services/types";
 import { Duration } from "../../../types";
@@ -43,7 +39,6 @@ import {
   getUploadFileNames,
   getUploadKeyToAnnotationErrorMap,
   getUploadRequests,
-  getUploadWithCalculatedData,
 } from "../selectors";
 import { getUploadAsTableRows, getUploadValidationErrors } from "../selectors";
 import { FileType, MMSAnnotationValueRequest } from "../types";
@@ -91,17 +86,6 @@ describe("Upload selectors", () => {
     });
   });
 
-  describe("getUploadWithCalculatedData", () => {
-    it("adds wellLabels to the uploads", () => {
-      const result = getUploadWithCalculatedData(
-        nonEmptyStateForInitiatingUpload
-      );
-      expect(
-        result[getUploadRowKey({ file: "/path/to/file1" })].wellLabels
-      ).to.deep.equal(["A1"]);
-    });
-  });
-
   describe("getUploadRequests", () => {
     it("Does not include annotations that are not on the template", () => {
       const file = "/path/to/image.tiff";
@@ -122,10 +106,10 @@ describe("Upload selectors", () => {
             barcode: "452",
             favoriteColor: ["Blue"],
             file,
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 4,
             unexpectedAnnotation: ["Hello World"],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -149,9 +133,9 @@ describe("Upload selectors", () => {
             Qc: [],
             barcode: "452",
             file: "/path/to.dot/image.tiff",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 4,
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       };
@@ -191,83 +175,83 @@ describe("Upload selectors", () => {
             barcode: "452",
             file: "/path/to.dot/image.tiff",
             ["Favorite Color"]: ["blue"],
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 4,
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
           "/path/to.dot/image.tiffscene:1channel:1": {
             barcode: "452",
             channelId: "Raw 468 nm",
             ["Favorite Color"]: "yellow",
             file: "/path/to.dot/image.tiff",
-            [NOTES_ANNOTATION_NAME]: ["Seeing some interesting things here!"],
+            [AnnotationName.NOTES]: ["Seeing some interesting things here!"],
             plateId: 4,
             positionIndex: 1,
-            [WELL_ANNOTATION_NAME]: [6],
+            [AnnotationName.WELL]: [6],
           },
           "/path/to/image.czi": {
             barcode: "567",
             ["Favorite Color"]: ["red"],
             file: "/path/to/image.czi",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 4,
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
           "/path/to/image.ome.tiff": {
             barcode: "123",
             ["Favorite Color"]: ["green"],
             file: "/path/to/image.ome.tiff",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 2,
-            [WELL_ANNOTATION_NAME]: [2],
+            [AnnotationName.WELL]: [2],
           },
           "/path/to/image.png": {
             barcode: "345",
             ["Favorite Color"]: ["purple"],
             file: "/path/to/image.png",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 5,
-            [WELL_ANNOTATION_NAME]: [3],
+            [AnnotationName.WELL]: [3],
           },
           "/path/to/image.tiff": {
             barcode: "234",
             ["Favorite Color"]: ["orange"],
             file: "/path/to/image.tiff",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 3,
-            [WELL_ANNOTATION_NAME]: [4],
+            [AnnotationName.WELL]: [4],
           },
           "/path/to/multi-well.txt": {
             barcode: "456",
             ["Favorite Color"]: ["pink"],
             file: "/path/to/multi-well.txt",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 7,
-            [WELL_ANNOTATION_NAME]: [5, 6, 7],
+            [AnnotationName.WELL]: [5, 6, 7],
           },
           "/path/to/no-extension": {
             barcode: "888",
             ["Favorite Color"]: ["gold"],
             file: "/path/to/no-extension",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 7,
-            [WELL_ANNOTATION_NAME]: [7],
+            [AnnotationName.WELL]: [7],
           },
           "/path/to/not-image.csv": {
             barcode: "578",
             ["Favorite Color"]: ["grey"],
             file: "/path/to/not-image.csv",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 7,
-            [WELL_ANNOTATION_NAME]: [8],
+            [AnnotationName.WELL]: [8],
           },
           "/path/to/not-image.txt": {
             barcode: "456",
             ["Favorite Color"]: ["black"],
             file: "/path/to/not-image.txt",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             plateId: 7,
-            [WELL_ANNOTATION_NAME]: [5],
+            [AnnotationName.WELL]: [5],
           },
         }),
       };
@@ -708,87 +692,90 @@ describe("Upload selectors", () => {
     it("handles files without scenes or channels", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory(mockSelection),
+        selection: mockSelection,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
             ["Favorite Color"]: ["Red"],
             file: "/path/to/file1",
             key: getUploadRowKey({ file: "/path/to/file1" }),
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
           [getUploadRowKey({ file: "/path/to/file2" })]: {
             barcode: "1235",
             ["Favorite Color"]: ["Red"],
             file: "/path/to/file2",
             key: getUploadRowKey({ file: "/path/to/file2" }),
-            [WELL_ANNOTATION_NAME]: [2],
+            [AnnotationName.WELL]: [2],
           },
           [getUploadRowKey({ file: "/path/to/file3" })]: {
             barcode: "1236",
             ["Favorite Color"]: ["Red"],
             file: "/path/to/file3",
             key: getUploadRowKey({ file: "/path/to/file3" }),
-            [WELL_ANNOTATION_NAME]: [1, 2, 3],
+            [AnnotationName.WELL]: [1, 2, 3],
           },
         }),
       });
       expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
       expect(rows).to.deep.include({
         barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
+        [AnnotationName.CHANNEL_TYPE]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file1",
         key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.IMAGING_SESSION]: [],
+        [AnnotationName.NOTES]: [],
+        [AnnotationName.PLATE_BARCODE]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
         subRows: [],
-        [WELL_ANNOTATION_NAME]: [1],
-        wellLabels: ["A1"],
+        [AnnotationName.WELL]: [1],
       });
       expect(rows).to.deep.include({
         barcode: "1235",
-        [CHANNEL_ANNOTATION_NAME]: [],
+        [AnnotationName.CHANNEL_TYPE]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file2",
         key: getUploadRowKey({ file: "/path/to/file2" }),
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.IMAGING_SESSION]: [],
+        [AnnotationName.NOTES]: [],
+        [AnnotationName.PLATE_BARCODE]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
         subRows: [],
-        [WELL_ANNOTATION_NAME]: [2],
-        wellLabels: ["A2"],
+        [AnnotationName.WELL]: [2],
       });
       expect(rows).to.deep.include({
         barcode: "1236",
-        [CHANNEL_ANNOTATION_NAME]: [],
+        [AnnotationName.CHANNEL_TYPE]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file3",
         key: getUploadRowKey({ file: "/path/to/file3" }),
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.IMAGING_SESSION]: [],
+        [AnnotationName.NOTES]: [],
+        [AnnotationName.PLATE_BARCODE]: [],
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
         subRows: [],
-        [WELL_ANNOTATION_NAME]: [1, 2, 3],
-        wellLabels: ["A1", "A2", "B1"],
+        [AnnotationName.WELL]: [1, 2, 3],
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory(mockSelection),
+        selection: mockSelection,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1234",
             file: "/path/to/file1",
             key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             positionIndex: 1,
-            [WELL_ANNOTATION_NAME]: [2],
+            [AnnotationName.WELL]: [2],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -803,9 +790,9 @@ describe("Upload selectors", () => {
               positionIndex: undefined,
               channelId: "Raw 405nm",
             }),
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             positionIndex: undefined,
-            [WELL_ANNOTATION_NAME]: [2],
+            [AnnotationName.WELL]: [2],
           },
         }),
       });
@@ -813,50 +800,52 @@ describe("Upload selectors", () => {
       expect(rows[0]).to.deep.equal({
         barcode: "1234",
         channelId: "Raw 405nm",
-        [CHANNEL_ANNOTATION_NAME]: [],
+        [AnnotationName.CHANNEL_TYPE]: [],
+        [AnnotationName.IMAGING_SESSION]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({
           file: "/path/to/file1",
           positionIndex: undefined,
           channelId: "Raw 405nm",
         }),
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
+        [AnnotationName.PLATE_BARCODE]: [],
         positionIndex: undefined,
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
         subRows: [],
-        [WELL_ANNOTATION_NAME]: [2],
-        wellLabels: ["A2"],
+        [AnnotationName.WELL]: [2],
       });
       expect(rows[1]).to.deep.equal({
         barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
+        [AnnotationName.CHANNEL_TYPE]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.IMAGING_SESSION]: [],
+        [AnnotationName.NOTES]: [],
+        [AnnotationName.PLATE_BARCODE]: [],
         positionIndex: 1,
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
         subRows: [],
-        [WELL_ANNOTATION_NAME]: [2],
-        wellLabels: ["A2"],
+        [AnnotationName.WELL]: [2],
       });
     });
     it("handles files with channels", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-        }),
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
-            [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
+            [AnnotationName.CHANNEL_TYPE]: ["Raw 405nm"],
             file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: undefined,
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.NOTES]: undefined,
+            [AnnotationName.WELL]: [1],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -866,9 +855,9 @@ describe("Upload selectors", () => {
             barcode: "1234",
             channelId: "Raw 405nm",
             file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: undefined,
+            [AnnotationName.NOTES]: undefined,
             positionIndex: undefined,
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -878,23 +867,23 @@ describe("Upload selectors", () => {
     it("handles files with scenes and channels", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-        }),
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
-            [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
+            [AnnotationName.CHANNEL_TYPE]: ["Raw 405nm"],
             file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
           },
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1234",
             file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             positionIndex: 1,
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -904,9 +893,9 @@ describe("Upload selectors", () => {
             barcode: "1234",
             channelId: "Raw 405nm",
             file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             positionIndex: 1,
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -916,8 +905,8 @@ describe("Upload selectors", () => {
             barcode: "1234",
             channelId: "Raw 405nm",
             file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -944,9 +933,9 @@ describe("Upload selectors", () => {
               barcode: "1234",
               favoriteColor: "Red",
               file,
-              [NOTES_ANNOTATION_NAME]: [],
+              [AnnotationName.NOTES]: [],
               somethingUnexpected: "Hello World",
-              [WELL_ANNOTATION_NAME]: [],
+              [AnnotationName.WELL]: [],
             },
           }),
         });
@@ -964,8 +953,8 @@ describe("Upload selectors", () => {
             age: undefined,
             barcode: "abcd",
             file,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -973,9 +962,8 @@ describe("Upload selectors", () => {
         age: false,
         barcode: true,
         file: true,
-        [NOTES_ANNOTATION_NAME]: false,
-        [WELL_ANNOTATION_NAME]: false,
-        wellLabels: false,
+        [AnnotationName.NOTES]: false,
+        [AnnotationName.WELL]: false,
       });
     });
 
@@ -987,15 +975,15 @@ describe("Upload selectors", () => {
             age: undefined,
             barcode: "abcd",
             file,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
           },
           [getUploadRowKey({ file, positionIndex: 1 })]: {
             age: undefined,
             barcode: "abcd",
             file,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [1],
           },
           [getUploadRowKey({
             file,
@@ -1005,8 +993,8 @@ describe("Upload selectors", () => {
             age: 19,
             barcode: "abcd",
             file,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1014,9 +1002,8 @@ describe("Upload selectors", () => {
         age: true,
         barcode: true,
         file: true,
-        [NOTES_ANNOTATION_NAME]: false,
-        [WELL_ANNOTATION_NAME]: true,
-        wellLabels: true,
+        [AnnotationName.NOTES]: false,
+        [AnnotationName.WELL]: true,
       });
     });
   });
@@ -1053,8 +1040,8 @@ describe("Upload selectors", () => {
         Qc: [false],
         barcode: "",
         file: "/path/to/file3",
-        [NOTES_ANNOTATION_NAME]: [],
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
+        [AnnotationName.WELL]: [],
       };
     });
     it("returns empty object if no validation errors", () => {
@@ -1157,8 +1144,8 @@ describe("Upload selectors", () => {
             barcode: "abc",
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
-            [NOTES_ANNOTATION_NAME]: ["Valid String"],
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.NOTES]: ["Valid String"],
+            [AnnotationName.WELL]: [1],
             [annotation]: [value],
           },
         }),
@@ -1172,24 +1159,23 @@ describe("Upload selectors", () => {
     it("adds error if a row does not have a well annotation and is meant to", () => {
       const errors = getUploadValidationErrors({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.selection.present,
-          barcode: "123213",
-        }),
+        selection: {
+          ...nonEmptyStateForInitiatingUpload.selection,
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "foo" })]: {
-            barcode: "abc",
             "Favorite Color": 1,
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.PLATE_BARCODE]: ["1491201"],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
       expect(
         errors.includes(
-          `"foo" is missing the following required annotations: ${WELL_ANNOTATION_NAME}`
+          `"foo" is missing the following required annotations: ${AnnotationName.WELL}`
         )
       ).to.be.true;
     });
@@ -1202,14 +1188,49 @@ describe("Upload selectors", () => {
             barcode: "abc",
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [1],
           },
         }),
       });
       expect(
         errors.includes(
           '"foo" is missing the following required annotations: Favorite Color'
+        )
+      ).to.be.true;
+    });
+    it("adds error if imaging sessions available, but not selected", () => {
+      const plateBarcode = "1230941";
+      const errors = getUploadValidationErrors({
+        ...nonEmptyStateForInitiatingUpload,
+        metadata: {
+          ...nonEmptyStateForInitiatingUpload.metadata,
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
+                name: "2 hours",
+                imagingSessionId: 3,
+                wells: [],
+              },
+            ],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "foo" })]: {
+            "Favorite Color": ["blue"],
+            barcode: "abc",
+            file: "foo",
+            key: getUploadRowKey({ file: "foo" }),
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.IMAGING_SESSION]: [],
+            [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+            [AnnotationName.WELL]: [1],
+          },
+        }),
+      });
+      expect(
+        errors.includes(
+          `"foo" is missing the following required annotations: ${AnnotationName.IMAGING_SESSION}`
         )
       ).to.be.true;
     });
@@ -1224,8 +1245,8 @@ describe("Upload selectors", () => {
             barcode: "1234",
             file,
             key,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [1],
           },
         }),
       });

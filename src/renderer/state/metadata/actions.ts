@@ -1,8 +1,11 @@
 import { BarcodePrefix } from "../../services/labkey-client/types";
-import { AsyncRequest, MetadataStateBranch } from "../types";
+import {
+  AsyncRequest,
+  MetadataStateBranch,
+  PlateBarcodeToPlates,
+} from "../types";
 
 import {
-  CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
   CREATE_BARCODE,
   GET_BARCODE_SEARCH_RESULTS,
@@ -13,11 +16,10 @@ import {
   REQUEST_ANNOTATION_USAGE,
   REQUEST_METADATA,
   RESET_HISTORY,
-  UPDATE_PAGE_HISTORY,
+  SET_PLATE_BARCODE_TO_PLATES,
 } from "./constants";
 import { initialState } from "./reducer";
 import {
-  ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
   GetBarcodeSearchResultsAction,
@@ -28,7 +30,7 @@ import {
   RequestAnnotationUsage,
   RequestMetadataAction,
   ResetHistoryAction,
-  UpdatePageHistoryMapAction,
+  SetPlateBarcodeToPlatesAction,
 } from "./types";
 
 export function requestAnnotationUsage(
@@ -103,6 +105,15 @@ export function requestBarcodeSearchResults(
   };
 }
 
+export function setPlateBarcodeToPlates(
+  plateBarcodeToPlates: PlateBarcodeToPlates
+): SetPlateBarcodeToPlatesAction {
+  return {
+    payload: plateBarcodeToPlates,
+    type: SET_PLATE_BARCODE_TO_PLATES,
+  };
+}
+
 export function requestTemplates(): GetTemplatesAction {
   return {
     type: GET_TEMPLATES,
@@ -110,44 +121,17 @@ export function requestTemplates(): GetTemplatesAction {
 }
 
 export function createBarcode(
-  barcodePrefix: BarcodePrefix
+  barcodePrefix: BarcodePrefix,
+  uploadKey: string
 ): CreateBarcodeAction {
   return {
-    payload: barcodePrefix,
+    payload: { barcodePrefix, uploadKey },
     type: CREATE_BARCODE,
-  };
-}
-
-export function updatePageHistory(
-  page: string,
-  selectionIndex: number,
-  uploadIndex: number,
-  templateIndex: number
-): UpdatePageHistoryMapAction {
-  return {
-    payload: {
-      selection: {
-        [page]: selectionIndex,
-      },
-      template: {
-        [page]: templateIndex,
-      },
-      upload: {
-        [page]: uploadIndex,
-      },
-    },
-    type: UPDATE_PAGE_HISTORY,
   };
 }
 
 export function resetHistory(): ResetHistoryAction {
   return {
     type: RESET_HISTORY,
-  };
-}
-
-export function clearFileMetadataForJob(): ClearFileMetadataForJobAction {
-  return {
-    type: CLEAR_FILE_METADATA_FOR_JOB,
   };
 }

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import { resetUpload } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import { UploadStateBranch } from "../../types";
@@ -15,12 +15,12 @@ describe("upload reducer", () => {
       foo: {
         barcode: "1234",
         file: "/path",
-        [WELL_ANNOTATION_NAME]: [1, 2],
+        [AnnotationName.WELL]: [1, 2],
       },
       bar: {
         barcode: "1235",
         file: "/path2",
-        [WELL_ANNOTATION_NAME]: [1, 2],
+        [AnnotationName.WELL]: [1, 2],
       },
     };
   });
@@ -28,18 +28,76 @@ describe("upload reducer", () => {
     it("does not change anything if key doesn't exist on upload", () => {
       const result = reducer(
         getMockStateWithHistory({}),
-        updateUpload("foo", { [WELL_ANNOTATION_NAME]: [1, 2] })
+        updateUpload("foo", { [AnnotationName.WELL]: [1, 2] })
       );
       const { present } = result;
       expect(present).to.be.empty;
     });
+
     it("updates upload at key specified", () => {
       const result = reducer(
         getMockStateWithHistory(uploads),
-        updateUpload("foo", { [WELL_ANNOTATION_NAME]: [3] })
+        updateUpload("foo", { [AnnotationName.WELL]: [3] })
       );
       const { present } = result;
-      expect(present.foo[WELL_ANNOTATION_NAME]).to.deep.equal([3]);
+      expect(present.foo[AnnotationName.WELL]).to.deep.equal([3]);
+    });
+
+    it("resets imaging session and well when plate barcode changes", () => {
+      // Arrange
+      const state = getMockStateWithHistory({
+        ...uploads,
+        foo: {
+          ...uploads.foo,
+          [AnnotationName.IMAGING_SESSION]: ["4 hours"],
+        },
+      });
+      const expected = {
+        ...uploads,
+        foo: {
+          ...uploads.foo,
+          [AnnotationName.PLATE_BARCODE]: ["149231"],
+          [AnnotationName.IMAGING_SESSION]: [],
+          [AnnotationName.WELL]: [],
+        },
+      };
+
+      // Act
+      const result = reducer(
+        state,
+        updateUpload("foo", { [AnnotationName.PLATE_BARCODE]: ["149231"] })
+      );
+
+      // Assert
+      expect(result.present).to.deep.equal(expected);
+    });
+
+    it("resets well when imaging session changes", () => {
+      // Arrange
+      const state = getMockStateWithHistory({
+        ...uploads,
+        foo: {
+          ...uploads.foo,
+          [AnnotationName.IMAGING_SESSION]: [],
+        },
+      });
+      const expected = {
+        ...uploads,
+        foo: {
+          ...uploads.foo,
+          [AnnotationName.IMAGING_SESSION]: ["4 hours"],
+          [AnnotationName.WELL]: [],
+        },
+      };
+
+      // Act
+      const result = reducer(
+        state,
+        updateUpload("foo", { [AnnotationName.IMAGING_SESSION]: ["4 hours"] })
+      );
+
+      // Assert
+      expect(result.present).to.deep.equal(expected);
     });
   });
   describe("replaceUpload", () => {
@@ -47,7 +105,7 @@ describe("upload reducer", () => {
       const uploadPartial = {
         barcode: "5678",
         file: "/path2",
-        [WELL_ANNOTATION_NAME]: [9],
+        [AnnotationName.WELL]: [9],
       };
       const draft = {
         ...mockState,

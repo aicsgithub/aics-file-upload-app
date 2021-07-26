@@ -39,7 +39,7 @@ export function resetUpload(): ResetUploadAction {
 }
 
 export function selectPage(
-  page: Page.AddCustomData | Page.UploadSummary
+  page: Page.UploadWithTemplate | Page.MyUploads
 ): SelectPageAction {
   return {
     payload: page,

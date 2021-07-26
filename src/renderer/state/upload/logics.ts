@@ -15,12 +15,7 @@ import {
 import { isDate, isMoment } from "moment";
 import { createLogic } from "redux-logic";
 
-import {
-  CHANNEL_ANNOTATION_NAME,
-  LIST_DELIMITER_SPLIT,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../constants";
+import { AnnotationName, LIST_DELIMITER_SPLIT } from "../../constants";
 import FileManagementSystem from "../../services/fms-client";
 import { CopyCancelledError } from "../../services/fms-client/CopyCancelledError";
 import { StartUploadResponse } from "../../services/fss-client";
@@ -31,10 +26,12 @@ import { determineFilesFromNestedPaths, splitTrimAndFilter } from "../../util";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
+import { setPlateBarcodeToPlates } from "../metadata/actions";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
+  getPlateBarcodeToPlates,
 } from "../metadata/selectors";
 import { closeUpload, viewUploads, resetUpload } from "../route/actions";
 import {
@@ -63,6 +60,7 @@ import {
   UploadProgressInfo,
   UploadStateBranch,
   FileModel,
+  PlateAtImagingSession,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -455,9 +453,9 @@ const updateSubImagesLogic = createLogic({
     if (!isEmpty(subImages)) {
       update[fileRowKey] = {
         ...uploads[fileRowKey],
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
         ...(channelIds.length && {
-          [CHANNEL_ANNOTATION_NAME]: channelIds,
+          [AnnotationName.CHANNEL_TYPE]: channelIds,
         }),
       };
     }
@@ -474,11 +472,11 @@ const updateSubImagesLogic = createLogic({
         update[key] = {
           channelId,
           file: fileRow.file,
-          [NOTES_ANNOTATION_NAME]: [],
+          [AnnotationName.NOTES]: [],
           positionIndex: undefined,
           scene: undefined,
           subImageName: undefined,
-          [WELL_ANNOTATION_NAME]: [],
+          [AnnotationName.WELL]: [],
           ...additionalAnnotations,
         };
       });
@@ -497,8 +495,8 @@ const updateSubImagesLogic = createLogic({
         update[subImageOnlyRowKey] = {
           channelId: undefined,
           file: fileRow.file,
-          [NOTES_ANNOTATION_NAME]: [],
-          [WELL_ANNOTATION_NAME]: [],
+          [AnnotationName.NOTES]: [],
+          [AnnotationName.WELL]: [],
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
         };
@@ -521,8 +519,8 @@ const updateSubImagesLogic = createLogic({
           update[key] = {
             channelId,
             file: fileRow.file,
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.WELL]: [],
             [subImageKey]: subImageValue,
             ...additionalAnnotations,
           };
@@ -633,6 +631,55 @@ function formatUpload(
 }
 
 const updateUploadLogic = createLogic({
+  process: async (
+    deps: ReduxLogicProcessDependenciesWithAction<UpdateUploadAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const upload = deps.action.payload.upload || deps.action.payload;
+
+    // If a plate barcode is being updated check for imaging sessions
+    const plateBarcode = upload[AnnotationName.PLATE_BARCODE]?.[0];
+    if (plateBarcode) {
+      const plateBarcodeToPlates = getPlateBarcodeToPlates(deps.getState());
+      // Avoid re-querying for the imaging sessions if this
+      // plate barcode has been selected before
+      if (!Object.keys(plateBarcodeToPlates).includes(plateBarcode)) {
+        const imagingSessionsForPlateBarcode = await deps.labkeyClient.findImagingSessionsByPlateBarcode(
+          plateBarcode
+        );
+        const imagingSessionsWithPlateInfo: PlateAtImagingSession[] = await Promise.all(
+          imagingSessionsForPlateBarcode.map(async (is) => {
+            const { wells } = await deps.mmsClient.getPlate(
+              plateBarcode,
+              is["ImagingSessionId"]
+            );
+
+            return {
+              wells,
+              imagingSessionId: is["ImagingSessionId"],
+              name: is["ImagingSessionId/Name"],
+            };
+          })
+        );
+
+        // If the barcode has no imaging sessions, find info of plate without
+        if (!imagingSessionsWithPlateInfo.length) {
+          const { wells } = await deps.mmsClient.getPlate(plateBarcode);
+          imagingSessionsWithPlateInfo.push({ wells });
+        }
+
+        dispatch(
+          setPlateBarcodeToPlates({
+            ...plateBarcodeToPlates,
+            [plateBarcode]: imagingSessionsWithPlateInfo,
+          })
+        );
+      }
+    }
+
+    done();
+  },
   transform: (
     {
       action,

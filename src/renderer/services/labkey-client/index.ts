@@ -1,5 +1,5 @@
 import { camelizeKeys } from "humps";
-import { isEmpty, map, pick, uniq } from "lodash";
+import { isEmpty, map, pick } from "lodash";
 
 import { LocalStorage } from "../../types";
 import HttpCacheClient from "../http-cache-client";
@@ -66,8 +66,8 @@ export default class LabkeyClient extends HttpCacheClient {
     this.getColumnValues = this.getColumnValues.bind(this);
     this.getChannels = this.getChannels.bind(this);
     this.getTemplateHasBeenUsed = this.getTemplateHasBeenUsed.bind(this);
-    this.findPlateBarcodeByWellId = this.findPlateBarcodeByWellId.bind(this);
-    this.findImagingSessionIdsByPlateBarcode = this.findImagingSessionIdsByPlateBarcode.bind(
+    this.findPlateByWellId = this.findPlateByWellId.bind(this);
+    this.findImagingSessionsByPlateBarcode = this.findImagingSessionsByPlateBarcode.bind(
       this
     );
     this.getFileExistsByMD5AndName = this.getFileExistsByMD5AndName.bind(this);
@@ -336,7 +336,7 @@ export default class LabkeyClient extends HttpCacheClient {
     return response.rows.length > 0;
   }
 
-  public async findPlateBarcodeByWellId(wellId: number): Promise<string> {
+  public async findPlateByWellId(wellId: number): Promise<LabkeyPlate> {
     const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Well", [
       `query.wellid~eq=${wellId}`,
     ]);
@@ -351,22 +351,19 @@ export default class LabkeyClient extends HttpCacheClient {
       [`query.plateid~eq=${plateId}`]
     );
     const plateResponse = await this.get(plateQuery);
-    return plateResponse.rows[0]?.BarCode;
+    return plateResponse.rows[0];
   }
 
-  public async findImagingSessionIdsByPlateBarcode(
+  public async findImagingSessionsByPlateBarcode(
     barcode: string
-  ): Promise<Array<number | null>> {
+  ): Promise<{ ImagingSessionId: number; "ImagingSessionId/Name": string }[]> {
+    const columns = ["ImagingSessionId", "ImagingSessionId/Name"];
     const query = LabkeyClient.getSelectRowsURL(LK_SCHEMA.MICROSCOPY, "Plate", [
       `query.barcode~eq=${encodeURIComponent(barcode)}`,
+      `query.columns=${columns}`,
     ]);
     const response = await this.get(query);
-    if (response.rows.length) {
-      return uniq(
-        response.rows.map((plate: LabkeyPlate) => plate.ImagingSessionId)
-      );
-    }
-    return [];
+    return response.rows;
   }
 
   public async getFileExistsByMD5AndName(

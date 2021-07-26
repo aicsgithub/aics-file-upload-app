@@ -5,13 +5,8 @@ import { createSandbox, SinonStubbedInstance, createStubInstance } from "sinon";
 
 import selections from "../";
 import { feedback } from "../../";
-import { NOTES_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import MMSClient from "../../../services/mms-client";
-import {
-  GetPlateResponse,
-  PlateResponse,
-} from "../../../services/mms-client/types";
-import { requestFailed } from "../../actions";
 import { getPage } from "../../route/selectors";
 import {
   createMockReduxStore,
@@ -19,33 +14,15 @@ import {
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
-  mockAuditInfo,
   mockSelection,
   mockState,
-  mockWells,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, Page } from "../../types";
+import { Page } from "../../types";
 import { updateUploadRows } from "../../upload/actions";
 import { getUpload } from "../../upload/selectors";
-import {
-  applyMassEdit,
-  selectBarcode,
-  selectWells,
-  startMassEdit,
-  stopCellDrag,
-} from "../actions";
-import {
-  getMassEditRow,
-  getRowsSelectedForMassEdit,
-  getSelectedBarcode,
-  getSelectedImagingSessionIds,
-  getSelectedPlateId,
-  getSelectedPlates,
-  getSelectedWells,
-  getWells,
-} from "../selectors";
-import { Well } from "../types";
+import { applyMassEdit, startMassEdit, stopCellDrag } from "../actions";
+import { getMassEditRow, getRowsSelectedForMassEdit } from "../selectors";
 
 describe("Selection logics", () => {
   const sandbox = createSandbox();
@@ -77,20 +54,20 @@ describe("Selection logics", () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
         route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
+          page: Page.UploadWithTemplate,
+          view: Page.UploadWithTemplate,
         },
       });
 
       // before
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
+      expect(getPage(store.getState())).to.equal(Page.UploadWithTemplate);
 
       // apply
       store.dispatch(selections.actions.loadFiles(fileList));
 
       // after
       await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
+      expect(getPage(store.getState())).to.equal(Page.UploadWithTemplate);
     });
 
     it("sets files up for upload", async () => {
@@ -140,133 +117,6 @@ describe("Selection logics", () => {
     });
   });
 
-  describe("selectBarcodeLogic", () => {
-    const barcode = "1234";
-    const plateId = 1;
-    let mockOkGetPlateResponse: GetPlateResponse;
-    const mockEmptyWell: Well = {
-      cellPopulations: [],
-      col: 0,
-      plateId: 1,
-      row: 0,
-      solutions: [],
-      wellId: 1,
-    };
-    const mockPlate: PlateResponse = {
-      ...mockAuditInfo,
-      barcode: "123456",
-      comments: "",
-      imagingSessionId: undefined,
-      plateGeometryId: 1,
-      plateId: 1,
-      plateStatusId: 1,
-      seededOn: "2018-02-14 23:03:52",
-    };
-
-    beforeEach(() => {
-      mockOkGetPlateResponse = {
-        plate: mockPlate,
-        wells: [mockEmptyWell],
-      };
-    });
-
-    it("Sets wells, barcode, imagingSessionIds and plateId if GET wells is OK", async () => {
-      mmsClient.getPlate.onFirstCall().callsFake(() => {
-        return Promise.resolve(mockOkGetPlateResponse);
-      });
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-      const imagingSessions = [12];
-
-      // apply
-      store.dispatch(selectBarcode(barcode, imagingSessions));
-
-      // after
-      await logicMiddleware.whenComplete();
-      const state = store.getState();
-      expect(getSelectedImagingSessionIds(state)).to.equal(imagingSessions);
-      expect(getWells(state)).to.not.be.empty;
-      expect(getSelectedBarcode(state)).to.equal(barcode);
-      expect(getSelectedPlateId(state)).to.equal(plateId);
-    });
-
-    it("Builds map of imaging session ids to plate responses on OK response", async () => {
-      mmsClient.getPlate.onFirstCall().resolves(mockOkGetPlateResponse);
-      const mockPlateResponse2 = {
-        plate: {
-          ...mockPlate,
-          imagingSessionId: 1,
-          plateId: 2,
-        },
-        wells: [
-          {
-            ...mockEmptyWell,
-            plateId: 2,
-          },
-        ],
-      };
-      mmsClient.getPlate.onSecondCall().resolves(mockPlateResponse2);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      // apply
-      store.dispatch(selectBarcode(barcode, [null, 1]));
-
-      // after
-      await logicMiddleware.whenComplete();
-      const state = store.getState();
-      expect(getWells(state)).to.deep.equal({
-        0: mockOkGetPlateResponse.wells,
-        1: mockPlateResponse2.wells,
-      });
-      expect(getSelectedPlates(state)).to.deep.equal({
-        0: mockOkGetPlateResponse.plate,
-        1: mockPlateResponse2.plate,
-      });
-      expect(getSelectedBarcode(state)).to.equal(barcode);
-      expect(getSelectedPlateId(state)).to.equal(plateId);
-    });
-    it("dispatches requestFailed if request fails", async () => {
-      mmsClient.getPlate.rejects(new Error("foo"));
-      const { actions, logicMiddleware, store } = createMockReduxStore();
-
-      store.dispatch(selectBarcode(barcode, [null]));
-      await logicMiddleware.whenComplete();
-
-      expect(
-        actions.includesMatch(
-          requestFailed("Could not get plate info: foo", AsyncRequest.GET_PLATE)
-        )
-      ).to.be.true;
-    });
-  });
-
-  describe("selectWellsLogic", () => {
-    it("filters out unmodified wells", () => {
-      const { store } = createMockReduxStore({
-        ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...mockSelection,
-          selectedWells: [],
-        }),
-      });
-
-      // before
-      expect(getSelectedWells(store.getState())).to.be.empty;
-
-      // apply
-      const cells = mockWells[0].map((w) => ({ col: w.col, row: w.row }));
-      store.dispatch(selectWells(cells));
-
-      // after
-      expect(getSelectedWells(store.getState()).length).to.equal(4);
-    });
-  });
-
   describe("startMassEditLogic", () => {
     it("sets rows selected & added empty row object", () => {
       // Arrange
@@ -296,12 +146,12 @@ describe("Selection logics", () => {
       // Arrange
       const massEditRow = {
         color: ["blue", "green"],
-        [NOTES_ANNOTATION_NAME]: ["hello"],
+        [AnnotationName.NOTES]: ["hello"],
       };
       const rowsSelectedForMassEdit = ["1", "100", "2"];
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
           rowsSelectedForMassEdit,
           massEditRow: {
@@ -309,7 +159,7 @@ describe("Selection logics", () => {
             // Add some junk to test exclusion
             CellLine: [],
           },
-        }),
+        },
       });
 
       // Act
@@ -343,11 +193,11 @@ describe("Selection logics", () => {
       };
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
           cellAtDragStart,
           rowsSelectedForDragEvent,
-        }),
+        },
         upload: getMockStateWithHistory({
           [cellAtDragStart.rowId]: {
             file: "/some/path/to/a/file.txt",

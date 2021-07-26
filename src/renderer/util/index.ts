@@ -1,7 +1,6 @@
 import { constants, promises as fsPromises } from "fs";
 import { resolve } from "path";
 
-import { AicsGridCell } from "@aics/aics-react-labkey";
 import { trim } from "lodash";
 import { flatten, memoize, uniq } from "lodash";
 
@@ -11,33 +10,6 @@ import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
  * This file contains pure utility methods with no dependencies on other code
  * in this repo.
  */
-
-/***
- * Returns a human readable label representing the row and column of a well on a plate.
- * Assumes plate does not have more than 26 rows.
- * @param well
- * @param noneText
- */
-export function getWellLabel(well?: AicsGridCell, noneText = "None"): string {
-  const MAX_ROWS = 26;
-
-  if (!well) {
-    return noneText;
-  }
-
-  if (well.row < 0 || well.col < 0) {
-    throw Error("Well row and col cannot be negative!");
-  }
-
-  // row and col are zero-based indexes
-  if (well.row > MAX_ROWS - 1) {
-    throw Error(`Well row cannot exceed ${MAX_ROWS}`);
-  }
-
-  const row = String.fromCharCode(97 + (well.row % 26)).toUpperCase();
-  const col = well.col + 1;
-  return `${row}${col}`;
-}
 
 /**
  * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters
@@ -136,6 +108,6 @@ export function makePosixPathCompatibleWithPlatform(
   return updatedPath;
 }
 export const timeout = (ms: number) =>
-  new Promise((resolve: () => void) => {
+  new Promise((resolve) => {
     setTimeout(resolve, ms);
   });

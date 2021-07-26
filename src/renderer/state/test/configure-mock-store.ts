@@ -167,7 +167,7 @@ const initialState: State = {
   job: job.initialState,
   metadata: metadata.initialState,
   route: route.initialState,
-  selection: getMockStateWithHistory(selection.initialState),
+  selection: selection.initialState,
   setting: setting.initialState,
   template: template.initialState,
   upload: getMockStateWithHistory(upload.initialState),

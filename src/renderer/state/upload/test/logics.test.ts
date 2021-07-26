@@ -12,10 +12,8 @@ import {
   stub,
 } from "sinon";
 
-import {
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../../constants";
+import { AnnotationName } from "../../../constants";
+import { LabkeyClient } from "../../../services";
 import FileManagementSystem from "../../../services/fms-client";
 import { StartUploadResponse } from "../../../services/fss-client";
 import JobStatusClient from "../../../services/job-status-client";
@@ -24,6 +22,9 @@ import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
+import { setPlateBarcodeToPlates } from "../../metadata/actions";
+import { SET_PLATE_BARCODE_TO_PLATES } from "../../metadata/constants";
+import { getPlateBarcodeToPlates } from "../../metadata/selectors";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -33,6 +34,7 @@ import {
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
+  mockAuditInfo,
   mockDateAnnotation,
   mockFailedUploadJob,
   mockJob,
@@ -85,14 +87,17 @@ describe("Upload logics", () => {
   let fms: SinonStubbedInstance<FileManagementSystem>;
   let jssClient: SinonStubbedInstance<JobStatusClient>;
   let mmsClient: SinonStubbedInstance<MMSClient>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
 
   beforeEach(() => {
     fms = createStubInstance(FileManagementSystem);
     jssClient = createStubInstance(JobStatusClient);
     mmsClient = createStubInstance(MMSClient);
+    labkeyClient = createStubInstance(LabkeyClient);
     sandbox.replace(mockReduxLogicDeps, "fms", fms);
     sandbox.replace(mockReduxLogicDeps, "jssClient", jssClient);
     sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
   });
 
   afterEach(() => {
@@ -144,7 +149,7 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             file: "/path/to/file1",
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
         }),
       });
@@ -152,7 +157,7 @@ describe("Upload logics", () => {
         [getUploadRowKey({ file: "/path/to/file1" })]: {
           ["Favorite Color"]: [],
           file: "/path/to/file1",
-          [WELL_ANNOTATION_NAME]: [1],
+          [AnnotationName.WELL]: [1],
         },
       });
 
@@ -184,8 +189,8 @@ describe("Upload logics", () => {
         {
           ...nonEmptyStateForInitiatingUpload,
           route: {
-            page: Page.AddCustomData,
-            view: Page.AddCustomData,
+            page: Page.UploadWithTemplate,
+            view: Page.UploadWithTemplate,
           },
           setting: {
             ...nonEmptyStateForInitiatingUpload.setting,
@@ -341,7 +346,7 @@ describe("Upload logics", () => {
           [fileRowKey]: {
             file: "/path/to/file1",
             key: fileRowKey,
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
         }),
       };
@@ -374,9 +379,9 @@ describe("Upload logics", () => {
         "Favorite Color": [],
         channelId: undefined,
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         positionIndex: 0,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -402,9 +407,9 @@ describe("Upload logics", () => {
         "Favorite Color": [],
         channelId: undefined,
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         scene: 0,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -413,8 +418,7 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
-        .empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.not.be.empty;
 
       if (fileRow) {
         // apply
@@ -423,8 +427,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
-        .empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.not.be.empty;
     });
 
     it("removes well associations from the file row if adding a position index", () => {
@@ -432,8 +435,7 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
-        .empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.not.be.empty;
 
       if (fileRow) {
         // apply
@@ -442,7 +444,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.be.empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.be.empty;
     });
 
     it("removes well associations from file row if adding a scene", () => {
@@ -450,8 +452,7 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
-        .empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.not.be.empty;
 
       if (fileRow) {
         // apply
@@ -460,7 +461,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.be.empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.be.empty;
     });
 
     it("removes well associations from file row if adding a sub image name", () => {
@@ -468,8 +469,7 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
-        .empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.not.be.empty;
 
       if (fileRow) {
         // apply
@@ -478,7 +478,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.be.empty;
+      expect(getUpload(state)[fileRowKey][AnnotationName.WELL]).to.be.empty;
     });
 
     it("adds 1 sub row to file if only channel provided", () => {
@@ -510,11 +510,11 @@ describe("Upload logics", () => {
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         positionIndex: undefined,
         scene: undefined,
         subImageName: undefined,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -541,9 +541,9 @@ describe("Upload logics", () => {
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         positionIndex: 1,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -568,9 +568,9 @@ describe("Upload logics", () => {
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         scene: 1,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -597,9 +597,9 @@ describe("Upload logics", () => {
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         subImageName: "foo",
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -777,9 +777,9 @@ describe("Upload logics", () => {
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         positionIndex: 1,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
 
       const positionAndChannelKey = getUploadRowKey({
@@ -793,9 +793,9 @@ describe("Upload logics", () => {
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         positionIndex: 1,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -822,9 +822,9 @@ describe("Upload logics", () => {
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         scene: 1,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
 
       const sceneAndChannelKey = getUploadRowKey({
@@ -838,9 +838,9 @@ describe("Upload logics", () => {
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         scene: 1,
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -871,9 +871,9 @@ describe("Upload logics", () => {
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         subImageName: "foo",
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
 
       const positionAndChannelKey = getUploadRowKey({
@@ -887,9 +887,9 @@ describe("Upload logics", () => {
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        [NOTES_ANNOTATION_NAME]: [],
+        [AnnotationName.NOTES]: [],
         subImageName: "foo",
-        [WELL_ANNOTATION_NAME]: [],
+        [AnnotationName.WELL]: [],
       });
     });
 
@@ -914,29 +914,29 @@ describe("Upload logics", () => {
               channelIds: [mockChannel],
               file: "/path/to/file1",
               positionIndexes: [1, 2],
-              [WELL_ANNOTATION_NAME]: [],
+              [AnnotationName.WELL]: [],
             },
             [position1Key]: {
               file: "/path/to/file1",
               positionIndex: 1,
-              [WELL_ANNOTATION_NAME]: [1],
+              [AnnotationName.WELL]: [1],
             },
             [position1Channel1Key]: {
               channelId: mockChannel,
               file: "/path/to/file1",
               positionIndex: 1,
-              [WELL_ANNOTATION_NAME]: [],
+              [AnnotationName.WELL]: [],
             },
             [position2Key]: {
               file: "/path/to/file1",
               positionIndex: 2,
-              [WELL_ANNOTATION_NAME]: [2],
+              [AnnotationName.WELL]: [2],
             },
             [position2Channel1Key]: {
               channelId: mockChannel,
               file: "/path/to/file1",
               positionIndex: 2,
-              [WELL_ANNOTATION_NAME]: [],
+              [AnnotationName.WELL]: [],
             },
           }),
         },
@@ -1058,10 +1058,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             "Birth Date": [],
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1090,10 +1089,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             "Birth Date": [],
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1123,10 +1121,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             "Another Garbage Text Annotation": [],
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1156,10 +1153,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1188,10 +1184,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1222,10 +1217,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1242,7 +1236,7 @@ describe("Upload logics", () => {
     });
 
     it("converts '' to [] if type is TEXT", () => {
-      const { store } = createMockReduxStore({
+      const { actions, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
         template: {
           ...mockTemplateStateBranch,
@@ -1255,10 +1249,9 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             [mockTextAnnotation.name]: [],
             file: "/path/to/file3",
-            [NOTES_ANNOTATION_NAME]: [],
+            [AnnotationName.NOTES]: [],
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
-            wellLabels: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1272,6 +1265,183 @@ describe("Upload logics", () => {
       // after
       const upload = getUpload(store.getState());
       expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+      expect(actions.includesMatch({ type: SET_PLATE_BARCODE_TO_PLATES })).to.be
+        .false;
+    });
+
+    it("sets plateBarcodeToPlates if update includes plate barcode", async () => {
+      // Arrange
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            annotations: [mockTextAnnotation],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [uploadRowKey]: {
+            [mockTextAnnotation.name]: [],
+            file: "/path/to/file3",
+            [AnnotationName.NOTES]: [],
+            templateId: 8,
+            [AnnotationName.WELL]: [],
+          },
+        }),
+      });
+      const plateBarcode = "490109230";
+      const expected = {
+        [plateBarcode]: [
+          {
+            name: "imaging session 9",
+            imagingSessionId: 9,
+            wells: [],
+          },
+        ],
+      };
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves([
+        { ImagingSessionId: 9, "ImagingSessionId/Name": "imaging session 9" },
+      ]);
+      mmsClient.getPlate.resolves({
+        plate: {
+          barcode: "",
+          comments: "",
+          plateGeometryId: 8,
+          plateId: 14,
+          plateStatusId: 3,
+          ...mockAuditInfo,
+        },
+        wells: [],
+      });
+
+      // Act
+      store.dispatch(
+        updateUpload(uploadRowKey, {
+          [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+        })
+      );
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(getPlateBarcodeToPlates(store.getState())).to.deep.equal(expected);
+      expect(actions.includesMatch(setPlateBarcodeToPlates(expected))).to.be
+        .true;
+      expect(
+        getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
+      ).to.deep.equal([plateBarcode]);
+    });
+
+    it("does not set plateBarcodeToPlates if already queried for plate barcode", async () => {
+      // Arrange
+      const plateBarcode = "490109230";
+      const expected = {
+        [plateBarcode]: [
+          {
+            name: "imaging session 9",
+            imagingSessionId: 9,
+            wells: [],
+          },
+        ],
+      };
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        metadata: {
+          ...nonEmptyStateForInitiatingUpload.metadata,
+          plateBarcodeToPlates: expected,
+        },
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            annotations: [mockTextAnnotation],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [uploadRowKey]: {
+            [mockTextAnnotation.name]: [],
+            file: "/path/to/file3",
+            [AnnotationName.NOTES]: [],
+            templateId: 8,
+            [AnnotationName.WELL]: [],
+          },
+        }),
+      });
+
+      // Act
+      store.dispatch(
+        updateUpload(uploadRowKey, {
+          [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+        })
+      );
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(getPlateBarcodeToPlates(store.getState())).to.deep.equal(expected);
+      expect(actions.includesMatch(setPlateBarcodeToPlates(expected))).to.be
+        .false;
+      expect(
+        getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
+      ).to.deep.equal([plateBarcode]);
+    });
+
+    it("queries for plate barcode without imaging session if none found", async () => {
+      // Arrange
+      const plateBarcode = "490139230";
+      const expected = {
+        [plateBarcode]: [
+          {
+            wells: [],
+          },
+        ],
+      };
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            annotations: [mockTextAnnotation],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [uploadRowKey]: {
+            [mockTextAnnotation.name]: [],
+            file: "/path/to/file3",
+            [AnnotationName.NOTES]: [],
+            templateId: 8,
+            [AnnotationName.WELL]: [],
+          },
+        }),
+      });
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves([]);
+      mmsClient.getPlate.resolves({
+        plate: {
+          barcode: "",
+          comments: "",
+          plateGeometryId: 8,
+          plateId: 14,
+          plateStatusId: 3,
+          ...mockAuditInfo,
+        },
+        wells: [],
+      });
+
+      // Act
+      store.dispatch(
+        updateUpload(uploadRowKey, {
+          [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+        })
+      );
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(getPlateBarcodeToPlates(store.getState())).to.deep.equal(expected);
+      expect(actions.includesMatch(setPlateBarcodeToPlates(expected))).to.be
+        .true;
+      expect(
+        getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
+      ).to.deep.equal([plateBarcode]);
     });
   });
 
@@ -1341,7 +1511,7 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             file: "/path/to/file1",
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1375,11 +1545,11 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey1]: {
             file: "/path/to/file1",
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
           [uploadRowKey2]: {
             file: "/path/to/file2",
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1422,7 +1592,7 @@ describe("Upload logics", () => {
             "Birth Date": undefined,
             file: "/path/to/file1",
             templateId: 8,
-            [WELL_ANNOTATION_NAME]: [],
+            [AnnotationName.WELL]: [],
           },
         }),
       });
@@ -1568,10 +1738,10 @@ describe("Upload logics", () => {
       };
       mockStateForEditingMetadata = {
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
+        selection: {
+          ...mockState.selection,
           uploads: [mockSuccessfulUploadJob],
-        }),
+        },
         upload: getMockStateWithHistory({
           cat: catUpload,
         }),

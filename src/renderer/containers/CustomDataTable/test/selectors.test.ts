@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
   getMockStateWithHistory,
@@ -11,8 +11,13 @@ import {
   mockState,
   mockTemplateStateBranch,
 } from "../../../state/test/mocks";
-import WellCell from "../../Table/CustomCells/WellCell";
-import { getColumnsForTable, getTemplateColumnsForTable } from "../selectors";
+import {
+  getColumnsForTable,
+  getTemplateColumnsForTable,
+  IMAGING_SESSION_COLUMN,
+  PLATE_BARCODE_COLUMN,
+  WELL_COLUMN,
+} from "../selectors";
 
 describe("CustomDataTable selectors", () => {
   const annotationTypes = [
@@ -40,7 +45,7 @@ describe("CustomDataTable selectors", () => {
   };
 
   describe("getTemplateColumnsForTable", () => {
-    it("returns expected columns from template", () => {
+    it("returns plate and expected columns from template", () => {
       // Act
       const actual = getTemplateColumnsForTable({
         ...mockState,
@@ -55,32 +60,25 @@ describe("CustomDataTable selectors", () => {
       });
 
       // Assert
-      expect(actual).to.be.lengthOf(3);
-      expect(actual).deep.equal(
-        annotations.map((a, index) => ({
+      expect(actual).to.be.lengthOf(4);
+      expect(actual).deep.equal([
+        PLATE_BARCODE_COLUMN,
+        ...annotations.map((a, index) => ({
           type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
           accessor: a.name,
           description: a.description,
           dropdownValues: [],
           isRequired: false,
           width: index === 0 ? 150 : 100,
-        }))
-      );
+        })),
+      ]);
     });
 
-    it("returns columns from template and well", () => {
+    it("includes well when plate barcode is present in upload", () => {
       // Arrange
       const expected = [
-        {
-          accessor: "wellLabels",
-          id: WELL_ANNOTATION_NAME,
-          Cell: WellCell,
-          // This description was pulled from LK 03/22/21
-          description:
-            "A well on a plate (that has been entered into the Plate UI)",
-          isRequired: true,
-          width: 100,
-        },
+        PLATE_BARCODE_COLUMN,
+        WELL_COLUMN,
         ...annotations.map((a, index) => ({
           type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
           accessor: a.name,
@@ -90,6 +88,7 @@ describe("CustomDataTable selectors", () => {
           width: index === 0 ? 150 : 100,
         })),
       ];
+      const plateBarcode = "12391013";
 
       // Act
       const actual = getTemplateColumnsForTable({
@@ -97,19 +96,139 @@ describe("CustomDataTable selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes,
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
+                wells: [],
+              },
+            ],
+          },
         },
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-          barcode: "12345132",
-        }),
+        },
         template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
         },
+        upload: getMockStateWithHistory({
+          "file-1.txt": {
+            file: "file-1.txt",
+            [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+          },
+        }),
       });
 
       // Assert
-      expect(actual).to.be.lengthOf(4);
+      expect(actual).to.be.lengthOf(5);
+      expect(actual).deep.equal(expected);
+    });
+
+    it("returns imaging session when plate barcode has imaging sessions", () => {
+      // Arrange
+      const expected = [
+        PLATE_BARCODE_COLUMN,
+        IMAGING_SESSION_COLUMN,
+        WELL_COLUMN,
+        ...annotations.map((a, index) => ({
+          type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
+          accessor: a.name,
+          description: a.description,
+          dropdownValues: [],
+          isRequired: false,
+          width: index === 0 ? 150 : 100,
+        })),
+      ];
+      const plateBarcode = "1234145";
+
+      // Act
+      const actual = getTemplateColumnsForTable({
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          annotationTypes,
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
+                name: "imaging session 1",
+                imagingSessionId: 4,
+                wells: [],
+              },
+            ],
+          },
+        },
+        selection: {
+          ...mockSelection,
+        },
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate,
+        },
+        upload: getMockStateWithHistory({
+          "file-1.txt": {
+            file: "file-1.txt",
+            [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+          },
+        }),
+      });
+
+      // Assert
+      expect(actual).to.be.lengthOf(6);
+      expect(actual).deep.equal(expected);
+    });
+
+    it("includes well and imaging session when mass edit row has plate barcode", () => {
+      // Arrange
+      const expected = [
+        PLATE_BARCODE_COLUMN,
+        IMAGING_SESSION_COLUMN,
+        WELL_COLUMN,
+        ...annotations.map((a, index) => ({
+          type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
+          accessor: a.name,
+          description: a.description,
+          dropdownValues: [],
+          isRequired: false,
+          width: index === 0 ? 150 : 100,
+        })),
+      ];
+      const plateBarcode = "1234145";
+
+      // Act
+      const actual = getTemplateColumnsForTable({
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          annotationTypes,
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
+                name: "imaging session 1",
+                imagingSessionId: 4,
+                wells: [],
+              },
+            ],
+          },
+        },
+        selection: {
+          ...mockSelection,
+          massEditRow: {
+            [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+          },
+        },
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate,
+        },
+        upload: getMockStateWithHistory({
+          "file-1.txt": {
+            file: "file-1.txt",
+          },
+        }),
+      });
+
+      // Assert
+      expect(actual).to.be.lengthOf(6);
       expect(actual).deep.equal(expected);
     });
   });
@@ -130,9 +249,9 @@ describe("CustomDataTable selectors", () => {
       });
 
       // Assert
-      expect(actual.length).to.equal(6);
+      expect(actual.length).to.equal(7);
       expect(actual.find((c) => c.id === "selection")).to.not.be.undefined;
-      expect(actual.filter((c) => !c.isReadOnly)).to.be.lengthOf(6);
+      expect(actual.filter((c) => !c.isReadOnly)).to.be.lengthOf(7);
     });
 
     it("sets columns to read only", () => {
@@ -143,10 +262,10 @@ describe("CustomDataTable selectors", () => {
           ...mockState.metadata,
           annotationTypes,
         },
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
           uploads: [mockJob],
-        }),
+        },
         template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
@@ -154,7 +273,7 @@ describe("CustomDataTable selectors", () => {
       });
 
       // Assert
-      expect(actual.length).to.equal(5);
+      expect(actual.length).to.equal(6);
       // Assert: ensure the only non-readonly columns are the defaults
       expect(actual.every((c) => c.isReadOnly)).to.be.true;
       expect(actual.find((c) => c.id === "selection")).to.be.undefined;

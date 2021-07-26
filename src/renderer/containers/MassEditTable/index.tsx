@@ -3,7 +3,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useBlockLayout, useResizeColumns, useTable } from "react-table";
 
-import { NOTES_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { ROW_COUNT_COLUMN } from "../../state/constants";
 import { applyMassEdit, cancelMassEdit } from "../../state/selection/actions";
 import { getMassEditRowAsTableRow } from "../../state/selection/selectors";
@@ -24,7 +24,7 @@ const DEFAULT_COLUMNS = [
     width: 75,
   },
   {
-    accessor: NOTES_ANNOTATION_NAME,
+    accessor: AnnotationName.NOTES,
     Cell: NotesCell,
     description: "Any additional text data (not ideal for querying)",
     maxWidth: 50,

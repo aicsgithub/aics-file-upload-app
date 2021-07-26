@@ -1,7 +1,6 @@
 import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import {
   Annotation,
   AnnotationOption,
@@ -14,34 +13,32 @@ import { BarcodeSelectorOption, State } from "../types";
 
 // BASIC SELECTORS
 export const getMetadata = (state: State) => state.metadata;
+export const getAllAnnotations = (state: State) => state.metadata.annotations;
 export const getAnnotationIdToHasBeenUsed = (state: State) =>
   state.metadata.annotationIdToHasBeenUsed;
-export const getAllAnnotations = (state: State) => state.metadata.annotations;
 export const getAnnotationLookups = (state: State) =>
   state.metadata.annotationLookups;
 export const getAnnotationOptions = (state: State) =>
   state.metadata.annotationOptions;
 export const getAnnotationTypes = (state: State) =>
   state.metadata.annotationTypes;
-export const getUnits = (state: State) => state.metadata.units;
+export const getBarcodePrefixes = (state: State) =>
+  state.metadata.barcodePrefixes;
+export const getBarcodeSearchResults = (state: State) =>
+  state.metadata.barcodeSearchResults;
+export const getChannels = (state: State) => state.metadata.channels;
+export const getCurrentUploadFilePath = (state: State) =>
+  state.metadata.currentUploadFilePath;
 export const getImagingSessions = (state: State) =>
   state.metadata.imagingSessions;
 export const getLookups = (state: State) => state.metadata.lookups;
-export const getBarcodePrefixes = (state: State) =>
-  state.metadata.barcodePrefixes;
-export const getSelectionHistory = (state: State) =>
-  state.metadata.history.selection;
-export const getUploadHistory = (state: State) => state.metadata.history.upload;
-export const getBarcodeSearchResults = (state: State) =>
-  state.metadata.barcodeSearchResults;
-export const getTemplates = (state: State) => state.metadata.templates;
-export const getChannels = (state: State) => state.metadata.channels;
-export const getFileMetadataForJob = (state: State) =>
-  state.metadata.fileMetadataForJob;
-export const getCurrentUploadFilePath = (state: State) =>
-  state.metadata.currentUploadFilePath;
 export const getOriginalUpload = (state: State) =>
   state.metadata.originalUpload;
+export const getPlateBarcodeToPlates = (state: State) =>
+  state.metadata.plateBarcodeToPlates;
+export const getTemplates = (state: State) => state.metadata.templates;
+export const getUnits = (state: State) => state.metadata.units;
+export const getUploadHistory = (state: State) => state.metadata.history.upload;
 
 // Some annotations are used purely for displaying data in the File Explorer, here we exclude those
 export const getAnnotations = createSelector(
@@ -103,16 +100,6 @@ export const getDateAnnotationTypeId = getAnnotationTypeId(ColumnType.DATE);
 export const getDateTimeAnnotationTypeId = getAnnotationTypeId(
   ColumnType.DATETIME
 );
-
-const getAnnotation = (annotationName: string) =>
-  createSelector([getAnnotations], (annotations: Annotation[]):
-    | Annotation
-    | undefined => {
-    return annotations.find((a) => a.name === annotationName);
-  });
-
-export const getNotesAnnotation = getAnnotation(NOTES_ANNOTATION_NAME);
-export const getWellAnnotation = getAnnotation(WELL_ANNOTATION_NAME);
 
 export const getAnnotationsWithAnnotationOptions = createSelector(
   [getAnnotations, getAnnotationOptions],

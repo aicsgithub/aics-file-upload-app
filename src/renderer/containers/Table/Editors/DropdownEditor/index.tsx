@@ -1,4 +1,5 @@
 import { Select } from "antd";
+import { castArray } from "lodash";
 import React, { useState } from "react";
 
 import { createEnterKeyHandler } from "../util";
@@ -6,12 +7,14 @@ import { createEnterKeyHandler } from "../util";
 const styles = require("../defaultInputStyles.pcss");
 
 interface Props {
+  disableMultiSelect?: boolean;
   initialValue: string[];
   options: string[];
   commitChanges: (value: string[]) => void;
 }
 
 export default function DropdownEditor({
+  disableMultiSelect,
   initialValue,
   options,
   commitChanges,
@@ -19,7 +22,8 @@ export default function DropdownEditor({
   const [value, setValue] = useState<string[]>(initialValue);
 
   function handleCommit() {
-    commitChanges(value);
+    // May not be an array if multi-select is disabled
+    commitChanges(castArray(value));
   }
 
   return (
@@ -28,7 +32,7 @@ export default function DropdownEditor({
       allowClear
       defaultOpen
       className={styles.defaultInput}
-      mode="multiple"
+      mode={disableMultiSelect ? "default" : "multiple"}
       onBlur={handleCommit}
       onInputKeyDown={createEnterKeyHandler(handleCommit)}
       onChange={(v: string[]) => setValue(v)}

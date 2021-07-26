@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import { platform } from "os";
 
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, groupBy, isEmpty, omit, uniq } from "lodash";
+import { castArray, difference, groupBy, isEmpty, uniq } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -10,7 +10,7 @@ import {
   DAY_AS_MS,
   HOUR_AS_MS,
   MINUTE_AS_MS,
-  WELL_ANNOTATION_NAME,
+  AnnotationName,
 } from "../../constants";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
@@ -33,33 +33,25 @@ import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
+import { setPlateBarcodeToPlates } from "../metadata/actions";
 import {
   getAnnotationLookups,
   getAnnotations,
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
+  getImagingSessions,
   getLookups,
-  getSelectionHistory,
   getUploadHistory,
 } from "../metadata/selectors";
-import {
-  clearSelectionHistory,
-  jumpToPastSelection,
-  selectBarcode,
-  setHasNoPlateToUpload,
-  setPlate,
-} from "../selection/actions";
 import { getMountPoint } from "../setting/selectors";
-import {
-  ensureDraftGetsSaved,
-  getApplyTemplateInfo,
-  getPlateInfo,
-} from "../stateHelpers";
+import { ensureDraftGetsSaved, getApplyTemplateInfo } from "../stateHelpers";
 import { setAppliedTemplate } from "../template/actions";
 import {
   AsyncRequest,
   Logger,
   Page,
+  PlateAtImagingSession,
+  PlateBarcodeToPlates,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
@@ -112,11 +104,6 @@ export const setSwitchEnvEnabled = (
 
 const stateBranchHistory = [
   {
-    clearHistory: clearSelectionHistory,
-    getHistory: getSelectionHistory,
-    jumpToPast: jumpToPastSelection,
-  },
-  {
     clearHistory: clearUploadHistory,
     getHistory: getUploadHistory,
     jumpToPast: jumpToPastUpload,
@@ -136,10 +123,9 @@ export const handleStartingNewUploadJob = (
   getApplicationMenu: () => Menu | null
 ): AnyAction[] => {
   const actions: AnyAction[] = [
-    selectPage(Page.AddCustomData),
+    selectPage(Page.UploadWithTemplate),
     clearUploadDraft(),
     clearUploadHistory(),
-    clearSelectionHistory(),
   ];
   const isMountedAsExpected = existsSync(
     makePosixPathCompatibleWithPlatform("/allen/aics", platform())
@@ -395,51 +381,64 @@ const viewUploadsLogic = createLogic({
         state
       );
 
-      let representativeBarcode: string | undefined = undefined;
-      const uploadsWithPlateInfo = await Object.entries(
-        uploadsToView.uploadMetadata
-      ).reduce(async (accum, [key, upload]) => {
-        const wellIds = upload[WELL_ANNOTATION_NAME];
-        if (!wellIds || isEmpty(wellIds)) {
-          return { ...(await accum), [key]: upload };
-        }
-        const barcode = await labkeyClient.findPlateBarcodeByWellId(wellIds[0]);
-        // Omit the well values if it is not from the same batch as the representative
-        if (!representativeBarcode || representativeBarcode === barcode) {
-          representativeBarcode = barcode;
-          return { ...(await accum), [key]: upload };
-        }
-        return {
-          ...(await accum),
-          [key]: omit(upload, WELL_ANNOTATION_NAME),
-        };
-      }, {} as Promise<UploadStateBranch>);
+      // Any barcoded plate can be snapshot in time as that plate at a certain
+      // imaging session. The contents & images of the plates at that time (imaging session)
+      // may vary so the app needs to provide options for the user to choose between
+      const imagingSessions = getImagingSessions(state);
+      const { uploadMetadata } = uploadsToView;
+      const plateBarcodeToPlates: PlateBarcodeToPlates = {};
+      for (const [key, upload] of Object.entries(uploadMetadata)) {
+        // An upload is assumed to only have one plate associated with it
+        const representativeWellId = upload[AnnotationName.WELL]?.[0];
+        if (representativeWellId) {
+          const plate = await labkeyClient.findPlateByWellId(
+            representativeWellId
+          );
 
-      const actions: AnyAction[] = [];
-      if (!representativeBarcode) {
-        // Without a template the user likely wasn't forced into chosing
-        // whether they had a plate or not so the app shouldn't pre-select it
-        if (uploadsToView.templateId) {
-          actions.push(setHasNoPlateToUpload(true));
+          // Derive and apply the plate barcode and imaging session found via the well
+          const imagingSession = imagingSessions.find(
+            (is) => is.imagingSessionId === plate.ImagingSessionId
+          );
+          uploadMetadata[key][AnnotationName.PLATE_BARCODE] = [plate.BarCode];
+          uploadMetadata[key][AnnotationName.IMAGING_SESSION] = imagingSession
+            ? [imagingSession.name]
+            : [];
+
+          // Avoid re-querying for the imaging sessions if this
+          // plate barcode has been selected before
+          if (!Object.keys(plateBarcodeToPlates).includes(plate.BarCode)) {
+            const imagingSessionsForPlateBarcode = await labkeyClient.findImagingSessionsByPlateBarcode(
+              plate.BarCode
+            );
+            const imagingSessionsWithPlateInfo: PlateAtImagingSession[] = await Promise.all(
+              imagingSessionsForPlateBarcode.map(async (is) => {
+                const { wells } = await mmsClient.getPlate(
+                  plate.BarCode,
+                  is["ImagingSessionId"]
+                );
+
+                return {
+                  wells,
+                  imagingSessionId: is["ImagingSessionId"],
+                  name: is["ImagingSessionId/Name"],
+                };
+              })
+            );
+
+            // If the barcode has no imaging sessions, find info of plate without
+            if (!imagingSessionsWithPlateInfo.length) {
+              const { wells } = await mmsClient.getPlate(plate.BarCode);
+              imagingSessionsWithPlateInfo.push({ wells });
+            }
+
+            plateBarcodeToPlates[plate.BarCode] = imagingSessionsWithPlateInfo;
+          }
         }
-      } else {
-        // Any barcoded plate can be snapshot in time as that plate at a certain
-        // imaging session. The contents & images of the plates at that time (imaging session)
-        // may vary so the app needs to provide options for the user to choose between
-        const imagingSessionIds = await labkeyClient.findImagingSessionIdsByPlateBarcode(
-          representativeBarcode
-        );
-        const { plate, wells } = await getPlateInfo(
-          representativeBarcode,
-          imagingSessionIds,
-          mmsClient,
-          dispatch
-        );
-        actions.push(
-          selectBarcode(representativeBarcode, imagingSessionIds),
-          setPlate(plate, wells, imagingSessionIds)
-        );
       }
+
+      const actions: AnyAction[] = [
+        setPlateBarcodeToPlates(plateBarcodeToPlates),
+      ];
 
       if (uploadsToView.templateId) {
         const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
@@ -453,17 +452,17 @@ const viewUploadsLogic = createLogic({
           mmsClient,
           dispatch,
           booleanAnnotationTypeId,
-          uploadsWithPlateInfo
+          uploadMetadata
         );
         actions.push(
           setAppliedTemplate(template, uploads),
           viewUploadsSucceeded(uploads)
         );
       } else {
-        actions.push(viewUploadsSucceeded(uploadsWithPlateInfo));
+        actions.push(viewUploadsSucceeded(uploadMetadata));
       }
 
-      dispatch(batchActions([...actions]));
+      dispatch(batchActions(actions));
     } catch (e) {
       dispatch(
         requestFailed(

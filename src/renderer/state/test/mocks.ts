@@ -1,6 +1,6 @@
 import { StateWithHistory } from "redux-undo";
 
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { GridCell } from "../../entities";
 import {
   JSSJob,
@@ -39,8 +39,6 @@ import {
 import { Well } from "../selection/types";
 import {
   AnnotationDraft,
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
   JobStateBranch,
   SelectionStateBranch,
   State,
@@ -88,7 +86,7 @@ export const mockWellAnnotation: Annotation = {
   annotationTypeId: 6,
   description: "Well associated with this file",
   exposeToFileUploadApp: true,
-  name: WELL_ANNOTATION_NAME,
+  name: AnnotationName.WELL,
   "annotationTypeId/Name": ColumnType.LOOKUP,
 };
 
@@ -98,7 +96,7 @@ export const mockNotesAnnotation: Annotation = {
   annotationTypeId: 1,
   description: "Other information",
   exposeToFileUploadApp: true,
-  name: NOTES_ANNOTATION_NAME,
+  name: AnnotationName.NOTES,
   "annotationTypeId/Name": ColumnType.TEXT,
 };
 
@@ -176,41 +174,6 @@ export const mockWell: Well = {
   wellId: 1,
 };
 
-export const mockWells: ImagingSessionIdToWellsMap = {
-  0: [
-    mockWell,
-    { ...mockWell, col: 1, row: 0, wellId: 2 },
-    { ...mockWell, cellPopulations: [], col: 2, row: 0, wellId: 5 },
-    { ...mockWell, col: 1, row: 1, wellId: 4 },
-    { ...mockWell, col: 0, row: 1, wellId: 3 },
-    { ...mockWell, cellPopulations: [], col: 2, row: 1, wellId: 6 },
-  ],
-  1: [{ ...mockWell, plateId: 2, wellId: 10 }],
-};
-
-export const mockPlate: ImagingSessionIdToPlateMap = {
-  0: {
-    ...mockAuditInfo,
-    barcode: "abc",
-    comments: "",
-    imagingSessionId: undefined,
-    plateGeometryId: 1,
-    plateId: 1,
-    plateStatusId: 1,
-    seededOn: undefined,
-  },
-  1: {
-    ...mockAuditInfo,
-    barcode: "abc",
-    comments: "drugs added",
-    imagingSessionId: 1,
-    plateGeometryId: 1,
-    plateId: 2,
-    plateStatusId: 1,
-    seededOn: undefined,
-  },
-};
-
 export const mockJob: JSSJob = {
   created: new Date(),
   jobId: "1340202",
@@ -225,15 +188,8 @@ export const mockJob: JSSJob = {
 };
 
 export const mockSelection: SelectionStateBranch = {
-  barcode: undefined,
-  imagingSessionId: undefined,
-  imagingSessionIds: [null, 1],
-  hasNoPlateToUpload: false,
-  plate: mockPlate,
-  selectedWells: [],
   user: "fake_user",
   uploads: [],
-  wells: mockWells,
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -242,21 +198,21 @@ export const mockWellUpload: UploadStateBranch = {
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file1",
     key: getUploadRowKey({ file: "/path/to/file1" }),
-    [WELL_ANNOTATION_NAME]: [1],
+    [AnnotationName.WELL]: [1],
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
     barcode: "1235",
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file2",
     key: getUploadRowKey({ file: "/path/to/file2" }),
-    [WELL_ANNOTATION_NAME]: [2],
+    [AnnotationName.WELL]: [2],
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
     barcode: "1236",
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3" }),
-    [WELL_ANNOTATION_NAME]: [1, 2, 3],
+    [AnnotationName.WELL]: [1, 2, 3],
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
     barcode: "1236",
@@ -264,7 +220,7 @@ export const mockWellUpload: UploadStateBranch = {
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 }),
     positionIndex: 1,
-    [WELL_ANNOTATION_NAME]: [1, 2],
+    [AnnotationName.WELL]: [1, 2],
   },
 };
 
@@ -372,7 +328,7 @@ export const mockTemplateWithManyValues: Template = {
       annotationTypeId: 1,
       description:
         "Additional information that doesn't align well with other annotations",
-      name: NOTES_ANNOTATION_NAME,
+      name: AnnotationName.NOTES,
       required: true,
     },
   ],
@@ -386,7 +342,7 @@ export const mockState: State = {
   job: job.initialState,
   metadata: metadata.initialState,
   route: route.initialState,
-  selection: getMockStateWithHistory(selection.initialState),
+  selection: selection.initialState,
   setting: setting.initialState,
   template: template.initialState,
   upload: getMockStateWithHistory(upload.initialState),
@@ -676,11 +632,9 @@ export const nonEmptyStateForInitiatingUpload: State = {
     },
     lookups: mockLookups,
   },
-  selection: getMockStateWithHistory({
+  selection: {
     ...mockSelection,
-    barcode: "1234",
-    selectedWells: [{ col: 0, row: 0 }],
-  }),
+  },
   template: {
     ...mockTemplateStateBranch,
     appliedTemplate: mockMMSTemplate,

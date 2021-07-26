@@ -29,7 +29,7 @@ const styles = require("./styles.pcss");
  * user's uploads are displayed as tables and are presented with options
  * to interact with existing uploads as well as options to upload.
  */
-export default function UploadSummary() {
+export default function MyUploadsPage() {
   const dispatch = useDispatch();
   const { uploadsWithTemplates, uploadsWithoutTemplates } = useSelector(
     getUploadsByTemplateUsage

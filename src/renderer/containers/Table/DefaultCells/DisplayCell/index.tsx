@@ -26,6 +26,7 @@ import { ColumnValue } from "../../types";
 const styles = require("./styles.pcss");
 
 interface Props extends CellProps<UploadTableRow> {
+  disabled?: boolean;
   onStartEditing: () => void;
   onTabExit?: () => void;
 }
@@ -211,6 +212,7 @@ export default function DisplayCell(props: Props) {
         >
           <input
             readOnly
+            disabled={props.disabled}
             ref={inputEl}
             tabIndex={-1}
             className={classNames(styles.readOnlyCell, {

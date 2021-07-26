@@ -6,22 +6,15 @@ import {
   replace,
   restore,
   SinonStubbedInstance,
-  spy,
   match,
 } from "sinon";
 
 import MMSClient from "../../services/mms-client";
-import {
-  GetPlateResponse,
-  PlateResponse,
-  Template,
-} from "../../services/mms-client/types";
+import { Template } from "../../services/mms-client/types";
 import { setSuccessAlert, setWarningAlert } from "../feedback/actions";
-import { Well } from "../selection/types";
 import {
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
-  getPlateInfo,
   getWithRetry,
   handleUploadProgress,
 } from "../stateHelpers";
@@ -30,7 +23,6 @@ import { getUploadRowKey } from "../upload/constants";
 
 import { dialog, mockReduxLogicDeps } from "./configure-mock-store";
 import {
-  mockAuditInfo,
   mockBooleanAnnotation,
   mockFavoriteColorTemplateAnnotation,
   mockMMSTemplate,
@@ -178,65 +170,6 @@ describe("State helpers", () => {
       } catch (e) {
         expect(requestStub.callCount).to.equal(5);
       }
-    });
-  });
-
-  describe("getPlateInfo", () => {
-    const barcode = "123456";
-    const mockEmptyWell: Well = {
-      cellPopulations: [],
-      col: 0,
-      plateId: 1,
-      row: 0,
-      solutions: [],
-      wellId: 1,
-    };
-    const mockPlate: PlateResponse = {
-      ...mockAuditInfo,
-      barcode,
-      comments: "",
-      imagingSessionId: undefined,
-      plateGeometryId: 1,
-      plateId: 1,
-      plateStatusId: 1,
-      seededOn: "2018-02-14 23:03:52",
-    };
-
-    let mmsClient: SinonStubbedInstance<MMSClient>;
-    beforeEach(() => {
-      mmsClient = createStubInstance(MMSClient);
-    });
-
-    it("creates a map of imagingSessionIds to plate and well info", async () => {
-      const mockGetPlateResponse1: GetPlateResponse = {
-        plate: mockPlate,
-        wells: [mockEmptyWell],
-      };
-      const mockGetPlateResponse2: GetPlateResponse = {
-        plate: { ...mockPlate, imagingSessionId: 4, plateId: 2 },
-        wells: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
-      };
-      mmsClient.getPlate
-        .withArgs(barcode, undefined)
-        .resolves(mockGetPlateResponse1);
-      mmsClient.getPlate.withArgs(barcode, 4).resolves(mockGetPlateResponse2);
-      const dispatchSpy = spy();
-      const imagingSessionIds = [null, 4];
-
-      const { plate, wells } = await getPlateInfo(
-        barcode,
-        imagingSessionIds,
-        (mmsClient as any) as MMSClient,
-        dispatchSpy
-      );
-      expect(plate).to.deep.equal({
-        0: mockPlate,
-        4: { ...mockPlate, imagingSessionId: 4, plateId: 2 },
-      });
-      expect(wells).to.deep.equal({
-        0: [mockEmptyWell],
-        4: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
-      });
     });
   });
 

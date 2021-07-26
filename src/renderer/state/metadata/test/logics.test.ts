@@ -8,7 +8,7 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import FileManagementSystem from "../../../services/fms-client";
 import LabkeyClient from "../../../services/labkey-client";
 import {
@@ -18,6 +18,7 @@ import {
 } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
+import { SET_ALERT } from "../../feedback/constants";
 import {
   createMockReduxStore,
   ipcRenderer,
@@ -110,22 +111,28 @@ describe("Metadata logics", () => {
       sendStub = stub();
       sandbox.replace(ipcRenderer, "send", sendStub);
     });
+
     it("sends a event on the OPEN_CREATE_PLATE_STANDALONE channel if it successfully creates a barcode", async () => {
       mmsClient.createBarcode.resolves("fake");
       const { logicMiddleware, store } = createMockReduxStore();
-      store.dispatch(createBarcode(prefix));
+      store.dispatch(createBarcode(prefix, "key"));
       await logicMiddleware.whenComplete();
 
       expect(sendStub.called).to.be.true;
     });
-    it("dispatches requestFailed if request fails", async () => {
+
+    it("dispatches setAlert if request fails", async () => {
       mmsClient.createBarcode.rejects(new Error("foo"));
-      await runRequestFailedTest(
-        createBarcode(prefix),
-        "Could not create barcode: foo",
-        AsyncRequest.CREATE_BARCODE
-      );
+      const { actions, logicMiddleware, store } = createMockReduxStore();
+      store.dispatch(createBarcode(prefix, "key"));
+      await logicMiddleware.whenComplete();
+
       expect(sendStub.called).to.be.false;
+      expect(
+        actions.includesMatch({
+          type: SET_ALERT,
+        })
+      ).to.be.true;
     });
   });
   describe("requestMetadata", () => {
@@ -228,7 +235,7 @@ describe("Metadata logics", () => {
     it("sets lookupOptions given OK response", async () => {
       labkeyClient.getOptionsForLookup.resolves(mockLookupOptions);
       await runRequestSucceededTest(
-        retrieveOptionsForLookup(WELL_ANNOTATION_NAME),
+        retrieveOptionsForLookup(AnnotationName.WELL),
         receiveMetadata(
           { Well: mockLookupOptions },
           AsyncRequest.GET_OPTIONS_FOR_LOOKUP

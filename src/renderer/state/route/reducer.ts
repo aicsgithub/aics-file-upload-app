@@ -5,11 +5,8 @@ import { CloseNotificationCenter } from "../feedback/types";
 import { UPDATE_SETTINGS } from "../setting/constants";
 import { UpdateSettingsAction } from "../setting/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
-import { INITIATE_UPLOAD_SUCCEEDED, REPLACE_UPLOAD } from "../upload/constants";
-import {
-  InitiateUploadSucceededAction,
-  ReplaceUploadAction,
-} from "../upload/types";
+import { INITIATE_UPLOAD_SUCCEEDED } from "../upload/constants";
+import { InitiateUploadSucceededAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -18,7 +15,6 @@ import {
   SELECT_VIEW,
   START_NEW_UPLOAD,
 } from "./constants";
-import { getPage } from "./selectors";
 import {
   CloseUploadAction,
   SelectPageAction,
@@ -27,8 +23,8 @@ import {
 } from "./types";
 
 export const initialState: RouteStateBranch = {
-  page: Page.UploadSummary,
-  view: Page.UploadSummary,
+  page: Page.MyUploads,
+  view: Page.MyUploads,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
@@ -53,8 +49,8 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       action.type === CLOSE_UPLOAD,
     perform: (state: RouteStateBranch) => ({
       ...state,
-      page: Page.UploadSummary,
-      view: Page.UploadSummary,
+      page: Page.MyUploads,
+      view: Page.MyUploads,
     }),
   },
   [START_NEW_UPLOAD]: {
@@ -62,8 +58,8 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       action.type === START_NEW_UPLOAD,
     perform: (state: RouteStateBranch) => ({
       ...state,
-      page: Page.AddCustomData,
-      view: Page.AddCustomData,
+      page: Page.UploadWithTemplate,
+      view: Page.UploadWithTemplate,
     }),
   },
   [INITIATE_UPLOAD_SUCCEEDED]: {
@@ -71,8 +67,8 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (state: RouteStateBranch) => ({
       ...state,
-      page: Page.UploadSummary,
-      view: Page.UploadSummary,
+      page: Page.MyUploads,
+      view: Page.MyUploads,
     }),
   },
   [SELECT_PAGE]: {
@@ -90,18 +86,6 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
     perform: (state: RouteStateBranch, action: SelectViewAction) => ({
       ...state,
       view: action.payload,
-    }),
-  },
-  [REPLACE_UPLOAD]: {
-    accepts: (action: AnyAction): action is ReplaceUploadAction =>
-      action.type === REPLACE_UPLOAD,
-    perform: (
-      state: RouteStateBranch,
-      { payload: { replacementState } }: ReplaceUploadAction
-    ) => ({
-      ...state,
-      page: getPage(replacementState),
-      view: getPage(replacementState),
     }),
   },
 };

@@ -8,7 +8,7 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import FileManagementSystem from "../../../services/fms-client";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
@@ -17,9 +17,8 @@ import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
-import { getFileMetadataForJob } from "../../metadata/selectors";
-import { setHasNoPlateToUpload } from "../../selection/actions";
-import { getSelectedPlate } from "../../selection/selectors";
+import { SET_PLATE_BARCODE_TO_PLATES } from "../../metadata/constants";
+import { getPlateBarcodeToPlates } from "../../metadata/selectors";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -181,15 +180,15 @@ describe("Route logics", () => {
   };
 
   describe("resetUploadLogic", () => {
-    it("goes to UploadSummary page given user clicks Save Upload Draft from dialog", async () => {
+    it("goes to MyUploads page given user clicks Save Upload Draft from dialog", async () => {
       const showSaveDialogStub = stub().resolves({
         cancelled: false,
         filePath: "/bar",
       });
       sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
       await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.UploadSummary,
+        Page.UploadWithTemplate,
+        Page.MyUploads,
         closeUpload,
         2
       );
@@ -197,8 +196,8 @@ describe("Route logics", () => {
     });
     it("stays on current page given 'Cancel' clicked from dialog", async () => {
       await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.AddCustomData,
+        Page.UploadWithTemplate,
+        Page.UploadWithTemplate,
         closeUpload,
         0
       );
@@ -255,8 +254,13 @@ describe("Route logics", () => {
           },
         ],
       });
-      labkeyClient.findPlateBarcodeByWellId.resolves("abc");
-      labkeyClient.findImagingSessionIdsByPlateBarcode.resolves([null, 1]);
+      labkeyClient.findPlateByWellId.resolves({
+        BarCode: "abc",
+        ImagingSessionId: 6,
+      });
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves([
+        { ImagingSessionId: 4, "ImagingSessionId/Name": "3 hours" },
+      ]);
       mmsClient.getPlate.resolves({
         plate: {
           ...mockAuditInfo,
@@ -285,20 +289,12 @@ describe("Route logics", () => {
         },
         route: {
           ...mockState.route,
-          page: Page.UploadSummary,
-          view: Page.UploadSummary,
+          page: Page.MyUploads,
+          view: Page.MyUploads,
         },
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          barcode: undefined,
-          imagingSessionId: undefined,
-          imagingSessionIds: [],
-          job: undefined,
-          plate: {},
-          selectedWells: [],
-          stagedFiles: [],
-          wells: {},
-        }),
+        selection: {
+          ...mockState.selection,
+        },
         upload: getMockStateWithHistory({}),
       };
     });
@@ -356,10 +352,9 @@ describe("Route logics", () => {
       });
       const { logicMiddleware, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.selection.present,
-          job: { ...mockSuccessfulUploadJob, jobId: "anotherjobid" },
-        }),
+        selection: {
+          ...nonEmptyStateForInitiatingUpload.selection,
+        },
       });
 
       store.dispatch(viewUploads([mockSuccessfulUploadJob]));
@@ -427,16 +422,15 @@ describe("Route logics", () => {
         VIEW_UPLOADS_SUCCEEDED
       );
     });
-    it("handles case where upload tab is not open yet", async () => {
+    it("handles case where upload page is not open yet", async () => {
       stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
 
       let state = store.getState();
-      expect(getPage(state)).to.equal(Page.UploadSummary);
-      expect(getView(state)).to.equal(Page.UploadSummary);
-      expect(getFileMetadataForJob(state)).to.be.undefined;
+      expect(getPage(state)).to.equal(Page.MyUploads);
+      expect(getView(state)).to.equal(Page.MyUploads);
       expect(getUpload(state)).to.be.empty;
       expect(getAppliedTemplate(state)).to.be.undefined;
 
@@ -444,14 +438,16 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       state = store.getState();
-      expect(getPage(state)).to.equal(Page.AddCustomData);
-      expect(getView(state)).to.equal(Page.AddCustomData);
+      expect(getPage(state)).to.equal(Page.UploadWithTemplate);
+      expect(getView(state)).to.equal(Page.UploadWithTemplate);
       expect(getUpload(state)).to.deep.equal({
         [getUploadRowKey({ file: fileMetadata.localFilePath || "" })]: {
           file: fileMetadata.localFilePath,
           fileId: "dog",
           "Favorite Color": ["Blue", "Green"],
-          [WELL_ANNOTATION_NAME]: ["A1", "B6"],
+          [AnnotationName.WELL]: ["A1", "B6"],
+          [AnnotationName.PLATE_BARCODE]: ["abc"],
+          [AnnotationName.IMAGING_SESSION]: [],
           channelId: undefined,
           fovId: undefined,
           positionIndex: undefined,
@@ -460,6 +456,15 @@ describe("Route logics", () => {
         },
       });
       expect(getAppliedTemplate(state)).to.not.be.undefined;
+      expect(getPlateBarcodeToPlates(state)).to.deep.equal({
+        abc: [
+          {
+            imagingSessionId: 4,
+            name: "3 hours",
+            wells: [],
+          },
+        ],
+      });
     });
     it("dispatches requestFailed if boolean annotation type id is not defined", async () => {
       stubMethods({});
@@ -501,7 +506,8 @@ describe("Route logics", () => {
         )
       ).to.be.true;
     });
-    it("does not dispatch setPlate action if file metadata does not contain well annotation", async () => {
+
+    it("does not dispatch setPlateBarcodeToImagingSessions action if file metadata does not contain well annotation", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -509,9 +515,14 @@ describe("Route logics", () => {
       store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
-      expect(getSelectedPlate(store.getState())).to.be.undefined;
-      expect(actions.includesMatch(setHasNoPlateToUpload(true)));
+      expect(getPlateBarcodeToPlates(store.getState())).to.be.empty;
+      expect(
+        actions.includesMatch({
+          type: SET_PLATE_BARCODE_TO_PLATES,
+        })
+      );
     });
+
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
       stubMethods({});
       const errorMessage = "foo";
@@ -538,6 +549,7 @@ describe("Route logics", () => {
 
       expect(actions.includesMatch(expectedAction)).to.be.true;
     });
+
     it("dispatches requestFailed if getting template fails", async () => {
       stubMethods({});
       const errorMessage = "foo";
@@ -555,21 +567,6 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(actions.includesMatch(expectedAction)).to.be.true;
-    });
-
-    it("does not set no plate selected if no template was found", async () => {
-      // Arrange
-      stubMethods({});
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      // Act
-      store.dispatch(viewUploads([mockSuccessfulUploadJob]));
-      await logicMiddleware.whenComplete();
-
-      // Assert
-      expect(actions.includesMatch(setHasNoPlateToUpload(true))).to.be.false;
     });
   });
 });

@@ -10,14 +10,11 @@ import {
   mockSuccessfulUploadJob,
   mockWellUpload,
 } from "../../test/mocks";
-import { Page } from "../../types";
 import { replaceUpload, saveUploadDraftSuccess } from "../../upload/actions";
 import {
-  clearFileMetadataForJob,
   clearOptionsForLookup,
   receiveMetadata,
   resetHistory,
-  updatePageHistory,
 } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
@@ -43,28 +40,8 @@ describe("metadata reducer", () => {
     it("resets selection and upload history", () => {
       const result = reducer(initialState, resetHistory());
       expect(result.history).to.deep.equal({
-        selection: {},
         upload: {},
       });
-    });
-  });
-  describe("updatePageHistory", () => {
-    it("updates page history", () => {
-      const result = reducer(
-        initialState,
-        updatePageHistory(Page.AddCustomData, 1, 2, 3)
-      );
-      expect(result.history.selection[Page.AddCustomData]).to.equal(1);
-      expect(result.history.upload[Page.AddCustomData]).to.equal(2);
-    });
-  });
-  describe("clearFileMetadataForJob", () => {
-    it("clears fileMetadataForJob", () => {
-      const result = reducer(
-        { ...initialState, fileMetadataForJob: [{}] },
-        clearFileMetadataForJob()
-      );
-      expect(result.fileMetadataForJob).to.be.undefined;
     });
   });
   describe("replaceUpload", () => {

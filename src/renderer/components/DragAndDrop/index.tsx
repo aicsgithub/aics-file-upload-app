@@ -40,7 +40,9 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   public render() {
     if (this.props.disabled) {
       return (
-        <div className={classNames(styles.container, this.props.className)}>
+        <div
+          className={classNames(styles.childContainer, this.props.className)}
+        >
           {this.props.children}
         </div>
       );
@@ -48,7 +50,14 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
 
     return (
       <div
-        className={classNames(styles.container, this.props.className)}
+        className={classNames(styles.container, {
+          [styles.childContainer]:
+            !this.props.overlayChildren && this.props.children,
+          [this.props.className || ""]:
+            this.props.className &&
+            !this.props.overlayChildren &&
+            this.props.children,
+        })}
         onDragEnter={this.onDragEnter}
         onDragLeave={this.onDragLeave}
         onDragEnd={this.onDragLeave}
@@ -89,7 +98,9 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
     if (this.props.children && this.props.overlayChildren) {
       return (
         <>
-          <div className={styles.overlay}>{this.props.children}</div>
+          <div className={classNames(styles.overlay, this.props.className)}>
+            {this.props.children}
+          </div>
           <div className={styles.overlayPrompt}>{dragAndDropPrompt}</div>
         </>
       );

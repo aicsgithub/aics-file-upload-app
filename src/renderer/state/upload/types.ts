@@ -1,25 +1,13 @@
-import {
-  CHANNEL_ANNOTATION_NAME,
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-} from "../../constants";
+import { AnnotationName } from "../../constants";
 import { JSSJob } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
 import {
   AutoSaveAction,
-  State,
   FileModel,
   FileModelId,
+  State,
   WriteToStoreAction,
 } from "../types";
-
-export interface DisplayUploadStateBranch {
-  [fullPath: string]: UploadMetadataWithDisplayFields;
-}
-
-export interface UploadMetadataWithDisplayFields extends FileModel {
-  wellLabels: string[];
-}
 
 export interface MMSAnnotationValueRequest {
   annotationId: number;
@@ -70,16 +58,7 @@ export interface UploadTableRow extends FileModel {
   subImageNames: string[];
 
   // Keeps track of all channelIds - used only on the top-level row
-  [CHANNEL_ANNOTATION_NAME]: string[];
-
-  // notes associated with the file
-  [NOTES_ANNOTATION_NAME]?: string[];
-
-  // all wellIds associated with this file model
-  [WELL_ANNOTATION_NAME]?: number[];
-
-  // human readable identifier of well, such as "A1"
-  wellLabels: string[];
+  [AnnotationName.CHANNEL_TYPE]: string[];
 }
 
 export interface JumpToPastUploadAction extends AutoSaveAction {

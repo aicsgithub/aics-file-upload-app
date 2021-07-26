@@ -2,18 +2,10 @@ import { omit } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
-import { WELL_ANNOTATION_NAME } from "../../constants";
+import { AnnotationName } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { RESET_UPLOAD, VIEW_UPLOADS_SUCCEEDED } from "../route/constants";
 import { ResetUploadAction, ViewUploadsSucceededAction } from "../route/types";
-import {
-  SELECT_BARCODE,
-  SET_HAS_NO_PLATE_TO_UPLOAD,
-} from "../selection/constants";
-import {
-  SelectBarcodeAction,
-  SetHasNoPlateToUploadAction,
-} from "../selection/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
 import { TypeToDescriptionMap, FileModelId, UploadStateBranch } from "../types";
@@ -59,38 +51,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       );
     },
   },
-  [SELECT_BARCODE]: {
-    accepts: (action: AnyAction): action is SelectBarcodeAction =>
-      action.type === SELECT_BARCODE,
-    perform: (state: UploadStateBranch) => {
-      return Object.entries(state).reduce(
-        (nextState, [key, metadata]) => ({
-          ...nextState,
-          [key]: {
-            ...metadata,
-            [WELL_ANNOTATION_NAME]: undefined,
-          },
-        }),
-        {} as UploadStateBranch
-      );
-    },
-  },
-  [SET_HAS_NO_PLATE_TO_UPLOAD]: {
-    accepts: (action: AnyAction): action is SetHasNoPlateToUploadAction =>
-      action.type === SET_HAS_NO_PLATE_TO_UPLOAD,
-    perform: (state: UploadStateBranch) => {
-      return Object.entries(state).reduce(
-        (nextState, [key, metadata]) => ({
-          ...nextState,
-          [key]: {
-            ...metadata,
-            [WELL_ANNOTATION_NAME]: undefined,
-          },
-        }),
-        {} as UploadStateBranch
-      );
-    },
-  },
   [DELETE_UPLOADS]: {
     accepts: (action: AnyAction): action is RemoveUploadsAction =>
       action.type === DELETE_UPLOADS,
@@ -106,11 +66,27 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
         return state;
       }
 
+      let { upload } = action.payload;
+      const modifiedAnnotations = Object.keys(upload);
+      // Reset Imaging Session and Well on Plate Barcode changes
+      if (modifiedAnnotations.includes(AnnotationName.PLATE_BARCODE)) {
+        upload = {
+          ...upload,
+          [AnnotationName.IMAGING_SESSION]: [],
+          [AnnotationName.WELL]: [],
+        };
+      } else if (modifiedAnnotations.includes(AnnotationName.IMAGING_SESSION)) {
+        upload = {
+          ...upload,
+          [AnnotationName.WELL]: [],
+        };
+      }
+
       return {
         ...state,
         [action.payload.key]: {
           ...state[action.payload.key],
-          ...action.payload.upload,
+          ...upload,
         },
       };
     },

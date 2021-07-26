@@ -6,7 +6,6 @@ import { REQUEST_FAILED } from "../constants";
 import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
 import {
-  CREATE_BARCODE,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
@@ -16,7 +15,6 @@ import {
   REQUEST_METADATA,
 } from "../metadata/constants";
 import {
-  CreateBarcodeAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
@@ -35,8 +33,6 @@ import {
   ViewUploadsSucceededAction,
   ResetUploadAction,
 } from "../route/types";
-import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
-import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
 import { clearTemplateDraft } from "../template/actions";
 import {
   CREATE_ANNOTATION,
@@ -362,25 +358,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       uploadError: undefined,
-    }),
-  },
-  [SELECT_BARCODE]: {
-    accepts: (action: AnyAction): action is SelectBarcodeAction =>
-      action.type === SELECT_BARCODE,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(state, AsyncRequest.GET_PLATE),
-    }),
-  },
-  [SET_PLATE]: {
-    accepts: (action: AnyAction): action is SetPlateAction =>
-      action.type === SET_PLATE,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        AsyncRequest.GET_PLATE
-      ),
     }),
   },
   [VIEW_UPLOADS]: {
@@ -750,17 +727,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: addRequestToInProgress(
         state,
         AsyncRequest.GET_OPTIONS_FOR_LOOKUP
-      ),
-    }),
-  },
-  [CREATE_BARCODE]: {
-    accepts: (action: AnyAction): action is CreateBarcodeAction =>
-      action.type === CREATE_BARCODE,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        AsyncRequest.CREATE_BARCODE
       ),
     }),
   },

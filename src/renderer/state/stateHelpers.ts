@@ -1,21 +1,12 @@
 import { difference, get, omit } from "lodash";
 
-import { ImagingSession } from "../services/labkey-client/types";
 import MMSClient from "../services/mms-client";
-import {
-  GetPlateResponse,
-  PlateResponse,
-  Template,
-  TemplateAnnotation,
-  WellResponse,
-} from "../services/mms-client/types";
-import { getWellLabel, timeout } from "../util";
+import { Template, TemplateAnnotation } from "../services/mms-client/types";
+import { timeout } from "../util";
 
 import { setSuccessAlert, setWarningAlert } from "./feedback/actions";
 import {
   HTTP_STATUS,
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   UploadProgressInfo,
@@ -50,30 +41,7 @@ export const handleUploadProgress = (
     onProgress(progress);
   };
 };
-// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
-export const getWellLabelAndImagingSessionName = (
-  wellId: number,
-  imagingSessions: ImagingSession[],
-  selectedPlates: PlateResponse[],
-  wellIdToWell: Map<number, WellResponse>
-) => {
-  const well = wellIdToWell.get(wellId);
-  let label = "ERROR";
-  if (well) {
-    label = getWellLabel({ col: well.col, row: well.row });
-    const plate = selectedPlates.find((p) => p.plateId === well.plateId);
 
-    if (plate && plate.imagingSessionId) {
-      const imagingSession = imagingSessions.find(
-        (is) => is.imagingSessionId === plate.imagingSessionId
-      );
-      if (imagingSession) {
-        label += ` (${imagingSession.name})`;
-      }
-    }
-  }
-  return label;
-};
 // every annotation will be stored in an array, regardless of whether it can have multiple values or not
 export const pivotAnnotations = (
   annotations: TemplateAnnotation[],
@@ -160,57 +128,7 @@ export async function getWithRetry<T = any>(
   }
 }
 
-interface PlateInfo {
-  plate: ImagingSessionIdToPlateMap;
-  wells: ImagingSessionIdToWellsMap;
-}
-
-/**
- * Queries for plate with given barcode and transforms the response into a list of actions to dispatch
- * @param {string} barcode
- * @param {number[]} imagingSessionIds the imagingSessionIds for the plate with this barcode
- * @param {MMSClient} mmsClient
- * @param {ReduxLogicNextCb} dispatch
- * @returns {Promise<PlateInfo>}
- */
-export const getPlateInfo = async (
-  barcode: string,
-  imagingSessionIds: Array<number | null>,
-  mmsClient: MMSClient,
-  dispatch: ReduxLogicNextCb
-): Promise<PlateInfo> => {
-  const request = (): Promise<GetPlateResponse[]> =>
-    Promise.all(
-      imagingSessionIds.map((imagingSessionId: number | null) =>
-        mmsClient.getPlate(barcode, imagingSessionId || undefined)
-      )
-    );
-
-  const platesAndWells: GetPlateResponse[] = await getWithRetry(
-    request,
-    dispatch
-  );
-
-  const imagingSessionIdToPlate: {
-    [imagingSessionId: number]: PlateResponse;
-  } = {};
-  const imagingSessionIdToWells: {
-    [imagingSessionId: number]: WellResponse[];
-  } = {};
-  imagingSessionIds.forEach((imagingSessionId: number | null, i: number) => {
-    imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
-    const { plate, wells } = platesAndWells[i];
-    imagingSessionIdToPlate[imagingSessionId] = plate;
-    imagingSessionIdToWells[imagingSessionId] = wells;
-  });
-
-  return {
-    plate: imagingSessionIdToPlate,
-    wells: imagingSessionIdToWells,
-  };
-};
-
-export interface ApplyTemplateInfo {
+interface ApplyTemplateInfo {
   template: Template;
   uploads: UploadStateBranch;
 }

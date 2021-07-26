@@ -1,4 +1,3 @@
-import { AicsGridCell } from "@aics/aics-react-labkey";
 import {
   ipcRenderer,
   Menu,
@@ -11,7 +10,7 @@ import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../constants";
+import { AnnotationName } from "../constants";
 import {
   ApplicationInfoService,
   FileManagementSystem,
@@ -34,11 +33,7 @@ import {
   Lookup,
   Unit,
 } from "../services/labkey-client/types";
-import {
-  PlateResponse,
-  Template,
-  WellResponse,
-} from "../services/mms-client/types";
+import { Template, WellResponse } from "../services/mms-client/types";
 import { UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
@@ -148,7 +143,6 @@ export enum AsyncRequest {
   CREATE_ANNOTATION = "CREATE_ANNOTATION",
   EDIT_ANNOTATION = "EDIT_ANNOTATION",
   GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
-  GET_PLATE = "GET_PLATE",
   GET_JOBS = "GET_JOBS",
   GET_OPTIONS_FOR_LOOKUP = "GET_OPTIONS_FOR_LOOKUP",
   GET_TEMPLATE = "GET_TEMPLATE", // full template with annotations from MMS
@@ -159,7 +153,6 @@ export enum AsyncRequest {
   UPLOAD = "UPLOAD",
   SAVE_TEMPLATE = "SAVE_TEMPLATE",
   UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
-  CREATE_BARCODE = "CREATE_BARCODE",
   REQUEST_ANNOTATION_USAGE = "REQUEST_ANNOTATION_USAGE",
 }
 
@@ -222,8 +215,10 @@ export interface FileModelId {
 // Metadata associated with a file
 export interface FileModel extends FileModelId {
   // Known custom annotations
-  [WELL_ANNOTATION_NAME]?: number[];
-  [NOTES_ANNOTATION_NAME]?: string[];
+  [AnnotationName.NOTES]?: string[];
+  [AnnotationName.PLATE_BARCODE]?: string[];
+  [AnnotationName.WELL]?: number[];
+  [AnnotationName.IMAGING_SESSION]?: string[];
   // Any other annotations will be generically added
   [annotationName: string]: any;
 }
@@ -240,17 +235,16 @@ export interface MetadataStateBranch {
   channels: Channel[];
   // this represents the filepath to an upload draft that has been saved is currently opened in the upload wizard
   currentUploadFilePath?: string;
-  fileMetadataForJob?: SearchResultRow[];
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
   originalUploads?: UploadStateBranch;
+  plateBarcodeToPlates: PlateBarcodeToPlates;
   templates: LabkeyTemplate[];
   units: Unit[];
   // Gets updated every time app changes pages.
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
   history: {
-    selection: PageToIndexMap;
     upload: PageToIndexMap;
   };
 
@@ -261,11 +255,11 @@ export interface MetadataStateBranch {
 export type ModalName = "openTemplate" | "templateEditor";
 
 export enum Page {
-  AddCustomData = "AddCustomData",
+  UploadWithTemplate = "UploadWithTemplate",
   NewUploadButton = "NewUploadButton",
   Notifications = "Notifications",
   Settings = "Settings",
-  UploadSummary = "UploadSummary",
+  MyUploads = "MyUploads",
 }
 
 export interface RouteStateBranch {
@@ -274,12 +268,6 @@ export interface RouteStateBranch {
 }
 
 export interface SelectionStateBranch extends UploadTabSelections {
-  barcode?: string;
-  imagingSessionId?: number;
-  imagingSessionIds: Array<number | null>;
-  plate: ImagingSessionIdToPlateMap;
-  wells: ImagingSessionIdToWellsMap;
-  selectedWells: AicsGridCell[];
   user: string;
 }
 
@@ -295,27 +283,12 @@ export interface UploadRowTableId {
 }
 
 export interface UploadTabSelections {
-  barcode?: string;
   cellAtDragStart?: UploadKeyValue;
-  imagingSessionId?: number;
-  imagingSessionIds: Array<number | null>;
-  hasNoPlateToUpload: boolean;
   uploads: JSSJob<UploadServiceFields>[];
   massEditRow?: MassEditRow;
-  plate: ImagingSessionIdToPlateMap;
   rowsSelectedForDragEvent?: UploadRowTableId[];
   rowsSelectedForMassEdit?: string[];
   subFileSelectionModalFile?: string;
-  wells: ImagingSessionIdToWellsMap;
-  selectedWells: AicsGridCell[];
-}
-
-export interface ImagingSessionIdToPlateMap {
-  [imagingSessionId: number]: PlateResponse;
-}
-
-export interface ImagingSessionIdToWellsMap {
-  [imagingSessionId: number]: WellResponse[];
 }
 
 export interface AnnotationDraft extends Audited {
@@ -376,9 +349,9 @@ export interface State {
   // Which Upload wizard page to show, which tab to show
   route: RouteStateBranch;
 
-  // Things that the user selects that we would be interested in keeping a history of (for undo/redo)
+  // Things that the user selects that we would be interested in keeping a history of
   // Include only selections that occur inside the upload tab
-  selection: StateWithHistory<SelectionStateBranch>;
+  selection: SelectionStateBranch;
 
   // User settings that are manually and automatically created
   setting: SettingStateBranch;
@@ -436,4 +409,14 @@ export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
 export interface MassEditRow {
   // custom annotations
   [key: string]: any;
+}
+
+export interface PlateAtImagingSession {
+  imagingSessionId?: number;
+  name?: string;
+  wells: WellResponse[];
+}
+
+export interface PlateBarcodeToPlates {
+  [plateBarcode: string]: PlateAtImagingSession[];
 }

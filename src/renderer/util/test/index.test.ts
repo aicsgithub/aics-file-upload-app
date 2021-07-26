@@ -12,45 +12,10 @@ import {
   makePosixPathCompatibleWithPlatform,
   splitTrimAndFilter,
 } from "../";
-import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
   afterEach(() => {
     restore();
-  });
-  describe("getWellLabel", () => {
-    it("should display A1 given {row: 0, col: 0}", () => {
-      const wellLabel = getWellLabel({ row: 0, col: 0 });
-      expect(wellLabel).to.equal("A1");
-    });
-
-    it("should display Z14 given {row: 25, col: 13}", () => {
-      const wellLabel = getWellLabel({ row: 25, col: 13 });
-      expect(wellLabel).to.equal("Z14");
-    });
-
-    it("should throw error given {row: -1, col: 0}", () => {
-      expect(() => getWellLabel({ row: -1, col: 0 })).to.throw();
-    });
-
-    it("should throw error given {row: 0, col: -1}", () => {
-      expect(() => getWellLabel({ row: 0, col: -1 })).to.throw();
-    });
-
-    it("should throw error given {row: 26, col: 0}", () => {
-      expect(() => getWellLabel({ row: 26, col: 0 })).to.throw();
-    });
-
-    it("should display None given undefined well", () => {
-      const wellLabel = getWellLabel(undefined);
-      expect(wellLabel).to.equal("None");
-    });
-
-    it("should display custom text given undefined well and custom none text provided", () => {
-      const NONE = "Oops";
-      const wellLabel = getWellLabel(undefined, NONE);
-      expect(wellLabel).to.equal(NONE);
-    });
   });
 
   describe("determineFilesFromNestedPaths", () => {

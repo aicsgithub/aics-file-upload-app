@@ -19,7 +19,7 @@ export interface ResetUploadAction {
 }
 
 export interface SelectPageAction {
-  payload: Page.AddCustomData | Page.UploadSummary;
+  payload: Page.UploadWithTemplate | Page.MyUploads;
   type: string;
 }
 

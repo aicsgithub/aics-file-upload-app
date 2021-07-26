@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { AnnotationName } from "../../../constants";
 import {
   getMockStateWithHistory,
   mockSelection,
@@ -10,18 +10,17 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../../state/test/mocks";
 import { AsyncRequest } from "../../../state/types";
-import { getCanSubmitUpload, getUploadInProgress } from "../selectors";
+import { getCanSubmitUpload, getIsUploadInProgress } from "../selectors";
 
 describe("AddCustomData selectors", () => {
   describe("getCanSubmitUpload", () => {
     it("returns true if selected job and job successful", () => {
       const result = getCanSubmitUpload({
         ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
+        selection: {
           ...mockSelection,
-          hasNoPlateToUpload: true,
-          job: mockSuccessfulUploadJob,
-        }),
+          uploads: [mockSuccessfulUploadJob],
+        },
       });
       expect(result).to.be.true;
     });
@@ -52,11 +51,11 @@ describe("AddCustomData selectors", () => {
   });
   describe("uploadInProgress", () => {
     it("returns false if no current job name", () => {
-      const result = getUploadInProgress(mockState);
+      const result = getIsUploadInProgress(mockState);
       expect(result).to.be.false;
     });
     it("returns true if requestsInProgress contains UPDATE_FILE_METADATA-jobName", () => {
-      const result = getUploadInProgress({
+      const result = getIsUploadInProgress({
         ...nonEmptyStateForInitiatingUpload,
         feedback: {
           ...nonEmptyStateForInitiatingUpload.feedback,
@@ -66,7 +65,7 @@ describe("AddCustomData selectors", () => {
       expect(result).to.be.true;
     });
     it("returns false if requestsInProgress doesn't contain UPDATE_FILE_METADATA-jobName", () => {
-      const result = getUploadInProgress({
+      const result = getIsUploadInProgress({
         ...nonEmptyStateForInitiatingUpload,
         feedback: {
           ...nonEmptyStateForInitiatingUpload.feedback,
@@ -77,11 +76,11 @@ describe("AddCustomData selectors", () => {
     });
 
     it("returns false if requestsInProgress does not contain INITIATE_UPLOAD-currentUploadName", () => {
-      const inProgress = getUploadInProgress(mockState);
+      const inProgress = getIsUploadInProgress(mockState);
       expect(inProgress).to.be.false;
     });
     it("returns false if requestsInProgress contains request belonging to a different upload", () => {
-      const inProgress = getUploadInProgress({
+      const inProgress = getIsUploadInProgress({
         ...mockState,
         feedback: {
           ...mockState.feedback,
@@ -95,7 +94,7 @@ describe("AddCustomData selectors", () => {
           foo: {
             barcode: "1234",
             file: "foo",
-            [WELL_ANNOTATION_NAME]: [1],
+            [AnnotationName.WELL]: [1],
           },
         }),
       });
