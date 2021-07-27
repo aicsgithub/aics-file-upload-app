@@ -8,7 +8,11 @@ import {
   ColumnType,
 } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
-import { getAnnotations, getAnnotationTypes } from "../metadata/selectors";
+import {
+  getAnnotations,
+  getAnnotationTypes,
+  getUserIdToDisplayNameMap,
+} from "../metadata/selectors";
 import { AnnotationDraft, State, TemplateDraft } from "../types";
 
 import { TemplateWithTypeNames } from "./types";
@@ -17,6 +21,22 @@ export const getAppliedTemplate = (state: State) =>
   state.template.appliedTemplate;
 export const getTemplateDraft = (state: State) => state.template.draft;
 export const getOriginalTemplate = (state: State) => state.template.original;
+
+export const getTemplateDraftWithAuditInfo = createSelector(
+  [getTemplateDraft, getUserIdToDisplayNameMap],
+  (draft, userIdToDisplayName) => ({
+    ...draft,
+    annotations: draft.annotations.map((a) => ({
+      ...a,
+      added: "",
+      addedBy: userIdToDisplayName[draft.createdBy],
+      createdByDisplayName: userIdToDisplayName[a.createdBy],
+      modifiedByDisplayName: userIdToDisplayName[a.modifiedBy],
+    })),
+    createdByDisplayName: userIdToDisplayName[draft.createdBy],
+    modifiedByDisplayName: userIdToDisplayName[draft.modifiedBy],
+  })
+);
 
 export const getSaveTemplateRequest = createSelector(
   [getTemplateDraft],

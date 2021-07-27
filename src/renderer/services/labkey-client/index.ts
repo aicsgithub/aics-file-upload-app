@@ -29,9 +29,11 @@ import {
   LabkeyResponse,
   LabkeyTemplate,
   LabkeyUnit,
+  LabkeyUser,
   LK_SCHEMA,
   Lookup,
   Unit,
+  User,
 } from "./types";
 
 const BASE_URL = "/labkey";
@@ -297,6 +299,21 @@ export default class LabkeyClient extends HttpCacheClient {
       name: unit.Name,
       type: unit.Type,
       unitsId: unit.UnitsId,
+    }));
+  }
+
+  /**
+   * Retrieves all LabKey users
+   */
+  public async getUsers(): Promise<User[]> {
+    const query = LabkeyClient.getSelectRowsURL(
+      LK_SCHEMA.FILE_METADATA,
+      "User"
+    );
+    const response = await this.get(query);
+    return response.rows.map((unit: LabkeyUser) => ({
+      userId: unit.UserId,
+      displayName: unit.DisplayName,
     }));
   }
 

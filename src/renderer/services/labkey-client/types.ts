@@ -164,6 +164,16 @@ export interface LabkeyUnit {
   Name: string;
 }
 
+export interface LabkeyUser {
+  UserId: number;
+  DisplayName: string;
+}
+
+export interface User {
+  userId: number;
+  displayName: string;
+}
+
 export interface LabKeyResponse<T> {
   rows: T[];
 }
