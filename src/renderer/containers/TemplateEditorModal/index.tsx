@@ -279,7 +279,7 @@ function TemplateEditorModal(props: Props) {
               className={styles.requiredCell}
               checked={props.value}
               onChange={() =>
-                onUpdateTemplateAnnotation(props.index, {
+                onUpdateTemplateAnnotation(props.row.index, {
                   required: !props.value,
                 })
               }
