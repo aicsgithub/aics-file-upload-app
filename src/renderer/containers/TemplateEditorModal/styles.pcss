@@ -23,9 +23,17 @@
 
 .annotation-container > * {
     flex: auto;
+    height: 300px;
     max-height: 300px;
     overflow-y: auto;
-    width: 50%;
+}
+
+.annotation-list {
+    min-width: 450px;
+}
+
+.focused-annotation-list {
+    width: 100%;
 }
 
 .annotation-container > *:first-child {
@@ -89,4 +97,37 @@
 
 .form-control {
     margin-bottom: 1em;
+}
+
+.action-cell {
+    display: flex;
+    height: 100%;
+    justify-content: space-evenly;
+}
+
+.action-cell > * {
+    margin: auto 0;
+}
+
+.action-cell > *:hover {
+    color: var(--brand-primary);
+}
+
+.drag-cell {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.drag-cell > * {
+    margin: auto;
+}
+
+.required-cell {
+    display: flex;
+    height: 100%;
+}
+
+.required-cell > * {
+    margin: auto
 }

@@ -54,7 +54,11 @@ import {
   getSaveTemplateRequest,
   getTemplateDraft,
 } from "./selectors";
-import { AddExistingAnnotationAction, CreateAnnotationAction, EditAnnotationAction } from "./types";
+import {
+  AddExistingAnnotationAction,
+  CreateAnnotationAction,
+  EditAnnotationAction,
+} from "./types";
 
 const createAnnotation = createLogic({
   process: async (
@@ -217,7 +221,10 @@ const openTemplateEditorLogic = createLogic({
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
-    { action, getState }: ReduxLogicTransformDependenciesWithAction<AddExistingAnnotationAction>,
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<AddExistingAnnotationAction>,
     next: ReduxLogicNextCb
   ) => {
     const state = getState();

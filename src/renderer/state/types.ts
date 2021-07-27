@@ -300,7 +300,7 @@ export interface AnnotationDraft extends Audited {
   name: string;
   lookupSchema?: string;
   lookupTable?: string;
-  orderIndex: number
+  orderIndex: number;
   required: boolean;
 }
 
