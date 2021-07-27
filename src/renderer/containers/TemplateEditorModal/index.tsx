@@ -16,7 +16,7 @@ import { castArray, trim } from "lodash";
 import * as React from "react";
 import { DropResult } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
-import { CellProps, useTable, useBlockLayout } from "react-table";
+import { CellProps, useTable, useBlockLayout, Column } from "react-table";
 
 import {
   OPEN_TEMPLATE_MENU_ITEM_CLICKED,
@@ -43,7 +43,6 @@ import { getTemplateDraft } from "../../state/template/selectors";
 import { AnnotationWithOptions } from "../../state/template/types";
 import { AnnotationDraft, AsyncRequest } from "../../state/types";
 import Table from "../Table";
-import DefaultCell from "../Table/DefaultCells/DefaultCell";
 import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
 import DefaultHeader from "../Table/Headers/DefaultHeader";
 import { DRAG_HANDLER_COLUMN } from "../Table/TableRow";
@@ -113,7 +112,7 @@ function TemplateEditorModal(props: Props) {
   >();
   const [focusedAnnotation, setFocusedAnnotation] = React.useState<
     AnnotationDraft
-  >(template?.annotations?.[0]);
+  >();
 
   const isEditing = Boolean(template && template.templateId);
   const isLoading = requestsInProgress.some((r) =>
@@ -148,18 +147,20 @@ function TemplateEditorModal(props: Props) {
   }
 
   const focusedAnnotationData = React.useMemo(() => {
-    if (!focusedAnnotation) {
+    if (!focusedAnnotation && !template.annotations.length) {
       return [];
     }
     return FOCUSED_ANNOTATION_KEYS.flatMap(({ key, title }) => {
-      const annotation = focusedAnnotation as { [key: string]: any };
+      const annotation = (focusedAnnotation || template.annotations[0]) as {
+        [key: string]: any;
+      };
       const value = annotation[key] && castArray(annotation[key]).join(", ");
       if (value) {
         return [{ key: title, value }];
       }
       return [];
     });
-  }, [focusedAnnotation]);
+  }, [focusedAnnotation, template.annotations]);
 
   function onCloseAnnotationModal() {
     setAnnotationToEdit(undefined);
@@ -227,7 +228,7 @@ function TemplateEditorModal(props: Props) {
   const data: any[] = React.useMemo(() => template.annotations, [
     template.annotations,
   ]);
-  const memoizedColumns = React.useMemo(() => {
+  const memoizedColumns: Column<AnnotationDraft>[] = React.useMemo(() => {
     function onUpdateTemplateAnnotation(
       index: number,
       update: Partial<AnnotationDraft>
@@ -239,9 +240,7 @@ function TemplateEditorModal(props: Props) {
       const annotations = [...template.annotations];
       annotations[index] = annotation;
       dispatch(updateTemplateDraft({ annotations }));
-      if (focusedAnnotation === template.annotations[index]) {
-        setFocusedAnnotation(annotation);
-      }
+      setFocusedAnnotation(annotation);
     }
 
     function onRemoveAnnotation(index: number) {
@@ -269,7 +268,7 @@ function TemplateEditorModal(props: Props) {
         accessor: "name",
         Cell: ReadOnlyCell,
         id: "Name",
-        width: 200,
+        width: 250,
       },
       {
         accessor: "required",
@@ -328,10 +327,9 @@ function TemplateEditorModal(props: Props) {
       columns: memoizedColumns,
       // Defines the default column properties, can be overriden per column
       defaultColumn: {
-        Cell: DefaultCell,
         Header: DefaultHeader,
       },
-      getRowId: (r) => r.name,
+      getRowId: (r: AnnotationDraft) => r.name,
       data,
     },
     // optional plugins
@@ -413,7 +411,7 @@ function TemplateEditorModal(props: Props) {
                 tableInstance={tableInstance}
                 dragAndDropOptions={{ id: "TemplateAnnotations", onRowDragEnd }}
               />
-              {focusedAnnotation && (
+              {!!focusedAnnotationData.length && (
                 <AntdTable
                   className={styles.focusedAnnotationList}
                   size="small"

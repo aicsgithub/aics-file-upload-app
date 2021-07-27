@@ -79,7 +79,6 @@ function TableRow<T extends {}>(props: Props<T>) {
 const TableRowMemoized = React.memo(
   TableRow,
   (prevProp, nextProp) =>
-    false &&
     isEqual(prevProp.original, nextProp.original) &&
     prevProp.isSelected === nextProp.isSelected &&
     prevProp.isExpanded === nextProp.isExpanded &&
@@ -125,7 +124,7 @@ export default function TableRowRenderer({
 
   // If this component is already supplied <Draggable> props/state
   // then this must be rendering a clone of an exising Draggable
-  if (data.draggableProps) {
+  if (data.draggableProps && data.draggableState) {
     return (
       <TableRowMemoized
         {...row}

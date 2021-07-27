@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { uniqueId } from "lodash";
+import { noop, uniqueId } from "lodash";
 import * as React from "react";
 import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
 import { Row, TableInstance } from "react-table";
@@ -83,7 +83,9 @@ export default function Table<T extends {}>(props: Props<T>) {
         ))}
       </div>
       <div className={styles.tableBody} {...tableInstance.getTableBodyProps()}>
-        <DragDropContext onDragEnd={props.dragAndDropOptions?.onRowDragEnd}>
+        <DragDropContext
+          onDragEnd={props.dragAndDropOptions?.onRowDragEnd || noop}
+        >
           <Droppable
             droppableId={props.dragAndDropOptions?.id || uniqueId()}
             isDropDisabled={!props.dragAndDropOptions}
