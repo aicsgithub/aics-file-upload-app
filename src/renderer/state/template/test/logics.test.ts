@@ -374,6 +374,7 @@ describe("Template Logics", () => {
             annotationTypeId: 1,
             description: "You know what a color is",
             name: "Color",
+            orderIndex: 0,
             required: false,
           },
         ],

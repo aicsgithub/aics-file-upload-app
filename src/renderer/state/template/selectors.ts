@@ -81,6 +81,18 @@ export const getCompleteAppliedTemplate = createSelector(
     return {
       ...appliedTemplate,
       annotations: [
+        ...DEFAULT_ANNOTATION_NAMES.map((name, index) => {
+          const annotation = annotations.find((a) => a.name === name);
+          if (!annotation) {
+            throw new Error("Could not get necessary annotation information");
+          }
+          return {
+            ...annotation,
+            orderIndex: index,
+            required: false,
+            type: annotation["annotationTypeId/Name"],
+          };
+        }),
         ...appliedTemplate.annotations.map((a) => {
           const type = annotationTypes.find(
             (at) => at.annotationTypeId === a.annotationTypeId
@@ -92,18 +104,8 @@ export const getCompleteAppliedTemplate = createSelector(
           }
           return {
             ...a,
+            orderIndex: a.orderIndex + DEFAULT_ANNOTATION_NAMES.length,
             type: type.name,
-          };
-        }),
-        ...DEFAULT_ANNOTATION_NAMES.map((name) => {
-          const annotation = annotations.find((a) => a.name === name);
-          if (!annotation) {
-            throw new Error("Could not get necessary annotation information");
-          }
-          return {
-            ...annotation,
-            required: false,
-            type: annotation["annotationTypeId/Name"],
           };
         }),
       ],

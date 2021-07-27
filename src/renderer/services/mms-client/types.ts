@@ -112,6 +112,7 @@ export interface TemplateAnnotation extends Audited {
   description: string;
   lookupSchema?: string;
   lookupTable?: string;
+  orderIndex: number;
   name: string;
   required: boolean;
   canHaveManyValues?: boolean;

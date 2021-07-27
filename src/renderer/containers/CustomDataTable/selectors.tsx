@@ -181,19 +181,21 @@ export const getTemplateColumnsForTable = createSelector(
       });
     }
 
-    template.annotations.forEach((annotation) => {
-      const type = annotationTypes.find(
-        (type) => type.annotationTypeId === annotation.annotationTypeId
-      )?.name;
-      columns.push({
-        type,
-        accessor: annotation.name,
-        description: annotation.description,
-        dropdownValues: annotation.annotationOptions,
-        isRequired: annotation.required,
-        width: getColumnWidthForType(annotation.name, type),
+    template.annotations
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .forEach((annotation) => {
+        const type = annotationTypes.find(
+          (type) => type.annotationTypeId === annotation.annotationTypeId
+        )?.name;
+        columns.push({
+          type,
+          accessor: annotation.name,
+          description: annotation.description,
+          dropdownValues: annotation.annotationOptions,
+          isRequired: annotation.required,
+          width: getColumnWidthForType(annotation.name, type),
+        });
       });
-    });
 
     return columns;
   }

@@ -35,6 +35,7 @@ describe("CustomDataTable selectors", () => {
       name,
       description: `${name} description`,
       annotationTypeId: index === 0 ? 0 : 1,
+      orderIndex: index,
       annotationOptions: [],
       required: false,
     })
