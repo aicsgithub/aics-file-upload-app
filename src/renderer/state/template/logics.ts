@@ -189,22 +189,19 @@ const openTemplateEditorLogic = createLogic({
         dispatch(
           startTemplateDraft(template, {
             ...etc,
-            annotations: annotations.map(
-              (a: TemplateAnnotation, orderIndex: number) => {
-                const type = annotationTypes.find(
-                  (t) => t.annotationTypeId === a.annotationTypeId
-                );
-                if (!type) {
-                  throw new Error(`Could not find matching type for annotation named ${a.name},
+            annotations: annotations.map((a: TemplateAnnotation) => {
+              const type = annotationTypes.find(
+                (t) => t.annotationTypeId === a.annotationTypeId
+              );
+              if (!type) {
+                throw new Error(`Could not find matching type for annotation named ${a.name},
                        annotationTypeId: ${a.annotationTypeId}`);
-                }
-                return {
-                  ...a,
-                  annotationTypeName: type.name,
-                  orderIndex,
-                };
               }
-            ),
+              return {
+                ...a,
+                annotationTypeName: type.name,
+              };
+            }),
           })
         );
       } catch (e) {

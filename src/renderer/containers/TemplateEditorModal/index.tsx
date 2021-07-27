@@ -225,9 +225,10 @@ function TemplateEditorModal(props: Props) {
     </>
   );
 
-  const data: any[] = React.useMemo(() => template.annotations, [
-    template.annotations,
-  ]);
+  const data: any[] = React.useMemo(
+    () => template.annotations.sort((a, b) => a.orderIndex - b.orderIndex),
+    [template.annotations]
+  );
   const memoizedColumns: Column<AnnotationDraft>[] = React.useMemo(() => {
     function onUpdateTemplateAnnotation(
       index: number,
