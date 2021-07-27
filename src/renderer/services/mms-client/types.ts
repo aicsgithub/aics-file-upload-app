@@ -115,7 +115,6 @@ export interface TemplateAnnotation extends Audited {
   orderIndex: number;
   name: string;
   required: boolean;
-  canHaveManyValues?: boolean;
 }
 
 export interface AnnotationMetadataRequest {

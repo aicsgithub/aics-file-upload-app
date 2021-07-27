@@ -37,8 +37,6 @@ export const getSaveTemplateRequest = createSelector(
           return {
             annotationId: a.annotationId,
             annotationOptions,
-            // TODO lisah 5/7/20 this should be removed as part of FMS-1176
-            canHaveManyValues: true,
             required: a.required,
           };
         }
@@ -46,8 +44,6 @@ export const getSaveTemplateRequest = createSelector(
         return {
           annotationOptions,
           annotationTypeId: a.annotationTypeId,
-          // TODO lisah 5/7/20 this should be removed as part of FMS-1176
-          canHaveManyValues: true,
           description: trim(a.description) || "",
           lookupSchema: a.lookupSchema,
           lookupTable: a.lookupTable,
