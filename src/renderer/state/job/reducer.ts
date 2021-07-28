@@ -3,7 +3,10 @@ import { AnyAction } from "redux";
 import { JSSJob } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
 import { JobStateBranch, TypeToDescriptionMap } from "../types";
-import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
+import {
+  RECEIVE_MOST_RECENT_SUCCESSFUL_ETL,
+  UPDATE_UPLOAD_PROGRESS_INFO,
+} from "../upload/constants";
 import { makeReducer } from "../util";
 
 import {
@@ -11,6 +14,7 @@ import {
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
   SET_LAST_SELECTED_UPLOAD,
+  RECEIVE_ETL_JOBS,
 } from "./constants";
 import {
   ReceiveJobsAction,
@@ -18,10 +22,13 @@ import {
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
   SetLastSelectedUploadAction,
+  ReceiveETLJobsAction,
+  ReceiveMostRecentSuccessfulETLAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
   copyProgress: {},
+  etlJobs: [],
   uploadJobs: [],
 };
 
@@ -36,6 +43,19 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
       return {
         ...state,
         uploadJobs,
+      };
+    },
+  },
+  [RECEIVE_ETL_JOBS]: {
+    accepts: (action: AnyAction): action is ReceiveETLJobsAction =>
+      action.type === RECEIVE_ETL_JOBS,
+    perform: (
+      state: JobStateBranch,
+      { payload: etlJobs }: ReceiveETLJobsAction
+    ) => {
+      return {
+        ...state,
+        etlJobs,
       };
     },
   },
@@ -69,6 +89,21 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
             ? (updatedJob as JSSJob<UploadServiceFields>)
             : job
         ),
+      };
+    },
+  },
+  [RECEIVE_MOST_RECENT_SUCCESSFUL_ETL]: {
+    accepts: (
+      action: AnyAction
+    ): action is ReceiveMostRecentSuccessfulETLAction =>
+      action.type === RECEIVE_MOST_RECENT_SUCCESSFUL_ETL,
+    perform: (
+      state: JobStateBranch,
+      { payload }: ReceiveMostRecentSuccessfulETLAction
+    ): JobStateBranch => {
+      return {
+        ...state,
+        mostRecentSuccessfulETL: payload,
       };
     },
   },

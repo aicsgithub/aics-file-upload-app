@@ -12,6 +12,7 @@ import {
   JSSJobStatus,
 } from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
+import { requestMostRecentSuccessfulETL } from "../../state/job/actions";
 import { getUploadsByTemplateUsage } from "../../state/job/selectors";
 import { startNewUpload, viewUploads } from "../../state/route/actions";
 import { AsyncRequest, UploadSummaryTableRow } from "../../state/types";
@@ -23,6 +24,8 @@ import {
 import UploadTable from "../UploadTable";
 
 const styles = require("./styles.pcss");
+
+const FIFTEEN_MINUTES_IN_MS = 1_000 * 60 * 15;
 
 /**
  * This component represents the "My Uploads" page for the user. The
@@ -40,6 +43,18 @@ export default function MyUploadsPage() {
   const [selectedUploads, setSelectedUploads] = React.useState<
     UploadSummaryTableRow[]
   >([]);
+
+  // Dispatch an event every 15 minutes to query for the
+  // most recent successful ETL to determine if any of the
+  // user's uploads have now made it into the explorer
+  React.useEffect(() => {
+    const intervalId = setInterval(() => {
+      dispatch(requestMostRecentSuccessfulETL());
+    }, FIFTEEN_MINUTES_IN_MS);
+
+    dispatch(requestMostRecentSuccessfulETL());
+    return () => clearInterval(intervalId);
+  }, [dispatch]);
 
   const [
     areSelectedUploadsAllFailed,

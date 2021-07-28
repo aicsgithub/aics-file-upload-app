@@ -34,7 +34,7 @@ import {
   Unit,
 } from "../services/labkey-client/types";
 import { Template, WellResponse } from "../services/mms-client/types";
-import { UploadServiceFields } from "../services/types";
+import { BaseServiceFields, UploadServiceFields } from "../services/types";
 import { LocalStorage } from "../types";
 
 import Process = CreateLogic.Config.Process;
@@ -189,6 +189,8 @@ export interface UploadProgressInfo {
 }
 
 export interface JobStateBranch {
+  // TODO: Typing
+  etlJobs: JSSJob<BaseServiceFields>[];
   // Parent job representing an upload of a batch of files
   uploadJobs: JSSJob<UploadServiceFields>[];
   // mapping between  jobIds and their upload progress
@@ -196,6 +198,7 @@ export interface JobStateBranch {
     [jobId: string]: UploadProgressInfo;
   };
   lastSelectedUpload?: { id: string; index: number };
+  mostRecentSuccessfulETL?: number;
 }
 
 // Map of the output of getUploadRowKey to the FileModel

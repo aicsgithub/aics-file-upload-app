@@ -4,16 +4,20 @@ import { createSelector } from "reselect";
 import {
   IN_PROGRESS_STATUSES,
   JSSJob,
+  JSSJobStatus,
   UploadStage,
 } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
 import { getTemplateIdToName } from "../metadata/selectors";
 import { State, UploadSummaryTableRow } from "../types";
 
+export const getETLJobs = (state: State) => state.job.etlJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobIdToCopyProgress = (state: State) => state.job.copyProgress;
 export const getLastSelectedUpload = (state: State) =>
   state.job.lastSelectedUpload;
+export const getMostRecentSuccessfulETL = (state: State) =>
+  state.job.mostRecentSuccessfulETL;
 
 export const getJobIdToUploadJobMap = createSelector(
   [getUploadJobs],
@@ -24,8 +28,55 @@ export const getJobIdToUploadJobMap = createSelector(
     }, new Map<string, JSSJob<UploadServiceFields>>())
 );
 
+export const getJobIdToETLStatus = createSelector([getETLJobs], (etlJobs): {
+  [parentJobId: string]: JSSJobStatus;
+} => {
+  return (etlJobs || []).reduce(
+    (accum, job) => ({
+      ...accum,
+      [job.parentId || ""]: job.status,
+    }),
+    {} as { [parentJobId: string]: JSSJobStatus }
+  );
+});
+
+export const getUploadJobsWithETLStatus = createSelector(
+  [getUploadJobs, getJobIdToETLStatus, getMostRecentSuccessfulETL],
+  (
+    uploadJobs,
+    jobIdToEtlStatus,
+    mostRecentSuccessfulETL
+  ): JSSJob<UploadServiceFields>[] => {
+    return uploadJobs.map((uploadJob) => {
+      if (
+        !mostRecentSuccessfulETL ||
+        uploadJob.status !== JSSJobStatus.SUCCEEDED
+      ) {
+        return uploadJob;
+      }
+      // TODO: Fixed busted typing
+      const modifiedInMS = (uploadJob.modified as unknown) as number;
+      if (mostRecentSuccessfulETL > modifiedInMS) {
+        return uploadJob;
+      }
+      const etlStatus = jobIdToEtlStatus[uploadJob.jobId];
+      if (etlStatus === JSSJobStatus.SUCCEEDED) {
+        return uploadJob;
+      }
+      return {
+        ...uploadJob,
+        status: JSSJobStatus.WAITING,
+        serviceFields: {
+          ...uploadJob.serviceFields,
+          isWaitingForETL: true,
+        },
+      } as JSSJob<UploadServiceFields>;
+    });
+  }
+);
+
 export const getUploadsByTemplateUsage = createSelector(
-  [getUploadJobs, getJobIdToCopyProgress, getTemplateIdToName],
+  [getUploadJobsWithETLStatus, getJobIdToCopyProgress, getTemplateIdToName],
   (
     uploadJobs,
     jobIdToCopyProgress,

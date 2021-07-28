@@ -89,9 +89,9 @@ export interface BaseServiceFields {
   // populated by app when an exception is thrown during an upload
   error?: string;
 
-  // represents the type job this object is representing. It will be equal to the name property of the step or "upload"
-  // which is the parent job.
-  type: "upload" | "copy" | "copy_child" | "add_metadata";
+  // Should either be "upload" or "ETL" other types are deprecated. Represents
+  // whether the process was to upload or some post-upload processing
+  type: "upload" | "copy" | "copy_child" | "add_metadata" | "ETL";
 }
 
 export interface UploadServiceFields extends BaseServiceFields {
@@ -103,6 +103,9 @@ export interface UploadServiceFields extends BaseServiceFields {
 
   // a mapping for all files of this job to their MD5 at the time of the last upload.
   md5: { [originalPath: string]: string };
+
+  // Flag for whether the file is waiting for the ETL to succeed
+  isWaitingForETL?: boolean;
 
   // ID of the upload group this job is a part of
   groupId?: string;

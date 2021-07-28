@@ -51,6 +51,14 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
         theme="filled"
       />
     );
+  } else if (props.row.original.serviceFields?.isWaitingForETL) {
+    content = (
+      <Icon
+        className={styles.waitingForEtl}
+        type="exclamation-circle"
+        theme="filled"
+      />
+    );
   } else {
     let progress = 0;
     let fssCompletedBytes = 0;

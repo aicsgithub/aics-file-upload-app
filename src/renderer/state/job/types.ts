@@ -7,6 +7,11 @@ export interface ReceiveJobsAction {
   type: string;
 }
 
+export interface ReceiveETLJobsAction {
+  payload: JSSJob<BaseServiceFields>[];
+  type: string;
+}
+
 export interface ReceiveJobInsertAction {
   payload: JSSJob<BaseServiceFields>;
   type: string;
@@ -14,6 +19,15 @@ export interface ReceiveJobInsertAction {
 
 export interface ReceiveJobUpdateAction<T extends BaseServiceFields = any> {
   payload: JSSJob<T>;
+  type: string;
+}
+
+export interface RequestMostRecentSuccessfulETLAction {
+  type: string;
+}
+
+export interface ReceiveMostRecentSuccessfulETLAction {
+  payload: number;
   type: string;
 }
 

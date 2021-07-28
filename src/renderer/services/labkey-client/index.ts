@@ -70,6 +70,9 @@ export default class LabkeyClient extends HttpCacheClient {
     this.findImagingSessionsByPlateBarcode = this.findImagingSessionsByPlateBarcode.bind(
       this
     );
+    this.findMostRecentSuccessfulETL = this.findMostRecentSuccessfulETL.bind(
+      this
+    );
     this.getFileExistsByMD5AndName = this.getFileExistsByMD5AndName.bind(this);
     this.selectRows = this.selectRows.bind(this);
     this.selectFirst = this.selectFirst.bind(this);
@@ -364,6 +367,17 @@ export default class LabkeyClient extends HttpCacheClient {
     ]);
     const response = await this.get(query);
     return response.rows;
+  }
+
+  public async findMostRecentSuccessfulETL(): Promise<number> {
+    const query = LabkeyClient.getSelectRowsURL(
+      LK_SCHEMA.FILE_METADATA,
+      "ETL",
+      ["query.Successful~eq=true", "query.sort=-EtlEndTime"]
+    );
+    const response = await this.get(query);
+    const etlEndTime = new Date(response.rows[0]["EtlEndTime"]);
+    return etlEndTime.getTime();
   }
 
   public async getFileExistsByMD5AndName(

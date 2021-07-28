@@ -59,6 +59,14 @@ export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
 );
 export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
 export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
+export const RECEIVE_MOST_RECENT_SUCCESSFUL_ETL = makeConstant(
+  BRANCH_NAME,
+  "receive-most-recent-successful-etl"
+);
+export const REQUEST_MOST_RECENT_SUCCESSFUL_ETL = makeConstant(
+  BRANCH_NAME,
+  "request-most-recent-successful-etl"
+);
 export const RETRY_UPLOADS = makeConstant(BRANCH_NAME, "retry-uploads");
 export const SAVE_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "save-upload-draft");
 export const UPDATE_SUB_IMAGES = makeConstant(BRANCH_NAME, "update-sub-images");

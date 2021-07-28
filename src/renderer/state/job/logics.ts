@@ -13,14 +13,22 @@ import { handleUploadProgress } from "../stateHelpers";
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
+  ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicTransformDependencies,
 } from "../types";
 import { uploadFailed, uploadSucceeded } from "../upload/actions";
+import { REQUEST_MOST_RECENT_SUCCESSFUL_ETL } from "../upload/constants";
 
-import { updateUploadProgressInfo } from "./actions";
+import {
+  receiveMostRecentSuccessfulEtl,
+  updateUploadProgressInfo,
+} from "./actions";
 import { RECEIVE_JOB_UPDATE, RECEIVE_JOBS } from "./constants";
-import { getJobIdToUploadJobMap } from "./selectors";
+import {
+  getJobIdToUploadJobMap,
+  getMostRecentSuccessfulETL,
+} from "./selectors";
 import { ReceiveJobsAction, ReceiveJobUpdateAction } from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
@@ -114,4 +122,27 @@ const receiveJobUpdateLogics = createLogic({
   type: RECEIVE_JOB_UPDATE,
 });
 
-export default [handleAbandonedJobsLogic, receiveJobUpdateLogics];
+export const requestMostRecentSuccessfulETLLogic = createLogic({
+  process: async (
+    deps: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const currentlyMostRecentEtl = getMostRecentSuccessfulETL(deps.getState());
+
+    const etl = await deps.labkeyClient.findMostRecentSuccessfulETL();
+
+    if (!currentlyMostRecentEtl || etl > currentlyMostRecentEtl) {
+      dispatch(receiveMostRecentSuccessfulEtl(etl));
+    }
+
+    done();
+  },
+  type: REQUEST_MOST_RECENT_SUCCESSFUL_ETL,
+});
+
+export default [
+  handleAbandonedJobsLogic,
+  receiveJobUpdateLogics,
+  requestMostRecentSuccessfulETLLogic,
+];

@@ -14,7 +14,7 @@ import {
 } from "../../../shared/constants";
 import StatusBar from "../../components/StatusBar";
 import { JSSJob } from "../../services/job-status-client/types";
-import { BaseServiceFields } from "../../services/types";
+import { BaseServiceFields, UploadServiceFields } from "../../services/types";
 import {
   addRequestToInProgress,
   checkForUpdate,
@@ -29,6 +29,7 @@ import {
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
 import {
+  receiveETLJobs,
   receiveJobInsert,
   receiveJobs,
   receiveJobUpdate,
@@ -97,16 +98,24 @@ export default function App() {
       const jobs = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >[];
-      const uploadJobs = jobs.filter(
-        (job) => job.serviceFields?.type === "upload"
-      );
+      const etlJobs: JSSJob<BaseServiceFields>[] = [];
+      const uploadJobs: JSSJob<UploadServiceFields>[] = [];
+      jobs.forEach((job) => {
+        if (job.serviceFields?.type === "upload") {
+          uploadJobs.push(job as JSSJob<UploadServiceFields>);
+        } else if (job.serviceFields?.type === "ETL") {
+          etlJobs.push(job);
+        }
+      });
       dispatch(receiveJobs(uploadJobs));
+      dispatch(receiveETLJobs(etlJobs));
     });
 
     eventSource.addEventListener("jobInsert", (event: MessageEvent) => {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
+      // TODO: do i need to do something special here?
       dispatch(receiveJobInsert(jobChange));
     });
 
@@ -114,6 +123,7 @@ export default function App() {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
+      // TODO: do i need to do something special here?
       dispatch(receiveJobUpdate(jobChange));
     });
 
