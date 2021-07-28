@@ -21,7 +21,7 @@ import {
 import { State } from "../../types";
 import { uploadFailed, uploadSucceeded } from "../../upload/actions";
 import { receiveJobs, receiveJobUpdate } from "../actions";
-import { handleAbandonedJobsLogic } from "../logics";
+import { receiveJobsLogic } from "../logics";
 
 describe("Job logics", () => {
   const sandbox = createSandbox();
@@ -69,9 +69,7 @@ describe("Job logics", () => {
         actions,
         logicMiddleware,
         store,
-      } = createMockReduxStore(mockState, logicDeps, [
-        handleAbandonedJobsLogic,
-      ]);
+      } = createMockReduxStore(mockState, logicDeps, [receiveJobsLogic]);
 
       store.dispatch(
         receiveJobs([mockFailedUploadJob, mockSuccessfulUploadJob])
@@ -89,9 +87,7 @@ describe("Job logics", () => {
         actions,
         logicMiddleware,
         store,
-      } = createMockReduxStore(mockState, logicDeps, [
-        handleAbandonedJobsLogic,
-      ]);
+      } = createMockReduxStore(mockState, logicDeps, [receiveJobsLogic]);
       const action = receiveJobs([mockFailedUploadJob, waitingAbandonedJob]);
 
       store.dispatch(action);
@@ -109,9 +105,7 @@ describe("Job logics", () => {
         actions,
         logicMiddleware,
         store,
-      } = createMockReduxStore(mockState, logicDeps, [
-        handleAbandonedJobsLogic,
-      ]);
+      } = createMockReduxStore(mockState, logicDeps, [receiveJobsLogic]);
 
       store.dispatch(receiveJobs([waitingAbandonedJob]));
 
@@ -129,9 +123,7 @@ describe("Job logics", () => {
         actions,
         logicMiddleware,
         store,
-      } = createMockReduxStore(mockState, logicDeps, [
-        handleAbandonedJobsLogic,
-      ]);
+      } = createMockReduxStore(mockState, logicDeps, [receiveJobsLogic]);
       const errorMessage = "retry failure!";
       fms.retryUpload.onFirstCall().rejects(new Error(errorMessage));
 
@@ -154,9 +146,7 @@ describe("Job logics", () => {
         actions,
         logicMiddleware,
         store,
-      } = createMockReduxStore(mockState, logicDeps, [
-        handleAbandonedJobsLogic,
-      ]);
+      } = createMockReduxStore(mockState, logicDeps, [receiveJobsLogic]);
 
       fms.retryUpload.rejects(new Error("Error"));
 

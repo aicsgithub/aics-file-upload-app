@@ -7,11 +7,6 @@ export interface ReceiveJobsAction {
   type: string;
 }
 
-export interface ReceiveETLJobsAction {
-  payload: JSSJob<BaseServiceFields>[];
-  type: string;
-}
-
 export interface ReceiveJobInsertAction {
   payload: JSSJob<BaseServiceFields>;
   type: string;

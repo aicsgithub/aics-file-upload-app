@@ -51,7 +51,10 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
         theme="filled"
       />
     );
-  } else if (props.row.original.serviceFields?.isWaitingForETL) {
+  } else if (
+    props.row.original.serviceFields?.etlStatus &&
+    JSSJobStatus.WAITING === props.value
+  ) {
     content = (
       <Icon
         className={styles.waitingForEtl}

@@ -12,23 +12,20 @@ import { makeReducer } from "../util";
 import {
   RECEIVE_JOB_INSERT,
   RECEIVE_JOB_UPDATE,
-  RECEIVE_JOBS,
   SET_LAST_SELECTED_UPLOAD,
-  RECEIVE_ETL_JOBS,
+  RECEIVE_JOBS,
 } from "./constants";
 import {
-  ReceiveJobsAction,
   ReceiveJobInsertAction,
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
   SetLastSelectedUploadAction,
-  ReceiveETLJobsAction,
   ReceiveMostRecentSuccessfulETLAction,
+  ReceiveJobsAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
   copyProgress: {},
-  etlJobs: [],
   uploadJobs: [],
 };
 
@@ -43,19 +40,6 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
       return {
         ...state,
         uploadJobs,
-      };
-    },
-  },
-  [RECEIVE_ETL_JOBS]: {
-    accepts: (action: AnyAction): action is ReceiveETLJobsAction =>
-      action.type === RECEIVE_ETL_JOBS,
-    perform: (
-      state: JobStateBranch,
-      { payload: etlJobs }: ReceiveETLJobsAction
-    ) => {
-      return {
-        ...state,
-        etlJobs,
       };
     },
   },

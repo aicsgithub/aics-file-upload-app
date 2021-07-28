@@ -12,7 +12,6 @@ import {
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
   SET_LAST_SELECTED_UPLOAD,
-  RECEIVE_ETL_JOBS,
 } from "./constants";
 import {
   ReceiveJobsAction,
@@ -20,24 +19,14 @@ import {
   UpdateUploadProgressInfoAction,
   ReceiveJobUpdateAction,
   SetLastSelectedUploadAction,
-  ReceiveETLJobsAction,
   RequestMostRecentSuccessfulETLAction,
   ReceiveMostRecentSuccessfulETLAction,
 } from "./types";
 
-export function receiveJobs(uploadJobs: JSSJob[] = []): ReceiveJobsAction {
+export function receiveJobs(uploadJobs: JSSJob[]): ReceiveJobsAction {
   return {
     payload: uploadJobs,
     type: RECEIVE_JOBS,
-  };
-}
-
-export function receiveETLJobs(
-  etlJobs: JSSJob<BaseServiceFields>[]
-): ReceiveETLJobsAction {
-  return {
-    payload: etlJobs,
-    type: RECEIVE_ETL_JOBS,
   };
 }
 

@@ -1,5 +1,7 @@
 import { AxiosRequestConfig } from "axios";
 
+import { JSSJobStatus } from "./job-status-client/types";
+
 export interface HeaderMap {
   [key: string]: string;
 }
@@ -105,7 +107,7 @@ export interface UploadServiceFields extends BaseServiceFields {
   md5: { [originalPath: string]: string };
 
   // Flag for whether the file is waiting for the ETL to succeed
-  isWaitingForETL?: boolean;
+  etlStatus?: JSSJobStatus;
 
   // ID of the upload group this job is a part of
   groupId?: string;

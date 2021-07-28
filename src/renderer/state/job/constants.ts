@@ -2,7 +2,6 @@ import { makeConstant } from "../util";
 
 const BRANCH_NAME = "jobs";
 
-export const RECEIVE_ETL_JOBS = makeConstant(BRANCH_NAME, "receive-etl-jobs");
 export const RECEIVE_JOBS = makeConstant(BRANCH_NAME, "receive-jobs");
 export const RECEIVE_JOB_INSERT = makeConstant(
   BRANCH_NAME,
