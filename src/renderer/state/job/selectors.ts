@@ -27,38 +27,20 @@ export const getJobIdToUploadJobMap = createSelector(
     }, new Map<string, JSSJob<UploadServiceFields>>())
 );
 
-export const getUploadJobsWithETLStatus = createSelector(
-  [getUploadJobs, getMostRecentSuccessfulETL],
-  (uploadJobs, mostRecentSuccessfulETL): JSSJob<UploadServiceFields>[] => {
-    return uploadJobs.map((uploadJob) => {
-      if (
-        !mostRecentSuccessfulETL ||
-        uploadJob.status !== JSSJobStatus.SUCCEEDED
-      ) {
-        return uploadJob;
-      }
-      // JSS dates come in as milliseconds initially (FUA-115)
-      const modifiedInMS = (uploadJob.modified as unknown) as number;
-      if (mostRecentSuccessfulETL > modifiedInMS) {
-        return uploadJob;
-      }
-      if (uploadJob.serviceFields?.etlStatus === JSSJobStatus.SUCCEEDED) {
-        return uploadJob;
-      }
-      return {
-        ...uploadJob,
-        status: JSSJobStatus.WAITING,
-      } as JSSJob<UploadServiceFields>;
-    });
-  }
-);
-
+// TODO: NEed to do something about when multiple ETL jobs are found
+// TODO: Resolve to the most successful
 export const getUploadsByTemplateUsage = createSelector(
-  [getUploadJobsWithETLStatus, getJobIdToCopyProgress, getTemplateIdToName],
+  [
+    getUploadJobs,
+    getJobIdToCopyProgress,
+    getTemplateIdToName,
+    getMostRecentSuccessfulETL,
+  ],
   (
     uploadJobs,
     jobIdToCopyProgress,
-    templateIdToName
+    templateIdToName,
+    mostRecentSuccessfulETL
   ): {
     uploadsWithTemplates: UploadSummaryTableRow[];
     uploadsWithoutTemplates: UploadSummaryTableRow[];
@@ -75,8 +57,18 @@ export const getUploadsByTemplateUsage = createSelector(
     orderBy(uploadJobs, ["created"], ["desc"])
       .filter(({ jobId }) => !replacedJobIdSet.has(jobId))
       .forEach((job) => {
+        let status = job.status;
+        if (
+          mostRecentSuccessfulETL &&
+          job.status === JSSJobStatus.SUCCEEDED &&
+          job.serviceFields?.etlStatus !== JSSJobStatus.SUCCEEDED &&
+          mostRecentSuccessfulETL < new Date(job.modified).getTime()
+        ) {
+          status = JSSJobStatus.WAITING;
+        }
         const upload: UploadSummaryTableRow = {
           ...job,
+          status,
           created: new Date(job.created),
           modified: new Date(job.modified),
           progress: jobIdToCopyProgress[job.jobId],

@@ -8,6 +8,7 @@ import {
   JSSJobStatus,
   UploadStage,
 } from "../../services/job-status-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { setErrorAlert, setInfoAlert } from "../feedback/actions";
 import { handleUploadProgress } from "../stateHelpers";
 import {
@@ -22,6 +23,7 @@ import { uploadFailed, uploadSucceeded } from "../upload/actions";
 import { REQUEST_MOST_RECENT_SUCCESSFUL_ETL } from "../upload/constants";
 
 import {
+  receiveJobUpdate,
   receiveMostRecentSuccessfulEtl,
   updateUploadProgressInfo,
 } from "./actions";
@@ -51,7 +53,8 @@ export const receiveJobsLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     // Jobs have the potential to be abandoned i.e. left while in progress
-    // in that scenario they will be unable to have contiued and should be auto-retried
+    // in that scenario they will be stuck unless retried which we can do
+    // here automatically
     const abandonedJobs = action.payload.filter(
       ({ status, currentStage }) =>
         currentStage === UploadStage.WAITING_FOR_CLIENT_COPY &&
@@ -93,16 +96,15 @@ export const receiveJobsLogic = createLogic({
     const uploadJobs = jobs.filter(
       (job) => job.serviceFields?.type === "upload"
     );
-    const jobIdToEtlStatus = jobs.reduce(
-      (accum, job) =>
-        job.serviceFields?.type !== "ETL"
-          ? accum
-          : {
-              ...accum,
-              [job.parentId || ""]: job.status,
-            },
-      {} as { [jobId: string]: JSSJobStatus }
-    );
+    const jobIdToEtlStatus = jobs
+      .filter((job) => job.serviceFields?.type === "ETL")
+      .reduce(
+        (accum, job) => ({
+          ...accum,
+          [job.parentId || ""]: job.status,
+        }),
+        {} as { [jobId: string]: JSSJobStatus }
+      );
 
     const uploadJobsWithEtlStatus = uploadJobs.map((job) => ({
       ...job,
@@ -129,26 +131,25 @@ const receiveJobInsertLogic = createLogic({
     }: ReduxLogicTransformDependenciesWithAction<ReceiveJobInsertAction>,
     next: ReduxLogicNextCb
   ) => {
-    let updatedJob: JSSJob = action.payload;
-
+    const updatedJob = action.payload;
     // If the updated job was from the ETL find the related job
     // and update it with ETL info
     if (updatedJob.serviceFields?.type === "ETL") {
       const jobIdToJobMap = getJobIdToUploadJobMap(getState());
-      const uploadJob = jobIdToJobMap.get(updatedJob.parentId || "") as JSSJob;
-      updatedJob = {
+      const uploadJob = jobIdToJobMap.get(updatedJob.parentId || "") as JSSJob<
+        UploadServiceFields
+      >;
+      const job = {
         ...uploadJob,
         serviceFields: {
-          ...uploadJob,
+          ...uploadJob.serviceFields,
           etlStatus: updatedJob.status,
         },
-      };
+      } as JSSJob<UploadServiceFields>;
+      next(receiveJobUpdate(job));
+    } else {
+      next(action);
     }
-
-    next({
-      ...action,
-      payload: updatedJob,
-    });
   },
   type: RECEIVE_JOB_INSERT,
 });
@@ -167,7 +168,11 @@ const receiveJobUpdateLogic = createLogic({
     const jobName = updatedJob.jobName || "";
     const previousJob: JSSJob = ctx.previousJob;
 
-    if (updatedJob.status !== previousJob.status) {
+    if (
+      updatedJob.status !== previousJob.status ||
+      updatedJob.serviceFields?.etlStatus !==
+        previousJob.serviceFields?.etlStatus
+    ) {
       if (
         updatedJob.status === JSSJobStatus.SUCCEEDED &&
         updatedJob.serviceFields?.etlStatus === JSSJobStatus.SUCCEEDED

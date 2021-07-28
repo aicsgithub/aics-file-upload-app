@@ -111,6 +111,62 @@ describe("Job selectors", () => {
       expect(uploadsWithoutTemplates).to.be.lengthOf(1);
       expect(uploadsWithoutTemplates[0].jobId).to.equal(expectedJob.jobId);
     });
+
+    it("converts successful jobs to waiting if ETL is not successful", () => {
+      // Arrange
+      const state = {
+        ...mockState,
+        job: {
+          ...mockState.job,
+          mostRecentSuccessfulEtl: 1,
+          uploadJobs: [
+            {
+              ...mockSuccessfulUploadJob,
+              serviceFields: {
+                ...mockSuccessfulUploadJob.serviceFields,
+                etlStatus: JSSJobStatus.FAILED,
+              },
+            },
+          ],
+        },
+      };
+      const expected = {
+        ...mockSuccessfulUploadJob,
+        status: JSSJobStatus.WAITING,
+      };
+
+      // Act
+      const {
+        uploadsWithTemplates,
+        uploadsWithoutTemplates,
+      } = getUploadsByTemplateUsage(state);
+
+      // Assert
+      expect(uploadsWithTemplates).to.be.empty;
+      expect(uploadsWithoutTemplates).to.deep.equal([expected]);
+    });
+
+    it("keeps existing job status if most recently successful etl is less than job modified date", () => {
+      // Arrange
+      const state = {
+        ...mockState,
+        job: {
+          ...mockState.job,
+          mostRecentSuccessfulEtl: 1,
+          uploadJobs: [mockSuccessfulUploadJob],
+        },
+      };
+
+      // Act
+      const {
+        uploadsWithTemplates,
+        uploadsWithoutTemplates,
+      } = getUploadsByTemplateUsage(state);
+
+      // Assert
+      expect(uploadsWithTemplates).to.be.empty;
+      expect(uploadsWithoutTemplates).to.deep.equal([mockSuccessfulUploadJob]);
+    });
   });
 
   describe("getIsSafeToExit", () => {

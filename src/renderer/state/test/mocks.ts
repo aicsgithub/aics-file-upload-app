@@ -391,7 +391,6 @@ export const mockSelectedWells: GridCell[] = [
   new GridCell(1, 0),
   new GridCell(1, 1),
 ];
-
 export const mockSuccessfulUploadJob: JSSJob = {
   created: new Date(),
   currentStage: "Completed",
@@ -399,6 +398,7 @@ export const mockSuccessfulUploadJob: JSSJob = {
   jobName: "mockJob1",
   modified: new Date(),
   serviceFields: {
+    etlStatus: undefined,
     copyJobId: "copyJobId1",
     result: [{ fileId: "cat" }, { fileId: "dog" }],
     type: "upload",
@@ -437,6 +437,7 @@ export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
   jobName: "mockFailedUploadJob",
   modified: new Date(),
   serviceFields: {
+    etlStatus: undefined,
     files: [
       {
         customMetadata: {
@@ -463,6 +464,21 @@ export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
     uploadDirectory: "/foo",
   },
   status: JSSJobStatus.FAILED,
+  user: "test_user",
+};
+
+export const mockSuccessfulETLJob: JSSJob = {
+  created: new Date(),
+  currentStage: "Completed",
+  jobId: "12301301",
+  jobName: "mockSuccessfulETLJob",
+  modified: new Date(),
+  serviceFields: {
+    copyJobId: "copyJobId1",
+    result: [{ fileId: "cat" }, { fileId: "dog" }],
+    type: "ETL",
+  },
+  status: JSSJobStatus.SUCCEEDED,
   user: "test_user",
 };
 
