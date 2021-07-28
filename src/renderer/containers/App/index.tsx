@@ -109,7 +109,6 @@ export default function App() {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
-      // TODO: do i need to do something special here?
       dispatch(receiveJobInsert(jobChange));
     });
 
@@ -117,7 +116,6 @@ export default function App() {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
-      // TODO: do i need to do something special here?
       dispatch(receiveJobUpdate(jobChange));
     });
 
