@@ -9,6 +9,10 @@ import { CellProps } from "react-table";
 import { Dispatch } from "redux";
 
 import DragAndDrop from "../../../../components/DragAndDrop";
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
 import { setAlert } from "../../../../state/feedback/actions";
 import { AlertType } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
@@ -196,8 +200,8 @@ function NotesCell(props: Props) {
       </Modal>
       <Tooltip
         title={note ? `${note?.substring(0, 50)}...` : ""}
-        mouseEnterDelay={0.5}
-        mouseLeaveDelay={0}
+        mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+        mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
       >
         <div className={styles.alignCenter} onContextMenu={onContextMenu}>
           {(!props.column.isReadOnly || notes) && (

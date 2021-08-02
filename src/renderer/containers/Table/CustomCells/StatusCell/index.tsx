@@ -3,6 +3,10 @@ import * as classNames from "classnames";
 import * as React from "react";
 import { CellProps } from "react-table";
 
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
 import { JSSJobStatus } from "../../../../services/job-status-client/types";
 import { UploadSummaryTableRow } from "../../../../state/types";
 import { getPowerOf1000 } from "../../../../util";
@@ -97,7 +101,11 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
   }
 
   return (
-    <Tooltip title={tooltip} mouseEnterDelay={0.5} mouseLeaveDelay={0}>
+    <Tooltip
+      title={tooltip}
+      mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+      mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+    >
       <div className={styles.container}>{content}</div>
     </Tooltip>
   );

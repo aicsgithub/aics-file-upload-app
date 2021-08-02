@@ -3,6 +3,10 @@ import { castArray } from "lodash";
 import * as React from "react";
 import { CellProps } from "react-table";
 
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
 import { useDisplayValue } from "../DisplayCell";
 
 const styles = require("./styles.pcss");
@@ -20,8 +24,8 @@ export default function ReadOnlyCell<T extends {}>(props: CellProps<T>) {
     <Tooltip
       arrowPointAtCenter
       autoAdjustOverflow
-      mouseEnterDelay={0.5}
-      mouseLeaveDelay={0}
+      mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+      mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
       title={displayValue}
     >
       <input readOnly className={styles.readOnlyCell} value={displayValue} />

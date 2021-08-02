@@ -22,6 +22,7 @@ import {
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_LEAVE_DELAY } from "../../constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import {
   getRequestsInProgress,
@@ -173,8 +174,8 @@ function TemplateEditorModal(props: Props) {
         return (
           <Tooltip
             overlay={row.description}
-            mouseEnterDelay={0.5}
-            mouseLeaveDelay={0}
+            mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+            mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
           >
             {name}
           </Tooltip>
@@ -271,8 +272,8 @@ function TemplateEditorModal(props: Props) {
               key={a.name}
               overlay={a.description}
               placement="left"
-              mouseEnterDelay={0.5}
-              mouseLeaveDelay={0}
+              mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+              mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
             >
               <Button onClick={() => dispatch(addExistingAnnotation(a))}>
                 {a.name}

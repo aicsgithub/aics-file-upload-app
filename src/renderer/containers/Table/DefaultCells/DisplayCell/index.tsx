@@ -5,6 +5,10 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
 import { ColumnType } from "../../../../services/labkey-client/types";
 import {
   addRowToDragEvent,
@@ -195,8 +199,8 @@ export default function DisplayCell(props: Props) {
     <Tooltip
       arrowPointAtCenter
       autoAdjustOverflow
-      mouseEnterDelay={0.5}
-      mouseLeaveDelay={0}
+      mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+      mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
       title={cellAtDragStart ? "" : displayValue}
     >
       <div className={styles.tooltipAnchor} onDragEnter={onDragEnter}>
@@ -230,8 +234,8 @@ export default function DisplayCell(props: Props) {
           {shouldShowError && (
             <Tooltip
               title={`${props.column.id} is required`}
-              mouseEnterDelay={0.5}
-              mouseLeaveDelay={0}
+              mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+              mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
             >
               <Icon
                 className={styles.errorIcon}

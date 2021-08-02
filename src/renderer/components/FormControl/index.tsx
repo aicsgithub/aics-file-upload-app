@@ -3,6 +3,8 @@ import * as classNames from "classnames";
 import { ReactNode, ReactNodeArray } from "react";
 import * as React from "react";
 
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_LEAVE_DELAY } from "../../constants";
+
 const styles = require("./styles.pcss");
 
 interface Props {
@@ -40,8 +42,8 @@ const FormControl: React.FunctionComponent<Props> = ({
         <Tooltip
           title={error}
           className={styles.errorIcon}
-          mouseEnterDelay={0.5}
-          mouseLeaveDelay={0}
+          mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+          mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
         >
           <Icon type="close-circle" theme="filled" />
         </Tooltip>
