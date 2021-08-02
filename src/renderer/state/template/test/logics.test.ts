@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { DropResult } from "react-beautiful-dnd";
 import { AnyAction } from "redux";
 import {
   createSandbox,
@@ -35,12 +36,13 @@ import {
   mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, State } from "../../types";
+import { AnnotationDraft, AsyncRequest, State } from "../../types";
 import {
   addExistingAnnotation,
   addExistingTemplate,
   createAnnotation,
   editAnnotation,
+  onTemplateAnnotationDragEnd,
   removeAnnotations,
   saveTemplate,
   saveTemplateSucceeded,
@@ -48,6 +50,7 @@ import {
   startTemplateDraftFailed,
   updateTemplateDraft,
 } from "../actions";
+import { ON_TEMPLATE_ANNOTATION_DRAG_END } from "../constants";
 import { getTemplateDraft } from "../selectors";
 
 describe("Template Logics", () => {
@@ -358,6 +361,95 @@ describe("Template Logics", () => {
 
       store.dispatch(removeAnnotations([0, 2]));
       expect(getTemplateDraft(store.getState()).annotations).to.be.lengthOf(1);
+    });
+  });
+
+  describe("onTemplateAnnotationDragEndLogic", () => {
+    it("updates template draft", async () => {
+      // Arrange
+      const annotations: AnnotationDraft[] = [
+        "Cell Line",
+        "Cas9",
+        "Notes",
+        "Date",
+      ].map((name, index) => ({
+        ...mockAnnotationDraft,
+        annotationId: index,
+        orderIndex: index,
+        name,
+      }));
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          ...startState.template,
+          draft: {
+            annotations: [annotations[3], ...annotations.slice(0, 3)],
+            name: "My Template",
+          },
+        },
+      });
+      const result: DropResult = {
+        draggableId: "unused",
+        source: {
+          droppableId: "unused",
+          index: 0,
+        },
+        destination: {
+          droppableId: "unused",
+          index: 3,
+        },
+        reason: "DROP",
+        mode: "FLUID",
+        type: "unused",
+      };
+
+      // Act
+      store.dispatch(onTemplateAnnotationDragEnd(result));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          updateTemplateDraft({
+            annotations,
+          })
+        )
+      ).to.be.true;
+    });
+
+    it("does nothing if destination is empty", async () => {
+      // Arrange
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          ...startState.template,
+          draft: {
+            annotations: [mockAnnotationDraft],
+            name: "My Template",
+          },
+        },
+      });
+      const result: DropResult = {
+        draggableId: "unused",
+        source: {
+          droppableId: "unused",
+          index: 0,
+        },
+        reason: "DROP",
+        mode: "FLUID",
+        type: "unused",
+      };
+
+      // Act
+      store.dispatch(onTemplateAnnotationDragEnd(result));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch({
+          type: ON_TEMPLATE_ANNOTATION_DRAG_END,
+        })
+      ).to.be.true;
     });
   });
 

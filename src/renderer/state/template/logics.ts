@@ -26,6 +26,7 @@ import {
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
+  ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
@@ -46,6 +47,7 @@ import {
   ADD_EXISTING_TEMPLATE,
   CREATE_ANNOTATION,
   EDIT_ANNOTATION,
+  ON_TEMPLATE_ANNOTATION_DRAG_END,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
 } from "./constants";
@@ -58,6 +60,7 @@ import {
   AddExistingAnnotationAction,
   CreateAnnotationAction,
   EditAnnotationAction,
+  OnTemplateAnnotationDragEndAction,
 } from "./types";
 
 const createAnnotation = createLogic({
@@ -310,6 +313,33 @@ const removeAnnotationsLogic = createLogic({
   type: REMOVE_ANNOTATIONS,
 });
 
+const onTemplateAnnotationDragEndLogic = createLogic({
+  transform: (
+    deps: ReduxLogicTransformDependenciesWithAction<
+      OnTemplateAnnotationDragEndAction
+    >,
+    next: ReduxLogicNextCb,
+    reject?: ReduxLogicRejectCb
+  ) => {
+    const result = deps.action.payload;
+    const template = getTemplateDraft(deps.getState());
+    if (!result.destination) {
+      reject && reject(deps.action);
+      return;
+    }
+
+    const annotations = [...template.annotations];
+    const [removedAnnotation] = annotations.splice(result.source.index, 1);
+    annotations.splice(result.destination.index, 0, removedAnnotation);
+    const reorderedAnnotations = annotations.map((annotation, orderIndex) => ({
+      ...annotation,
+      orderIndex,
+    }));
+    next(updateTemplateDraft({ annotations: reorderedAnnotations }));
+  },
+  type: ON_TEMPLATE_ANNOTATION_DRAG_END,
+});
+
 const saveTemplateLogic = createLogic({
   process: async (
     { getState, mmsClient }: ReduxLogicProcessDependencies,
@@ -453,5 +483,6 @@ export default [
   removeAnnotationsLogic,
   saveTemplateLogic,
   applyExistingTemplateAnnotationsLogic,
+  onTemplateAnnotationDragEndLogic,
   openTemplateEditorLogic,
 ];

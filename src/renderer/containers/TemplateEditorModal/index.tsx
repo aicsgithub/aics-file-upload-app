@@ -14,7 +14,6 @@ import { ColumnProps } from "antd/es/table";
 import { ipcRenderer } from "electron";
 import { castArray, trim } from "lodash";
 import * as React from "react";
-import { DropResult } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps, useTable, useBlockLayout, Column } from "react-table";
 
@@ -35,6 +34,7 @@ import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
   addExistingAnnotation,
   addExistingTemplate,
+  onTemplateAnnotationDragEnd,
   removeAnnotations,
   saveTemplate,
   updateTemplateDraft,
@@ -165,18 +165,6 @@ function TemplateEditorModal(props: Props) {
   function onCloseAnnotationModal() {
     setAnnotationToEdit(undefined);
     setShowAnnotationEditor(false);
-  }
-
-  function onRowDragEnd(result: DropResult) {
-    if (result.destination) {
-      const annotations = [...template.annotations];
-      const [removedAnnotation] = annotations.splice(result.source.index, 1);
-      annotations.splice(result.destination.index, 0, removedAnnotation);
-      const reorderedAnnotations = annotations.map(
-        (annotation, orderIndex) => ({ ...annotation, orderIndex })
-      );
-      dispatch(updateTemplateDraft({ annotations: reorderedAnnotations }));
-    }
   }
 
   function onAddAnnotation(annotation: AnnotationWithOptions) {
@@ -410,7 +398,11 @@ function TemplateEditorModal(props: Props) {
               <Table
                 className={styles.annotationList}
                 tableInstance={tableInstance}
-                dragAndDropOptions={{ id: "TemplateAnnotations", onRowDragEnd }}
+                dragAndDropOptions={{
+                  id: "TemplateAnnotations",
+                  onRowDragEnd: (result) =>
+                    dispatch(onTemplateAnnotationDragEnd(result)),
+                }}
               />
               {!!focusedAnnotationData.length && (
                 <AntdTable

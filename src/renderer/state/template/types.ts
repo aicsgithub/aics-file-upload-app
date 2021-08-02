@@ -1,3 +1,5 @@
+import { DropResult } from "react-beautiful-dnd";
+
 import { Annotation, Audited } from "../../services/labkey-client/types";
 import {
   AnnotationMetadataRequest,
@@ -62,6 +64,11 @@ export interface JumpToPastTemplateAction {
 
 export interface RemoveAnnotationsAction {
   payload: number[];
+  type: string;
+}
+
+export interface OnTemplateAnnotationDragEndAction {
+  payload: DropResult;
   type: string;
 }
 
