@@ -26,12 +26,12 @@ import { determineFilesFromNestedPaths, splitTrimAndFilter } from "../../util";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
-import { setPlateBarcodeToImagingSessions } from "../metadata/actions";
+import { setPlateBarcodeToPlates } from "../metadata/actions";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
-  getPlateBarcodeToImagingSessions,
+  getPlateBarcodeToPlates,
 } from "../metadata/selectors";
 import { closeUpload, viewUploads, resetUpload } from "../route/actions";
 import {
@@ -60,6 +60,7 @@ import {
   UploadProgressInfo,
   UploadStateBranch,
   FileModel,
+  PlateAtImagingSession,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -640,40 +641,38 @@ const updateUploadLogic = createLogic({
     // If a plate barcode is being updated check for imaging sessions
     const plateBarcode = upload[AnnotationName.PLATE_BARCODE]?.[0];
     if (plateBarcode) {
-      const plateBarcodeToImagingSessions = getPlateBarcodeToImagingSessions(
-        deps.getState()
-      );
+      const plateBarcodeToPlates = getPlateBarcodeToPlates(deps.getState());
       // Avoid re-querying for the imaging sessions if this
       // plate barcode has been selected before
-      if (!Object.keys(plateBarcodeToImagingSessions).includes(plateBarcode)) {
+      if (!Object.keys(plateBarcodeToPlates).includes(plateBarcode)) {
         const imagingSessionsForPlateBarcode = await deps.labkeyClient.findImagingSessionsByPlateBarcode(
           plateBarcode
         );
-        const imagingSessionsWithPlateInfo = await Promise.all(
-          [undefined, ...imagingSessionsForPlateBarcode].map(async (is) => {
+        const imagingSessionsWithPlateInfo: PlateAtImagingSession[] = await Promise.all(
+          imagingSessionsForPlateBarcode.map(async (is) => {
             const { wells } = await deps.mmsClient.getPlate(
               plateBarcode,
-              is?.["ImagingSessionId"]
+              is["ImagingSessionId"]
             );
 
             return {
               wells,
-              imagingSessionId: is?.["ImagingSessionId"],
-              name: is?.["ImagingSessionId/Name"],
+              imagingSessionId: is["ImagingSessionId"],
+              name: is["ImagingSessionId/Name"],
             };
           })
         );
 
+        // If the barcode has no imaging sessions, find info of plate without
+        if (!imagingSessionsWithPlateInfo.length) {
+          const { wells } = await deps.mmsClient.getPlate(plateBarcode);
+          imagingSessionsWithPlateInfo.push({ wells });
+        }
+
         dispatch(
-          setPlateBarcodeToImagingSessions({
-            ...plateBarcodeToImagingSessions,
-            [plateBarcode]: imagingSessionsWithPlateInfo.reduce(
-              (accum, is) => ({
-                ...accum,
-                [is.imagingSessionId || 0]: is,
-              }),
-              {}
-            ),
+          setPlateBarcodeToPlates({
+            ...plateBarcodeToPlates,
+            [plateBarcode]: imagingSessionsWithPlateInfo,
           })
         );
       }

@@ -22,9 +22,9 @@ import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
-import { setPlateBarcodeToImagingSessions } from "../../metadata/actions";
-import { SET_PLATE_BARCODE_TO_IMAGING_SESSIONS } from "../../metadata/constants";
-import { getPlateBarcodeToImagingSessions } from "../../metadata/selectors";
+import { setPlateBarcodeToPlates } from "../../metadata/actions";
+import { SET_PLATE_BARCODE_TO_PLATES } from "../../metadata/constants";
+import { getPlateBarcodeToPlates } from "../../metadata/selectors";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -1265,12 +1265,11 @@ describe("Upload logics", () => {
       // after
       const upload = getUpload(store.getState());
       expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
-      expect(
-        actions.includesMatch({ type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS })
-      ).to.be.false;
+      expect(actions.includesMatch({ type: SET_PLATE_BARCODE_TO_PLATES })).to.be
+        .false;
     });
 
-    it("sets plateBarcodeToImagingSessions if update includes plate barcode", async () => {
+    it("sets plateBarcodeToPlates if update includes plate barcode", async () => {
       // Arrange
       const { actions, store, logicMiddleware } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
@@ -1293,18 +1292,13 @@ describe("Upload logics", () => {
       });
       const plateBarcode = "490109230";
       const expected = {
-        [plateBarcode]: {
-          [9]: {
+        [plateBarcode]: [
+          {
             name: "imaging session 9",
             imagingSessionId: 9,
             wells: [],
           },
-          [0]: {
-            name: undefined,
-            imagingSessionId: undefined,
-            wells: [],
-          },
-        },
+        ],
       };
       labkeyClient.findImagingSessionsByPlateBarcode.resolves([
         { ImagingSessionId: 9, "ImagingSessionId/Name": "imaging session 9" },
@@ -1330,36 +1324,31 @@ describe("Upload logics", () => {
       await logicMiddleware.whenComplete();
 
       // Assert
-      expect(getPlateBarcodeToImagingSessions(store.getState())).to.deep.equal(
-        expected
-      );
-      expect(actions.includesMatch(setPlateBarcodeToImagingSessions(expected)))
-        .to.be.true;
+      expect(getPlateBarcodeToPlates(store.getState())).to.deep.equal(expected);
+      expect(actions.includesMatch(setPlateBarcodeToPlates(expected))).to.be
+        .true;
       expect(
         getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
       ).to.deep.equal([plateBarcode]);
     });
 
-    it("does not set plateBarcodeToImagingSessions if already queried for plate barcode", async () => {
+    it("does not set plateBarcodeToPlates if already queried for plate barcode", async () => {
       // Arrange
       const plateBarcode = "490109230";
       const expected = {
-        [plateBarcode]: {
-          [9]: {
+        [plateBarcode]: [
+          {
             name: "imaging session 9",
             imagingSessionId: 9,
             wells: [],
           },
-          [0]: {
-            wells: [],
-          },
-        },
+        ],
       };
       const { actions, store, logicMiddleware } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
         metadata: {
           ...nonEmptyStateForInitiatingUpload.metadata,
-          plateBarcodeToImagingSessions: expected,
+          plateBarcodeToPlates: expected,
         },
         template: {
           ...mockTemplateStateBranch,
@@ -1388,11 +1377,68 @@ describe("Upload logics", () => {
       await logicMiddleware.whenComplete();
 
       // Assert
-      expect(getPlateBarcodeToImagingSessions(store.getState())).to.deep.equal(
-        expected
+      expect(getPlateBarcodeToPlates(store.getState())).to.deep.equal(expected);
+      expect(actions.includesMatch(setPlateBarcodeToPlates(expected))).to.be
+        .false;
+      expect(
+        getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
+      ).to.deep.equal([plateBarcode]);
+    });
+
+    it("queries for plate barcode without imaging session if none found", async () => {
+      // Arrange
+      const plateBarcode = "490139230";
+      const expected = {
+        [plateBarcode]: [
+          {
+            wells: [],
+          },
+        ],
+      };
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            annotations: [mockTextAnnotation],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [uploadRowKey]: {
+            [mockTextAnnotation.name]: [],
+            file: "/path/to/file3",
+            [AnnotationName.NOTES]: [],
+            templateId: 8,
+            [AnnotationName.WELL]: [],
+          },
+        }),
+      });
+      labkeyClient.findImagingSessionsByPlateBarcode.resolves([]);
+      mmsClient.getPlate.resolves({
+        plate: {
+          barcode: "",
+          comments: "",
+          plateGeometryId: 8,
+          plateId: 14,
+          plateStatusId: 3,
+          ...mockAuditInfo,
+        },
+        wells: [],
+      });
+
+      // Act
+      store.dispatch(
+        updateUpload(uploadRowKey, {
+          [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+        })
       );
-      expect(actions.includesMatch(setPlateBarcodeToImagingSessions(expected)))
-        .to.be.false;
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(getPlateBarcodeToPlates(store.getState())).to.deep.equal(expected);
+      expect(actions.includesMatch(setPlateBarcodeToPlates(expected))).to.be
+        .true;
       expect(
         getUpload(store.getState())[uploadRowKey][AnnotationName.PLATE_BARCODE]
       ).to.deep.equal([plateBarcode]);

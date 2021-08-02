@@ -17,8 +17,8 @@ import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
-import { SET_PLATE_BARCODE_TO_IMAGING_SESSIONS } from "../../metadata/constants";
-import { getPlateBarcodeToImagingSessions } from "../../metadata/selectors";
+import { SET_PLATE_BARCODE_TO_PLATES } from "../../metadata/constants";
+import { getPlateBarcodeToPlates } from "../../metadata/selectors";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -456,7 +456,15 @@ describe("Route logics", () => {
         },
       });
       expect(getAppliedTemplate(state)).to.not.be.undefined;
-      expect(getPlateBarcodeToImagingSessions(state)).to.not.be.empty;
+      expect(getPlateBarcodeToPlates(state)).to.deep.equal({
+        abc: [
+          {
+            imagingSessionId: 4,
+            name: "3 hours",
+            wells: [],
+          },
+        ],
+      });
     });
     it("dispatches requestFailed if boolean annotation type id is not defined", async () => {
       stubMethods({});
@@ -507,10 +515,10 @@ describe("Route logics", () => {
       store.dispatch(viewUploads([mockSuccessfulUploadJob]));
       await logicMiddleware.whenComplete();
 
-      expect(getPlateBarcodeToImagingSessions(store.getState())).to.be.empty;
+      expect(getPlateBarcodeToPlates(store.getState())).to.be.empty;
       expect(
         actions.includesMatch({
-          type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+          type: SET_PLATE_BARCODE_TO_PLATES,
         })
       );
     });

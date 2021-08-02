@@ -1199,6 +1199,41 @@ describe("Upload selectors", () => {
         )
       ).to.be.true;
     });
+    it("adds error if imaging sessions available, but not selected", () => {
+      const plateBarcode = "1230941";
+      const errors = getUploadValidationErrors({
+        ...nonEmptyStateForInitiatingUpload,
+        metadata: {
+          ...nonEmptyStateForInitiatingUpload.metadata,
+          plateBarcodeToPlates: {
+            [plateBarcode]: [
+              {
+                name: "2 hours",
+                imagingSessionId: 3,
+                wells: [],
+              },
+            ],
+          },
+        },
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "foo" })]: {
+            "Favorite Color": ["blue"],
+            barcode: "abc",
+            file: "foo",
+            key: getUploadRowKey({ file: "foo" }),
+            [AnnotationName.NOTES]: [],
+            [AnnotationName.IMAGING_SESSION]: [],
+            [AnnotationName.PLATE_BARCODE]: [plateBarcode],
+            [AnnotationName.WELL]: [1],
+          },
+        }),
+      });
+      expect(
+        errors.includes(
+          `"foo" is missing the following required annotations: ${AnnotationName.IMAGING_SESSION}`
+        )
+      ).to.be.true;
+    });
     it("adds error if an annotation value is not formatted correctly", () => {
       const file = "foo";
       const key = getUploadRowKey({ file });

@@ -20,3 +20,7 @@ export const MAIN_FONT_WIDTH = 8.45; // px
 export const MINUTE_AS_MS = 60 * 1000;
 export const HOUR_AS_MS = 60 * MINUTE_AS_MS;
 export const DAY_AS_MS = 24 * HOUR_AS_MS;
+
+// Delay before mouseover tooltips appear / disappear in seconds
+export const TOOLTIP_ENTER_DELAY = 0.5;
+export const TOOLTIP_LEAVE_DELAY = 0;

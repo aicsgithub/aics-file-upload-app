@@ -7,6 +7,10 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { CellProps } from "react-table";
 
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
 import { openSubFileSelectionModal } from "../../../../state/selection/actions";
 import { TutorialStep } from "../../../../state/types";
 import { UploadTableRow } from "../../../../state/upload/types";
@@ -65,7 +69,11 @@ export default function FilenameCell({
           {...row.getToggleRowExpandedProps({})}
         />
       )}
-      <Tooltip mouseLeaveDelay={0} title={file}>
+      <Tooltip
+        title={file}
+        mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+        mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+      >
         <input
           readOnly
           tabIndex={-1}
@@ -85,8 +93,9 @@ export default function FilenameCell({
           message="Click here to annotate scenes, positions, or FOVs within a file"
         >
           <Tooltip
-            mouseLeaveDelay={0}
             title="Click here to annotate scenes, positions, or FOVs within a file"
+            mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+            mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
           >
             <Icon
               className={styles.subFileModalIcon}

@@ -2,7 +2,7 @@ import { BarcodePrefix } from "../../services/labkey-client/types";
 import {
   AsyncRequest,
   MetadataStateBranch,
-  PlateBarcodeToImagingSessions,
+  PlateBarcodeToPlates,
 } from "../types";
 
 import {
@@ -16,7 +16,7 @@ import {
   REQUEST_ANNOTATION_USAGE,
   REQUEST_METADATA,
   RESET_HISTORY,
-  SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+  SET_PLATE_BARCODE_TO_PLATES,
 } from "./constants";
 import { initialState } from "./reducer";
 import {
@@ -30,7 +30,7 @@ import {
   RequestAnnotationUsage,
   RequestMetadataAction,
   ResetHistoryAction,
-  SetPlateBarcodeToImagingSessionsAction,
+  SetPlateBarcodeToPlatesAction,
 } from "./types";
 
 export function requestAnnotationUsage(
@@ -105,12 +105,12 @@ export function requestBarcodeSearchResults(
   };
 }
 
-export function setPlateBarcodeToImagingSessions(
-  plateBarcodeToImagingSessions: PlateBarcodeToImagingSessions
-): SetPlateBarcodeToImagingSessionsAction {
+export function setPlateBarcodeToPlates(
+  plateBarcodeToPlates: PlateBarcodeToPlates
+): SetPlateBarcodeToPlatesAction {
   return {
-    payload: plateBarcodeToImagingSessions,
-    type: SET_PLATE_BARCODE_TO_IMAGING_SESSIONS,
+    payload: plateBarcodeToPlates,
+    type: SET_PLATE_BARCODE_TO_PLATES,
   };
 }
 

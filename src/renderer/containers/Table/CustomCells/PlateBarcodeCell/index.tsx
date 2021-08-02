@@ -4,7 +4,10 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CellProps } from "react-table";
 
-import { AnnotationName } from "../../../../constants";
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
 import { BarcodePrefix } from "../../../../services/labkey-client/types";
 import { getRequestsInProgress } from "../../../../state/feedback/selectors";
 import {
@@ -56,8 +59,6 @@ export default function PlateBarcodeCell(
     dispatch(
       updateUpload(props.row.id, {
         [props.column.id]: barcode ? [barcode] : [],
-        [AnnotationName.IMAGING_SESSION]: [],
-        [AnnotationName.WELL]: [],
       })
     );
   }
@@ -101,7 +102,13 @@ export default function PlateBarcodeCell(
                       key={bp.prefix}
                       onMouseDown={() => onBarcodePrefixMouseDown(bp)}
                     >
-                      <Tooltip overlay={bp.description}>{bp.prefix}</Tooltip>
+                      <Tooltip
+                        overlay={bp.description}
+                        mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+                        mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+                      >
+                        {bp.prefix}
+                      </Tooltip>
                     </Menu.Item>
                   ))}
                 </SubMenu>
@@ -112,7 +119,7 @@ export default function PlateBarcodeCell(
         mode="default"
         optionsLoadingOverride={isLoading}
         optionsOverride={barcodeSearchResults}
-        placeholder="Type to search"
+        placeholder="Search..."
         retrieveOptionsOverride={(i?: string) =>
           i && dispatch(requestBarcodeSearchResults(i))
         }

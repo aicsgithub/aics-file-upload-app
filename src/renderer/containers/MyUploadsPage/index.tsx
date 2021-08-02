@@ -7,6 +7,7 @@ import { Row } from "react-table";
 
 import DragAndDrop from "../../components/DragAndDrop";
 import NewUploadMenu from "../../components/NewUploadMenu";
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_LEAVE_DELAY } from "../../constants";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,
@@ -134,7 +135,11 @@ export default function MyUploadsPage() {
           <h2>My Uploads</h2>
           <div className={styles.tableToolBar}>
             <div>
-              <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
+              <Tooltip
+                title="View Selected Uploads"
+                mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+                mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+              >
                 <Button
                   className={styles.tableToolBarButton}
                   onClick={onView}
@@ -144,7 +149,11 @@ export default function MyUploadsPage() {
                   View
                 </Button>
               </Tooltip>
-              <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
+              <Tooltip
+                title="Retry Selected Uploads"
+                mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+                mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+              >
                 <Button
                   className={styles.tableToolBarButton}
                   onClick={onRetry}
@@ -156,7 +165,11 @@ export default function MyUploadsPage() {
                   Retry
                 </Button>
               </Tooltip>
-              <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
+              <Tooltip
+                title="Cancel Selected Uploads"
+                mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+                mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+              >
                 <Button
                   className={styles.tableToolBarButton}
                   onClick={onCancel}

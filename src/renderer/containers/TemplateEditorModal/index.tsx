@@ -24,6 +24,7 @@ import {
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_LEAVE_DELAY } from "../../constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import {
   getRequestsInProgress,
@@ -198,7 +199,13 @@ function TemplateEditorModal(props: Props) {
                 .includes(annotationSearchValue?.toLowerCase() || "")
           )
           .map((a) => (
-            <Tooltip key={a.name} overlay={a.description} placement="left">
+            <Tooltip
+              key={a.name}
+              overlay={a.description}
+              placement="left"
+              mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+              mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+            >
               <Button onClick={() => onAddAnnotation(a)}>{a.name}</Button>
             </Tooltip>
           ))}

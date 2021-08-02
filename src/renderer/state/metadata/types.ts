@@ -2,7 +2,7 @@ import { BarcodePrefix } from "../../services/labkey-client/types";
 import {
   AsyncRequest,
   MetadataStateBranch,
-  PlateBarcodeToImagingSessions,
+  PlateBarcodeToPlates,
 } from "../types";
 
 export interface GetOptionsForLookupAction {
@@ -61,7 +61,7 @@ export interface ResetHistoryAction {
   type: string;
 }
 
-export interface SetPlateBarcodeToImagingSessionsAction {
-  payload: PlateBarcodeToImagingSessions;
+export interface SetPlateBarcodeToPlatesAction {
+  payload: PlateBarcodeToPlates;
   type: string;
 }

@@ -34,8 +34,8 @@ export const getImagingSessions = (state: State) =>
 export const getLookups = (state: State) => state.metadata.lookups;
 export const getOriginalUpload = (state: State) =>
   state.metadata.originalUpload;
-export const getPlateBarcodeToImagingSessions = (state: State) =>
-  state.metadata.plateBarcodeToImagingSessions;
+export const getPlateBarcodeToPlates = (state: State) =>
+  state.metadata.plateBarcodeToPlates;
 export const getTemplates = (state: State) => state.metadata.templates;
 export const getUnits = (state: State) => state.metadata.units;
 export const getUploadHistory = (state: State) => state.metadata.history.upload;
