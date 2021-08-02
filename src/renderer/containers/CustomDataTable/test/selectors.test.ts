@@ -75,6 +75,31 @@ describe("CustomDataTable selectors", () => {
       ]);
     });
 
+    it("sorts annotations according to orderIndex", () => {
+      // Arrange
+      const state = {
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          annotationTypes,
+        },
+        template: {
+          ...mockTemplateStateBranch,
+          appliedTemplate,
+        },
+      };
+
+      // Act
+      const actual = getTemplateColumnsForTable(state);
+
+      // Assert
+      expect(actual).to.be.lengthOf(4);
+      actual.slice(1).forEach((column, index) => {
+        const match = annotations.find((a) => a.orderIndex === index);
+        expect(column.accessor).to.deep.equal(match?.name);
+      });
+    });
+
     it("includes well when plate barcode is present in upload", () => {
       // Arrange
       const expected = [
