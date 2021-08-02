@@ -87,6 +87,8 @@ export default function Table<T extends {}>(props: Props<T>) {
           onDragEnd={props.dragAndDropOptions?.onRowDragEnd || noop}
         >
           <Droppable
+            // Droppable ID uniqueId() scenario will be effectively unused
+            // since drop is disabled when id is not given to this component
             droppableId={props.dragAndDropOptions?.id || uniqueId()}
             isDropDisabled={!props.dragAndDropOptions}
             mode="virtual"
