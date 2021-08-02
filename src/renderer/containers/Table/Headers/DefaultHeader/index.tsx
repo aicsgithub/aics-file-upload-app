@@ -2,6 +2,11 @@ import { Icon, Tooltip } from "antd";
 import * as React from "react";
 import { HeaderProps } from "react-table";
 
+import {
+  TOOLTIP_ENTER_DELAY,
+  TOOLTIP_LEAVE_DELAY,
+} from "../../../../constants";
+
 const styles = require("./styles.pcss");
 
 /*
@@ -13,7 +18,11 @@ export default function DefaultHeader<T extends {}>({
   name,
 }: HeaderProps<T>) {
   return (
-    <Tooltip title={column.description}>
+    <Tooltip
+      title={column.description}
+      mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+      mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+    >
       <div className={styles.header}>
         {name || column.id} {column.isRequired && "* "}
         {column.isSorted && (

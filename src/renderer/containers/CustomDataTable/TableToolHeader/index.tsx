@@ -4,6 +4,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Row } from "react-table";
 
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_LEAVE_DELAY } from "../../../constants";
 import { startMassEdit } from "../../../state/selection/actions";
 import {
   getIsExistingUpload,
@@ -42,7 +43,11 @@ export default function TableToolHeader(props: Props) {
 
   return (
     <div className={styles.tableToolHeader}>
-      <Tooltip title="Undo" mouseLeaveDelay={0}>
+      <Tooltip
+        title="Undo"
+        mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+        mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+      >
         <Button
           onClick={() => dispatch(jumpToUpload(-1))}
           disabled={!canUndo}
@@ -50,7 +55,11 @@ export default function TableToolHeader(props: Props) {
           type="link"
         />
       </Tooltip>
-      <Tooltip title="Redo" mouseLeaveDelay={0}>
+      <Tooltip
+        title="Redo"
+        mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+        mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+      >
         <Button
           onClick={() => dispatch(jumpToUpload(1))}
           disabled={!canRedo}
@@ -64,7 +73,11 @@ export default function TableToolHeader(props: Props) {
         title="Mass Edit"
         message="Select rows and click here to edit multiple rows at once"
       >
-        <Tooltip title="Edit Selected Rows All at Once" mouseLeaveDelay={0}>
+        <Tooltip
+          title="Edit Selected Rows All at Once"
+          mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+          mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+        >
           <Button
             onClick={() => dispatch(startMassEdit(selectedRowIds))}
             disabled={isEmpty(props.selectedRows)}
@@ -73,7 +86,11 @@ export default function TableToolHeader(props: Props) {
           />
         </Tooltip>
       </TutorialTooltip>
-      <Tooltip title="Delete Selected Rows" mouseLeaveDelay={0}>
+      <Tooltip
+        title="Delete Selected Rows"
+        mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+        mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+      >
         <Button
           onClick={() => dispatch(removeUploads(selectedRowIds))}
           disabled={isEmpty(props.selectedRows) || isExistingUpload}

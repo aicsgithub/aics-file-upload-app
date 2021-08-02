@@ -22,6 +22,7 @@ import {
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_LEAVE_DELAY } from "../../constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import {
   getRequestsInProgress,
@@ -170,7 +171,15 @@ function TemplateEditorModal(props: Props) {
       key: "name",
       title: "Name",
       render: function TooltipName(name: string, row) {
-        return <Tooltip overlay={row.description}>{name}</Tooltip>;
+        return (
+          <Tooltip
+            overlay={row.description}
+            mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+            mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+          >
+            {name}
+          </Tooltip>
+        );
       },
     },
     {
@@ -259,7 +268,13 @@ function TemplateEditorModal(props: Props) {
                 .includes(annotationSearchValue?.toLowerCase() || "")
           )
           .map((a) => (
-            <Tooltip key={a.name} overlay={a.description} placement="left">
+            <Tooltip
+              key={a.name}
+              overlay={a.description}
+              placement="left"
+              mouseEnterDelay={TOOLTIP_ENTER_DELAY}
+              mouseLeaveDelay={TOOLTIP_LEAVE_DELAY}
+            >
               <Button onClick={() => dispatch(addExistingAnnotation(a))}>
                 {a.name}
               </Button>
