@@ -392,6 +392,14 @@ export const mockSuccessfulUploadJob: JSSJob = {
     copyJobId: "copyJobId1",
     result: [{ fileId: "cat" }, { fileId: "dog" }],
     type: "upload",
+    postUploadProcessing: {
+      etl: {
+        service: "fms-mongo-etl",
+        status: JSSJobStatus.SUCCEEDED,
+        created: new Date(),
+        modified: new Date(),
+      },
+    },
   },
   status: JSSJobStatus.SUCCEEDED,
   user: "test_user",

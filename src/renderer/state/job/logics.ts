@@ -8,6 +8,7 @@ import {
   JSSJobStatus,
   UploadStage,
 } from "../../services/job-status-client/types";
+import { UploadServiceFields } from "../../services/types";
 import { setErrorAlert, setInfoAlert } from "../feedback/actions";
 import { handleUploadProgress } from "../stateHelpers";
 import {
@@ -70,6 +71,19 @@ export const handleAbandonedJobsLogic = createLogic({
   warnTimeout: 0,
 });
 
+// The File Upload App considers a job to be successful and complete when
+// the upload job itself as well as the FMS Mongo ETL post upload process
+// have a successful status
+function isJobSuccessfulAndComplete(
+  job?: JSSJob<UploadServiceFields>
+): boolean {
+  return (
+    job?.status === JSSJobStatus.SUCCEEDED &&
+    job?.serviceFields?.postUploadProcessing?.etl?.status ===
+      JSSJobStatus.SUCCEEDED
+  );
+}
+
 // When the app receives a job update, it will also alert the user if the job update means that a upload succeeded or failed.
 const receiveJobUpdateLogics = createLogic({
   process: (
@@ -84,20 +98,22 @@ const receiveJobUpdateLogics = createLogic({
     const jobName = updatedJob.jobName || "";
     const previousJob: JSSJob = ctx.previousJob;
 
-    if (updatedJob.status !== previousJob.status) {
-      if (updatedJob.status === JSSJobStatus.SUCCEEDED) {
-        dispatch(uploadSucceeded(jobName));
-      } else if (
-        !updatedJob.serviceFields?.cancelled &&
-        FAILED_STATUSES.includes(updatedJob.status)
-      ) {
-        const error = `Upload ${jobName} failed${
-          updatedJob?.serviceFields?.error
-            ? `: ${updatedJob?.serviceFields?.error}`
-            : ""
-        }`;
-        dispatch(uploadFailed(error, jobName));
-      }
+    if (
+      isJobSuccessfulAndComplete(updatedJob) &&
+      !isJobSuccessfulAndComplete(previousJob)
+    ) {
+      dispatch(uploadSucceeded(jobName));
+    } else if (
+      FAILED_STATUSES.includes(updatedJob.status) &&
+      !FAILED_STATUSES.includes(previousJob.status) &&
+      !updatedJob.serviceFields?.cancelled
+    ) {
+      const error = `Upload ${jobName} failed${
+        updatedJob?.serviceFields?.error
+          ? `: ${updatedJob?.serviceFields?.error}`
+          : ""
+      }`;
+      dispatch(uploadFailed(error, jobName));
     }
 
     done();

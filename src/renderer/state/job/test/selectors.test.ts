@@ -52,7 +52,7 @@ describe("Job selectors", () => {
             job.jobName === jobTableRow.jobName &&
             job.jobId === jobTableRow.jobId &&
             job.currentStage === jobTableRow.currentStage &&
-            job.status === jobTableRow.status
+            jobTableRow.status === job.status
           );
         });
         if (jobTableRow.status === JSSJobStatus.WORKING) {
