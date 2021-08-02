@@ -97,7 +97,7 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
   }
 
   return (
-    <Tooltip title={tooltip}>
+    <Tooltip title={tooltip} mouseEnterDelay={0.5} mouseLeaveDelay={0}>
       <div className={styles.container}>{content}</div>
     </Tooltip>
   );

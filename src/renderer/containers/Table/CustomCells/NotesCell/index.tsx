@@ -194,7 +194,11 @@ function NotesCell(props: Props) {
           </>
         )}
       </Modal>
-      <Tooltip title={note ? `${note?.substring(0, 50)}...` : ""}>
+      <Tooltip
+        title={note ? `${note?.substring(0, 50)}...` : ""}
+        mouseEnterDelay={0.5}
+        mouseLeaveDelay={0}
+      >
         <div className={styles.alignCenter} onContextMenu={onContextMenu}>
           {(!props.column.isReadOnly || notes) && (
             <Icon

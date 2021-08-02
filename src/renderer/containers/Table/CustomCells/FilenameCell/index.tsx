@@ -65,7 +65,7 @@ export default function FilenameCell({
           {...row.getToggleRowExpandedProps({})}
         />
       )}
-      <Tooltip mouseLeaveDelay={0} title={file}>
+      <Tooltip title={file} mouseEnterDelay={0.5} mouseLeaveDelay={0}>
         <input
           readOnly
           tabIndex={-1}
@@ -85,8 +85,9 @@ export default function FilenameCell({
           message="Click here to annotate scenes, positions, or FOVs within a file"
         >
           <Tooltip
-            mouseLeaveDelay={0}
             title="Click here to annotate scenes, positions, or FOVs within a file"
+            mouseEnterDelay={0.5}
+            mouseLeaveDelay={0}
           >
             <Icon
               className={styles.subFileModalIcon}

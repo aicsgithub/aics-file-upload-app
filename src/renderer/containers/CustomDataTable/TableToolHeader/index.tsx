@@ -42,7 +42,7 @@ export default function TableToolHeader(props: Props) {
 
   return (
     <div className={styles.tableToolHeader}>
-      <Tooltip title="Undo" mouseLeaveDelay={0}>
+      <Tooltip title="Undo" mouseEnterDelay={0.5} mouseLeaveDelay={0}>
         <Button
           onClick={() => dispatch(jumpToUpload(-1))}
           disabled={!canUndo}
@@ -50,7 +50,7 @@ export default function TableToolHeader(props: Props) {
           type="link"
         />
       </Tooltip>
-      <Tooltip title="Redo" mouseLeaveDelay={0}>
+      <Tooltip title="Redo" mouseEnterDelay={0.5} mouseLeaveDelay={0}>
         <Button
           onClick={() => dispatch(jumpToUpload(1))}
           disabled={!canRedo}
@@ -64,7 +64,11 @@ export default function TableToolHeader(props: Props) {
         title="Mass Edit"
         message="Select rows and click here to edit multiple rows at once"
       >
-        <Tooltip title="Edit Selected Rows All at Once" mouseLeaveDelay={0}>
+        <Tooltip
+          title="Edit Selected Rows All at Once"
+          mouseEnterDelay={0.5}
+          mouseLeaveDelay={0}
+        >
           <Button
             onClick={() => dispatch(startMassEdit(selectedRowIds))}
             disabled={isEmpty(props.selectedRows)}
@@ -73,7 +77,11 @@ export default function TableToolHeader(props: Props) {
           />
         </Tooltip>
       </TutorialTooltip>
-      <Tooltip title="Delete Selected Rows" mouseLeaveDelay={0}>
+      <Tooltip
+        title="Delete Selected Rows"
+        mouseEnterDelay={0.5}
+        mouseLeaveDelay={0}
+      >
         <Button
           onClick={() => dispatch(removeUploads(selectedRowIds))}
           disabled={isEmpty(props.selectedRows) || isExistingUpload}

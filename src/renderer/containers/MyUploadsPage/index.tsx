@@ -134,7 +134,11 @@ export default function MyUploadsPage() {
           <h2>My Uploads</h2>
           <div className={styles.tableToolBar}>
             <div>
-              <Tooltip title="View Selected Uploads" mouseLeaveDelay={0}>
+              <Tooltip
+                title="View Selected Uploads"
+                mouseEnterDelay={0.5}
+                mouseLeaveDelay={0}
+              >
                 <Button
                   className={styles.tableToolBarButton}
                   onClick={onView}
@@ -144,7 +148,11 @@ export default function MyUploadsPage() {
                   View
                 </Button>
               </Tooltip>
-              <Tooltip title="Retry Selected Uploads" mouseLeaveDelay={0}>
+              <Tooltip
+                title="Retry Selected Uploads"
+                mouseEnterDelay={0.5}
+                mouseLeaveDelay={0}
+              >
                 <Button
                   className={styles.tableToolBarButton}
                   onClick={onRetry}
@@ -156,7 +164,11 @@ export default function MyUploadsPage() {
                   Retry
                 </Button>
               </Tooltip>
-              <Tooltip title="Cancel Selected Uploads" mouseLeaveDelay={0}>
+              <Tooltip
+                title="Cancel Selected Uploads"
+                mouseEnterDelay={0.5}
+                mouseLeaveDelay={0}
+              >
                 <Button
                   className={styles.tableToolBarButton}
                   onClick={onCancel}

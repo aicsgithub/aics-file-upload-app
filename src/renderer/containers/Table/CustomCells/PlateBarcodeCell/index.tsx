@@ -98,7 +98,13 @@ export default function PlateBarcodeCell(
                       key={bp.prefix}
                       onMouseDown={() => onBarcodePrefixMouseDown(bp)}
                     >
-                      <Tooltip overlay={bp.description}>{bp.prefix}</Tooltip>
+                      <Tooltip
+                        overlay={bp.description}
+                        mouseEnterDelay={0.5}
+                        mouseLeaveDelay={0}
+                      >
+                        {bp.prefix}
+                      </Tooltip>
                     </Menu.Item>
                   ))}
                 </SubMenu>

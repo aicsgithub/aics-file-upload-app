@@ -170,7 +170,15 @@ function TemplateEditorModal(props: Props) {
       key: "name",
       title: "Name",
       render: function TooltipName(name: string, row) {
-        return <Tooltip overlay={row.description}>{name}</Tooltip>;
+        return (
+          <Tooltip
+            overlay={row.description}
+            mouseEnterDelay={0.5}
+            mouseLeaveDelay={0}
+          >
+            {name}
+          </Tooltip>
+        );
       },
     },
     {
@@ -259,7 +267,13 @@ function TemplateEditorModal(props: Props) {
                 .includes(annotationSearchValue?.toLowerCase() || "")
           )
           .map((a) => (
-            <Tooltip key={a.name} overlay={a.description} placement="left">
+            <Tooltip
+              key={a.name}
+              overlay={a.description}
+              placement="left"
+              mouseEnterDelay={0.5}
+              mouseLeaveDelay={0}
+            >
               <Button onClick={() => dispatch(addExistingAnnotation(a))}>
                 {a.name}
               </Button>

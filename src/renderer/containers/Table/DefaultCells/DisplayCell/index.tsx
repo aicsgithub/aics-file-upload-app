@@ -195,6 +195,7 @@ export default function DisplayCell(props: Props) {
     <Tooltip
       arrowPointAtCenter
       autoAdjustOverflow
+      mouseEnterDelay={0.5}
       mouseLeaveDelay={0}
       title={cellAtDragStart ? "" : displayValue}
     >
@@ -227,7 +228,11 @@ export default function DisplayCell(props: Props) {
             value={displayValue}
           />
           {shouldShowError && (
-            <Tooltip title={`${props.column.id} is required`}>
+            <Tooltip
+              title={`${props.column.id} is required`}
+              mouseEnterDelay={0.5}
+              mouseLeaveDelay={0}
+            >
               <Icon
                 className={styles.errorIcon}
                 type="close-circle"

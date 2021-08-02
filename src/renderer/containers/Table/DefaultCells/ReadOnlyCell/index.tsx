@@ -20,8 +20,8 @@ export default function ReadOnlyCell<T extends {}>(props: CellProps<T>) {
     <Tooltip
       arrowPointAtCenter
       autoAdjustOverflow
+      mouseEnterDelay={0.5}
       mouseLeaveDelay={0}
-      mouseEnterDelay={1}
       title={displayValue}
     >
       <input readOnly className={styles.readOnlyCell} value={displayValue} />

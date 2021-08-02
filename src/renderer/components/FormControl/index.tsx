@@ -37,7 +37,12 @@ const FormControl: React.FunctionComponent<Props> = ({
     <div className={styles.body}>
       <div className={styles.form}>{children}</div>
       {error && (
-        <Tooltip title={error} className={styles.errorIcon}>
+        <Tooltip
+          title={error}
+          className={styles.errorIcon}
+          mouseEnterDelay={0.5}
+          mouseLeaveDelay={0}
+        >
           <Icon type="close-circle" theme="filled" />
         </Tooltip>
       )}

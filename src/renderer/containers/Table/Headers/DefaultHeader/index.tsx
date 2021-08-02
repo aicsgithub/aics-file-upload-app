@@ -13,7 +13,11 @@ export default function DefaultHeader<T extends {}>({
   name,
 }: HeaderProps<T>) {
   return (
-    <Tooltip title={column.description}>
+    <Tooltip
+      title={column.description}
+      mouseEnterDelay={0.5}
+      mouseLeaveDelay={0}
+    >
       <div className={styles.header}>
         {name || column.id} {column.isRequired && "* "}
         {column.isSorted && (
