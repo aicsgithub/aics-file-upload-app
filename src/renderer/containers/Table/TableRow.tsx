@@ -1,13 +1,23 @@
+import classNames from "classnames";
 import { isEqual } from "lodash";
 import * as React from "react";
+import {
+  Draggable,
+  DraggableStateSnapshot,
+  DraggableProvided,
+} from "react-beautiful-dnd";
 import { Row } from "react-table";
 import { ListChildComponentProps } from "react-window";
 
 const styles = require("./styles.pcss");
 
+export const DRAG_HANDLER_COLUMN = "--";
+
 interface Props<T extends {}> extends Row<T> {
+  draggableState: DraggableStateSnapshot;
+  draggableProps: DraggableProvided;
   onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
-  rowStyle: any;
+  rowStyle?: React.CSSProperties;
 }
 
 /**
@@ -28,16 +38,35 @@ function TableRow<T extends {}>(props: Props<T>) {
 
   return (
     <div
-      {...props.getRowProps({ style: props.rowStyle })}
-      className={isHighlighted ? styles.highlighted : undefined}
-      key={props.getRowProps().key}
+      {...props.draggableProps.draggableProps}
+      {...props.getRowProps({
+        style: {
+          ...(props.rowStyle || {}),
+          ...props.draggableProps.draggableProps.style,
+        },
+      })}
+      className={classNames(styles.rowStyleDefault, {
+        [styles.highlighted]:
+          isHighlighted ||
+          props.draggableState.isDragging ||
+          !!props.draggableState.combineTargetFor,
+      })}
       onContextMenu={onContextMenu}
+      // Can't seem to make this happy, this appears
+      // to be the same as how it is intended to be used
+      // https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
+      // - Sean M 07/27/21
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      ref={props.draggableProps.innerRef}
     >
       {props.cells.map((cell) => (
         <div
           {...cell.getCellProps()}
           className={styles.tableCell}
           key={cell.getCellProps().key}
+          {...(cell.column.id === DRAG_HANDLER_COLUMN
+            ? props.draggableProps.dragHandleProps
+            : {})}
         >
           {cell.render("Cell")}
         </div>
@@ -59,14 +88,23 @@ const TableRowMemoized = React.memo(
     nextProp.cells.every(
       (cell, index) =>
         !cell.column.isResizing &&
-        isEqual(cell.column, prevProp.cells[index].column)
+        isEqual(cell.column, prevProp.cells[index].column) &&
+        cell.column.id !== DRAG_HANDLER_COLUMN
     )
 ) as typeof TableRow;
 
 interface ItemData<T extends {}> {
-  rows: Row<T>[];
-  prepareRow: (row: Row<T>) => void;
+  draggableState?: DraggableStateSnapshot;
+  draggableProps?: DraggableProvided;
+  dropSourceId?: string;
   onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
+  prepareRow: (row: Row<T>) => void;
+  rows: Row<T>[];
+}
+
+interface TableRowRendererProps
+  extends Omit<ListChildComponentProps<ItemData<any>>, "style"> {
+  style?: React.CSSProperties;
 }
 
 /**
@@ -79,11 +117,41 @@ export default function TableRowRenderer({
   index,
   style,
   data,
-}: ListChildComponentProps<ItemData<any>>) {
-  const { rows, prepareRow, onContextMenu } = data;
+}: TableRowRendererProps) {
+  const { rows, prepareRow } = data;
   const row = rows[index];
   prepareRow(row);
+
+  // If this component is already supplied <Draggable> props/state
+  // then this must be rendering a clone of an exising Draggable
+  if (data.draggableProps && data.draggableState) {
+    return (
+      <TableRowMemoized
+        {...row}
+        rowStyle={style}
+        onContextMenu={data.onContextMenu}
+        draggableState={data.draggableState}
+        draggableProps={data.draggableProps}
+      />
+    );
+  }
+
   return (
-    <TableRowMemoized {...row} rowStyle={style} onContextMenu={onContextMenu} />
+    <Draggable
+      draggableId={row.id}
+      index={row.index}
+      key={row.id}
+      isDragDisabled={!data.dropSourceId}
+    >
+      {(draggableProps, draggableState) => (
+        <TableRowMemoized
+          {...row}
+          rowStyle={style}
+          onContextMenu={data.onContextMenu}
+          draggableState={draggableState}
+          draggableProps={draggableProps}
+        />
+      )}
+    </Draggable>
   );
 }

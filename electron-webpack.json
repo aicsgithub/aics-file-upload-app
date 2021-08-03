@@ -2,5 +2,5 @@
   "renderer": {
     "webpackConfig": "webpack/webpack.renderer.additions.js"
   },
-  "whiteListedModules": ["react-table"]
+  "whiteListedModules": ["react-table", "react-beautiful-dnd"]
 }

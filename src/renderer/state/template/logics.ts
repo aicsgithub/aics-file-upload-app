@@ -26,6 +26,7 @@ import {
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
+  ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
@@ -46,6 +47,7 @@ import {
   ADD_EXISTING_TEMPLATE,
   CREATE_ANNOTATION,
   EDIT_ANNOTATION,
+  ON_TEMPLATE_ANNOTATION_DRAG_END,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
 } from "./constants";
@@ -54,7 +56,12 @@ import {
   getSaveTemplateRequest,
   getTemplateDraft,
 } from "./selectors";
-import { CreateAnnotationAction, EditAnnotationAction } from "./types";
+import {
+  AddExistingAnnotationAction,
+  CreateAnnotationAction,
+  EditAnnotationAction,
+  OnTemplateAnnotationDragEndAction,
+} from "./types";
 
 const createAnnotation = createLogic({
   process: async (
@@ -145,7 +152,7 @@ const editAnnotation = createLogic({
       // Replace old annotation version with new one
       const oldAnnotationIndex = getTemplateDraft(getState()).annotations.find(
         (a) => a.annotationId === action.payload.annotationId
-      )?.index;
+      )?.orderIndex;
       if (oldAnnotationIndex !== undefined) {
         dispatch(removeAnnotations([oldAnnotationIndex]));
       }
@@ -185,22 +192,19 @@ const openTemplateEditorLogic = createLogic({
         dispatch(
           startTemplateDraft(template, {
             ...etc,
-            annotations: annotations.map(
-              (a: TemplateAnnotation, index: number) => {
-                const type = annotationTypes.find(
-                  (t) => t.annotationTypeId === a.annotationTypeId
-                );
-                if (!type) {
-                  throw new Error(`Could not find matching type for annotation named ${a.name},
+            annotations: annotations.map((a: TemplateAnnotation) => {
+              const type = annotationTypes.find(
+                (t) => t.annotationTypeId === a.annotationTypeId
+              );
+              if (!type) {
+                throw new Error(`Could not find matching type for annotation named ${a.name},
                        annotationTypeId: ${a.annotationTypeId}`);
-                }
-                return {
-                  ...a,
-                  annotationTypeName: type.name,
-                  index,
-                };
               }
-            ),
+              return {
+                ...a,
+                annotationTypeName: type.name,
+              };
+            }),
           })
         );
       } catch (e) {
@@ -217,7 +221,10 @@ const openTemplateEditorLogic = createLogic({
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
-    { action, getState }: ReduxLogicTransformDependencies,
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<AddExistingAnnotationAction>,
     next: ReduxLogicNextCb
   ) => {
     const state = getState();
@@ -267,10 +274,9 @@ const addExistingAnnotationLogic = createLogic({
         ...oldAnnotations,
         {
           annotationTypeName: annotationType.name,
-          index: oldAnnotations.length,
+          orderIndex: oldAnnotations.length,
           lookupSchema,
           lookupTable,
-          name,
           required: false,
           ...action.payload,
         },
@@ -297,14 +303,41 @@ const removeAnnotationsLogic = createLogic({
     const { annotations: oldAnnotations } = getTemplateDraft(getState());
     let annotations = [...oldAnnotations];
     annotations = annotations
-      .filter((a) => !includes(action.payload, a.index))
-      .map((a: AnnotationDraft, index: number) => ({
+      .filter((a) => !includes(action.payload, a.orderIndex))
+      .map((a: AnnotationDraft, orderIndex: number) => ({
         ...a,
-        index,
+        orderIndex,
       }));
     next(updateTemplateDraft({ annotations }));
   },
   type: REMOVE_ANNOTATIONS,
+});
+
+const onTemplateAnnotationDragEndLogic = createLogic({
+  transform: (
+    deps: ReduxLogicTransformDependenciesWithAction<
+      OnTemplateAnnotationDragEndAction
+    >,
+    next: ReduxLogicNextCb,
+    reject?: ReduxLogicRejectCb
+  ) => {
+    const result = deps.action.payload;
+    const template = getTemplateDraft(deps.getState());
+    if (!result.destination) {
+      reject && reject(deps.action);
+      return;
+    }
+
+    const annotations = [...template.annotations];
+    const [removedAnnotation] = annotations.splice(result.source.index, 1);
+    annotations.splice(result.destination.index, 0, removedAnnotation);
+    const reorderedAnnotations = annotations.map((annotation, orderIndex) => ({
+      ...annotation,
+      orderIndex,
+    }));
+    next(updateTemplateDraft({ annotations: reorderedAnnotations }));
+  },
+  type: ON_TEMPLATE_ANNOTATION_DRAG_END,
 });
 
 const saveTemplateLogic = createLogic({
@@ -419,7 +452,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
         return {
           ...annotation,
           annotationTypeName: annotationType.name,
-          index: annotationsToKeep.length + index,
+          orderIndex: annotationsToKeep.length + index,
         };
       });
       const annotations: AnnotationDraft[] = [
@@ -450,5 +483,6 @@ export default [
   removeAnnotationsLogic,
   saveTemplateLogic,
   applyExistingTemplateAnnotationsLogic,
+  onTemplateAnnotationDragEndLogic,
   openTemplateEditorLogic,
 ];

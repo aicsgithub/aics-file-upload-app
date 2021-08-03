@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { DropResult } from "react-beautiful-dnd";
 import { AnyAction } from "redux";
 import {
   createSandbox,
@@ -35,12 +36,13 @@ import {
   mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, State } from "../../types";
+import { AnnotationDraft, AsyncRequest, State } from "../../types";
 import {
   addExistingAnnotation,
   addExistingTemplate,
   createAnnotation,
   editAnnotation,
+  onTemplateAnnotationDragEnd,
   removeAnnotations,
   saveTemplate,
   saveTemplateSucceeded,
@@ -48,6 +50,7 @@ import {
   startTemplateDraftFailed,
   updateTemplateDraft,
 } from "../actions";
+import { ON_TEMPLATE_ANNOTATION_DRAG_END } from "../constants";
 import { getTemplateDraft } from "../selectors";
 
 describe("Template Logics", () => {
@@ -114,7 +117,7 @@ describe("Template Logics", () => {
                 ...mockFavoriteColorAnnotation,
                 annotationTypeName: ColumnType.TEXT,
                 required: false,
-                index: 0,
+                orderIndex: 0,
               },
             ],
           })
@@ -163,7 +166,7 @@ describe("Template Logics", () => {
                 ...mockFavoriteColorAnnotation,
                 annotationTypeName: ColumnType.BOOLEAN,
                 required: false,
-                index: 0,
+                orderIndex: 0,
               },
             ],
           },
@@ -201,7 +204,7 @@ describe("Template Logics", () => {
                 ...mockFavoriteColorAnnotation,
                 annotationTypeName: ColumnType.TEXT,
                 required: false,
-                index: 0,
+                orderIndex: 0,
               },
             ],
           })
@@ -324,7 +327,7 @@ describe("Template Logics", () => {
                 annotationId: 1,
                 annotationTypeId: 1,
                 annotationTypeName: ColumnType.TEXT,
-                index: 0,
+                orderIndex: 0,
                 required: false,
                 description: "",
                 name: "",
@@ -334,7 +337,7 @@ describe("Template Logics", () => {
                 annotationId: 2,
                 annotationTypeId: 1,
                 annotationTypeName: ColumnType.TEXT,
-                index: 1,
+                orderIndex: 1,
                 required: false,
                 description: "",
                 name: "",
@@ -344,7 +347,7 @@ describe("Template Logics", () => {
                 annotationId: 3,
                 annotationTypeId: 1,
                 annotationTypeName: ColumnType.TEXT,
-                index: 2,
+                orderIndex: 2,
                 required: false,
                 description: "",
                 name: "",
@@ -361,6 +364,95 @@ describe("Template Logics", () => {
     });
   });
 
+  describe("onTemplateAnnotationDragEndLogic", () => {
+    it("updates template draft", async () => {
+      // Arrange
+      const annotations: AnnotationDraft[] = [
+        "Cell Line",
+        "Cas9",
+        "Notes",
+        "Date",
+      ].map((name, index) => ({
+        ...mockAnnotationDraft,
+        annotationId: index,
+        orderIndex: index,
+        name,
+      }));
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          ...startState.template,
+          draft: {
+            annotations: [annotations[3], ...annotations.slice(0, 3)],
+            name: "My Template",
+          },
+        },
+      });
+      const result: DropResult = {
+        draggableId: "unused",
+        source: {
+          droppableId: "unused",
+          index: 0,
+        },
+        destination: {
+          droppableId: "unused",
+          index: 3,
+        },
+        reason: "DROP",
+        mode: "FLUID",
+        type: "unused",
+      };
+
+      // Act
+      store.dispatch(onTemplateAnnotationDragEnd(result));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          updateTemplateDraft({
+            annotations,
+          })
+        )
+      ).to.be.true;
+    });
+
+    it("does nothing if destination is empty", async () => {
+      // Arrange
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          ...startState.template,
+          draft: {
+            annotations: [mockAnnotationDraft],
+            name: "My Template",
+          },
+        },
+      });
+      const result: DropResult = {
+        draggableId: "unused",
+        source: {
+          droppableId: "unused",
+          index: 0,
+        },
+        reason: "DROP",
+        mode: "FLUID",
+        type: "unused",
+      };
+
+      // Act
+      store.dispatch(onTemplateAnnotationDragEnd(result));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch({
+          type: ON_TEMPLATE_ANNOTATION_DRAG_END,
+        })
+      ).to.be.true;
+    });
+  });
+
   describe("saveTemplateLogic", () => {
     let originalTemplate: Template;
     let stateWithChangedTemplateDraft: State;
@@ -374,6 +466,7 @@ describe("Template Logics", () => {
             annotationTypeId: 1,
             description: "You know what a color is",
             name: "Color",
+            orderIndex: 0,
             required: false,
           },
         ],
@@ -570,7 +663,7 @@ describe("Template Logics", () => {
                 ...mockMMSTemplate.annotations[0],
                 annotationTypeName: ColumnType.TEXT,
                 required: false,
-                index: 0,
+                orderIndex: 0,
               },
             ],
           },
@@ -625,7 +718,7 @@ describe("Template Logics", () => {
           {
             ...mockFavoriteColorTemplateAnnotation,
             annotationTypeName: "Text",
-            index: 0,
+            orderIndex: 0,
           },
         ],
       });

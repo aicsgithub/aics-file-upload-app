@@ -17,6 +17,10 @@ export const REMOVE_ANNOTATIONS = makeConstant(
   BRANCH_NAME,
   "remove-annotations"
 );
+export const ON_TEMPLATE_ANNOTATION_DRAG_END = makeConstant(
+  BRANCH_NAME,
+  "on-row-drag-end"
+);
 export const SAVE_TEMPLATE = makeConstant(BRANCH_NAME, "save-template");
 export const SAVE_TEMPLATE_SUCCEEDED = makeConstant(
   BRANCH_NAME,

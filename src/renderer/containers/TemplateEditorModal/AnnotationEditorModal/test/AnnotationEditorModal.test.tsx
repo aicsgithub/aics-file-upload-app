@@ -35,7 +35,7 @@ describe("<AnnotationEditorModal />", () => {
     // Arrange
     const annotation = {
       ...mockFavoriteColorAnnotation,
-      index: 0,
+      orderIndex: 0,
       required: false,
       annotationTypeName: ColumnType.TEXT,
     };
@@ -58,7 +58,7 @@ describe("<AnnotationEditorModal />", () => {
     // Arrange
     const annotation = {
       ...mockFavoriteColorAnnotation,
-      index: 0,
+      orderIndex: 0,
       required: false,
       annotationTypeName: ColumnType.TEXT,
     };
@@ -101,7 +101,7 @@ describe("<AnnotationEditorModal />", () => {
     // Arrange
     const annotation = {
       ...mockFavoriteColorAnnotation,
-      index: 0,
+      orderIndex: 0,
       required: false,
       annotationTypeName: ColumnType.DATETIME,
     };
@@ -168,7 +168,7 @@ describe("<AnnotationEditorModal />", () => {
     // Arrange
     const annotation = {
       ...mockFavoriteColorAnnotation,
-      index: 0,
+      orderIndex: 0,
       required: false,
       annotationTypeName: ColumnType.DROPDOWN,
     };
@@ -196,7 +196,7 @@ describe("<AnnotationEditorModal />", () => {
     // Arrange
     const annotation = {
       ...mockFavoriteColorAnnotation,
-      index: 0,
+      orderIndex: 0,
       required: false,
       annotationTypeName: ColumnType.LOOKUP,
     };

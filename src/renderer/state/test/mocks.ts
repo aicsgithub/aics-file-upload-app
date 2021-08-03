@@ -67,6 +67,7 @@ export const mockFavoriteColorAnnotation: Annotation = {
 
 export const mockFavoriteColorTemplateAnnotation: TemplateAnnotation = {
   ...mockFavoriteColorAnnotation,
+  orderIndex: 0,
   required: true,
 };
 
@@ -120,7 +121,7 @@ export const mockMMSTemplate: Template = {
 
 export const mockIntervalTemplate: Template = {
   ...mockAuditInfo,
-  annotations: [{ ...mockIntervalAnnotation, required: true }],
+  annotations: [{ ...mockIntervalAnnotation, orderIndex: 0, required: true }],
   name: "Test for Interval",
   templateId: 1,
   version: 1,
@@ -231,6 +232,7 @@ export const mockTextAnnotation: TemplateAnnotation = {
   description: "some description",
   lookupSchema: undefined,
   lookupTable: undefined,
+  orderIndex: 0,
   name: "Another Garbage Text Annotation",
   required: false,
 };
@@ -242,6 +244,7 @@ export const mockDateAnnotation: TemplateAnnotation = {
   description: "dob - for testing",
   lookupSchema: undefined,
   lookupTable: undefined,
+  orderIndex: 1,
   name: "Birth Date",
   required: false,
 };
@@ -253,6 +256,7 @@ export const mockDateTimeAnnotation: TemplateAnnotation = {
   description: "",
   lookupSchema: undefined,
   lookupTable: undefined,
+  orderIndex: 2,
   name: "Seeded On",
   required: false,
 };
@@ -264,6 +268,7 @@ export const mockNumberAnnotation: TemplateAnnotation = {
   description: "for testing number annotations",
   lookupSchema: undefined,
   lookupTable: undefined,
+  orderIndex: 3,
   name: "Clone Number Garbage",
   required: false,
 };
@@ -276,6 +281,7 @@ export const mockLookupAnnotation: TemplateAnnotation = {
   description: "CRISPR associated protein 9",
   lookupSchema: "celllines",
   lookupTable: "cas9",
+  orderIndex: 4,
   name: "Cas9",
   required: false,
 };
@@ -288,6 +294,7 @@ export const mockDropdownAnnotation: TemplateAnnotation = {
   description: "test",
   lookupSchema: undefined,
   lookupTable: undefined,
+  orderIndex: 5,
   name: "Dropdown",
   required: false,
 };
@@ -299,6 +306,7 @@ export const mockBooleanAnnotation: TemplateAnnotation = {
   description: "Is this image related to QC of a gene-edited line?",
   lookupSchema: undefined,
   lookupTable: undefined,
+  orderIndex: 6,
   name: "Qc",
   required: false,
 };
@@ -320,6 +328,7 @@ export const mockTemplateWithManyValues: Template = {
       description:
         "A well on a plate (that has been entered into the Plate UI)",
       name: "Well Ids",
+      orderIndex: 7,
       required: false,
     },
     {
@@ -329,6 +338,7 @@ export const mockTemplateWithManyValues: Template = {
       description:
         "Additional information that doesn't align well with other annotations",
       name: AnnotationName.NOTES,
+      orderIndex: 8,
       required: true,
     },
   ],
@@ -532,7 +542,7 @@ export const mockAnnotationDraft: AnnotationDraft = {
   annotationTypeId: 1,
   annotationTypeName: "Text",
   description: "You know what a color is",
-  index: 0,
+  orderIndex: 0,
   name: "Color",
   required: false,
   ...mockAuditInfo,

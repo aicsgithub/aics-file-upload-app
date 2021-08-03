@@ -1582,7 +1582,6 @@ describe("Upload logics", () => {
             annotations: [
               {
                 ...mockDateAnnotation,
-                canHaveManyValues: false,
               },
             ],
           },

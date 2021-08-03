@@ -1,3 +1,5 @@
+import { DropResult } from "react-beautiful-dnd";
+
 import { PREFERRED_TEMPLATE_ID } from "../../../shared/constants";
 import { Annotation } from "../../services/labkey-client/types";
 import {
@@ -12,6 +14,7 @@ import {
   CLEAR_TEMPLATE_DRAFT,
   CREATE_ANNOTATION,
   EDIT_ANNOTATION,
+  ON_TEMPLATE_ANNOTATION_DRAG_END,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
@@ -26,6 +29,7 @@ import {
   ClearTemplateDraftAction,
   CreateAnnotationAction,
   EditAnnotationAction,
+  OnTemplateAnnotationDragEndAction,
   RemoveAnnotationsAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
@@ -82,6 +86,15 @@ export function removeAnnotations(indexes: number[]): RemoveAnnotationsAction {
   return {
     payload: indexes,
     type: REMOVE_ANNOTATIONS,
+  };
+}
+
+export function onTemplateAnnotationDragEnd(
+  result: DropResult
+): OnTemplateAnnotationDragEndAction {
+  return {
+    payload: result,
+    type: ON_TEMPLATE_ANNOTATION_DRAG_END,
   };
 }
 

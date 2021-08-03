@@ -61,7 +61,7 @@ export const useDisplayValue = (value?: ColumnValue, type?: ColumnType) =>
         ).trim();
       }
       default:
-        return value.join(", ");
+        return Array.isArray(value) ? value.join(", ") : value;
     }
   }, [value, type]);
 

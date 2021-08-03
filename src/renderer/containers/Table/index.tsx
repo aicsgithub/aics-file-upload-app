@@ -1,5 +1,7 @@
 import classNames from "classnames";
+import { noop, uniqueId } from "lodash";
 import * as React from "react";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
 import { Row, TableInstance } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
@@ -12,6 +14,10 @@ interface Props<T extends {}> {
   className?: string;
   tableInstance: TableInstance<T>;
   onContextMenu?: (row: Row<T>, onCloseCallback: () => void) => void;
+  dragAndDropOptions?: {
+    id: string;
+    onRowDragEnd: (result: DropResult) => void;
+  };
 }
 
 // From https://davidwalsh.name/detect-scrollbar-width
@@ -77,19 +83,57 @@ export default function Table<T extends {}>(props: Props<T>) {
         ))}
       </div>
       <div className={styles.tableBody} {...tableInstance.getTableBodyProps()}>
-        <AutoSizer disableWidth>
-          {({ height }) => (
-            <FixedSizeList
-              height={height}
-              itemData={{ rows, prepareRow, onContextMenu }}
-              itemCount={tableInstance.rows.length}
-              itemSize={35}
-              width={tableInstance.totalColumnsWidth + scrollBarSize}
-            >
-              {TableRow}
-            </FixedSizeList>
-          )}
-        </AutoSizer>
+        <DragDropContext
+          onDragEnd={props.dragAndDropOptions?.onRowDragEnd || noop}
+        >
+          <Droppable
+            // Droppable ID uniqueId() scenario will be effectively unused
+            // since drop is disabled when id is not given to this component
+            droppableId={props.dragAndDropOptions?.id || uniqueId()}
+            isDropDisabled={!props.dragAndDropOptions}
+            mode="virtual"
+            renderClone={(draggableProps, draggableState, rubric) => (
+              <TableRow
+                index={rubric.source.index}
+                data={{
+                  rows,
+                  prepareRow,
+                  onContextMenu,
+                  draggableProps,
+                  draggableState,
+                  dropSourceId: props.dragAndDropOptions?.id,
+                }}
+              />
+            )}
+          >
+            {(droppable) => (
+              <AutoSizer disableWidth defaultWidth={1} defaultHeight={1}>
+                {({ height }) => (
+                  <FixedSizeList
+                    height={height}
+                    itemData={{
+                      rows,
+                      prepareRow,
+                      onContextMenu,
+                      dropSourceId: props.dragAndDropOptions?.id,
+                    }}
+                    itemCount={tableInstance.rows.length}
+                    itemSize={35}
+                    // Can't seem to make this happy, this appears
+                    // to be the same as how it is intended to be used
+                    // https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
+                    // - Sean M 07/27/21
+                    // eslint-disable-next-line @typescript-eslint/unbound-method
+                    outerRef={droppable.innerRef}
+                    width={tableInstance.totalColumnsWidth + scrollBarSize}
+                  >
+                    {TableRow}
+                  </FixedSizeList>
+                )}
+              </AutoSizer>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
       {!!tableInstance.filteredRows &&
         tableInstance.filteredRows.length !==
