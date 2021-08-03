@@ -36,9 +36,23 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
 
   let content: React.ReactNode;
   if (JSSJobStatus.SUCCEEDED === props.value) {
-    content = (
-      <Icon className={styles.success} type="check-circle" theme="filled" />
-    );
+    if (
+      props.row.original.serviceFields?.postUploadProcessing?.etl?.status !==
+      JSSJobStatus.SUCCEEDED
+    ) {
+      tooltip = `${tooltip} - Unable to verify file is viewable within the explorer, *may* be awaiting post-upload processing`;
+      content = (
+        <Icon
+          className={styles.success}
+          type="question-circle"
+          theme="filled"
+        />
+      );
+    } else {
+      content = (
+        <Icon className={styles.success} type="check-circle" theme="filled" />
+      );
+    }
   } else if (JSSJobStatus.FAILED === props.value) {
     content = (
       <Icon className={styles.failed} type="close-circle" theme="filled" />

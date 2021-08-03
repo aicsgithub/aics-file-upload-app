@@ -4,7 +4,6 @@ import { createSelector } from "reselect";
 import {
   IN_PROGRESS_STATUSES,
   JSSJob,
-  JSSJobStatus,
   UploadStage,
 } from "../../services/job-status-client/types";
 import { UploadServiceFields } from "../../services/types";
@@ -49,14 +48,6 @@ export const getUploadsByTemplateUsage = createSelector(
       .forEach((job) => {
         const upload: UploadSummaryTableRow = {
           ...job,
-          // If the upload job is marked as complete, but the etl has not yet succeeded consider
-          // the status to be waiting
-          status:
-            job.status === JSSJobStatus.SUCCEEDED &&
-            job.serviceFields?.postUploadProcessing?.etl?.status !==
-              JSSJobStatus.SUCCEEDED
-              ? JSSJobStatus.WAITING
-              : job.status,
           created: new Date(job.created),
           modified: new Date(job.modified),
           progress: jobIdToCopyProgress[job.jobId],
