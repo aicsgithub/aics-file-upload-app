@@ -1,5 +1,10 @@
 # Version Notes
 
+## 2.5.0 (08/03/21)
+- Feature: Revamp upload table to provide users with more control and flexibility in viewing them
+- Feature: "Easy upload", users can now postpone adding metadata to an upload by uploading without one
+- Bugfix: Various bugs fixed with virtualizing long tables
+
 ## 2.4.1 (07/12/21)
 - Bugfix: Fixed issue with incorrectly formatted file paths when uploading from Windows
 
