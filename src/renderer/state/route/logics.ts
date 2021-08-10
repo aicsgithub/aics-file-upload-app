@@ -240,7 +240,7 @@ function convertUploadRequestsToUploadStateBranch(
         let values: any[] = annotation.values;
         switch (annotationDefinition["annotationTypeId/Name"]) {
           case ColumnType.BOOLEAN:
-            values = values.map((v) => Boolean(v));
+            values = values.map((v) => `${v}`.toLowerCase() === "true");
             break;
           case ColumnType.DATE:
           case ColumnType.DATETIME:
