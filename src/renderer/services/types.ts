@@ -1,5 +1,7 @@
 import { AxiosRequestConfig } from "axios";
 
+import { JSSJobStatus } from "./job-status-client/types";
+
 export interface HeaderMap {
   [key: string]: string;
 }
@@ -139,4 +141,18 @@ export interface UploadServiceFields extends BaseServiceFields {
   // Tracks how many bytes have been processed by FSS during its copy and MD5
   // calculation step. This field is populated by FSS.
   fssBytesProcessed?: number;
+
+  // This object is filled in by processes [services] that run after the initial upload
+  // upload clients like this one can gain insight into processes run on the file
+  // after upload, for example the FMS Mongo ETL. Property added after 08/02/21.
+  postUploadProcessing?: {
+    [process: string]: {
+      service: string;
+      status: JSSJobStatus;
+      status_detail?: string;
+      service_fields?: {};
+      created: Date;
+      modified: Date;
+    };
+  };
 }

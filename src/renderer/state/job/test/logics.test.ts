@@ -198,6 +198,28 @@ describe("Job logics", () => {
       ]);
     });
 
+    it("does not dispatch uploadSucceeded if the ETL has not successfully completed", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs,
+        undefined,
+        undefined,
+        false
+      );
+      const action = receiveJobUpdate({
+        ...mockSuccessfulUploadJob,
+        serviceFields: {
+          ...(mockWorkingUploadJob.serviceFields as UploadServiceFields),
+        },
+        jobId: mockWorkingUploadJob.jobId,
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([action]);
+    });
+
     it("dispatches uploadSucceeded if the job is an upload job that succeeded and previously was in progress", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithNonEmptyUploadJobs,

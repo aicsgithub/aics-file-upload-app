@@ -40,9 +40,30 @@ export default function StatusCell(props: CellProps<UploadSummaryTableRow>) {
 
   let content: React.ReactNode;
   if (JSSJobStatus.SUCCEEDED === props.value) {
-    content = (
-      <Icon className={styles.success} type="check-circle" theme="filled" />
-    );
+    if (
+      props.row.original.serviceFields?.postUploadProcessing?.etl?.status ===
+      JSSJobStatus.SUCCEEDED
+    ) {
+      content = (
+        <Icon className={styles.success} type="check-circle" theme="filled" />
+      );
+    } else {
+      if (
+        props.row.original.serviceFields?.postUploadProcessing?.etl?.status ===
+        JSSJobStatus.FAILED
+      ) {
+        tooltip = `${tooltip} - File has been successfully uploaded to FMS, but may not be viewable in the FMS File Explorer. Attempt to make it visible in the FMS Explorer resulted in the following error: ${props.row.original.serviceFields?.postUploadProcessing?.etl?.status_detail}`;
+      } else {
+        tooltip = `${tooltip} - File has been successfully uploaded; working on making it visible in the FMS File Explorer if it isn't already`;
+      }
+      content = (
+        <Icon
+          className={styles.success}
+          type="question-circle"
+          theme="filled"
+        />
+      );
+    }
   } else if (JSSJobStatus.FAILED === props.value) {
     content = (
       <Icon className={styles.failed} type="close-circle" theme="filled" />
